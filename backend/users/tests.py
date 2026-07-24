@@ -67,3 +67,57 @@ class RegisterAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEqual(User.objects.count(), 1)
         self.assertIn("email", response.data)
+        
+class LoginAPITests(APITestCase):
+    # Test the token-based login endpoint.
+    
+    def setUp(self):
+        self.url = reverse("users:login")
+        self.password = "SecureTestPassword123!"
+
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = self.password,
+        )
+
+    def test_user_can_login_with_valid_credentials(self):
+        response = self.client.post(
+            self.url,
+            {
+                "username": "testuser",
+                "password": self.password,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn("token", response.data)
+        self.assertEqual(response.data["user"]["username"], "testuser")
+        self.assertEqual(response.data["user"]["email"], "test@example.com")
+
+    def test_login_rejects_invalid_password(self):
+        response = self.client.post(
+            self.url,
+            {
+                "username": "testuser",
+                "password": "WrongPassword123!",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
+
+    def test_login_rejects_unknown_username(self):
+        response = self.client.post(
+            self.url,
+            {
+                "username": "unknownuser",
+                "password": self.password,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertNotIn("token", response.data)
