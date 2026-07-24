@@ -1,6 +1,6 @@
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -38,6 +38,23 @@ class LoginView(APIView):
                     "username": user.username,
                     "email": user.email,
                 },
+            },
+            status = status.HTTP_200_OK,
+        )
+        
+class LogoutView(APIView):
+    # Delete the authenticated user's token and the API session.
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        # Remove the token used for the current authnticated request.
+        
+        request.auth.delete()
+        
+        return Response(
+            {
+                "message": "Successfully logged out."
             },
             status = status.HTTP_200_OK,
         )

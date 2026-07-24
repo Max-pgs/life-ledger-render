@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework.authtoken.models import Token
 
 User = get_user_model()
 
@@ -73,7 +74,7 @@ class LoginAPITests(APITestCase):
     
     def setUp(self):
         self.url = reverse("users:login")
-        self.password = "SecureTestPassword123!"
+        self.password = "SecureTestPassword1!"
 
         self.user = User.objects.create_user(
             username = "testuser",
@@ -101,7 +102,7 @@ class LoginAPITests(APITestCase):
             self.url,
             {
                 "username": "testuser",
-                "password": "WrongPassword123!",
+                "password": "WrongPassword1!",
             },
             format = "json",
         )
@@ -121,3 +122,77 @@ class LoginAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertNotIn("token", response.data)
+        
+class LogoutAPITests(APITestCase):
+    # Test the token-based logout endpoint.
+    
+    def setUp(self):
+        self.url = reverse("users:logout")
+
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword1!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+        
+    def test_authenticated_user_can_logout(self):
+        # An authenticated logout request should delete the user's token.
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data["message"],
+            "Successfully logged out.",
+        )
+        self.assertFalse(
+            Token.objects.filter(user = self.user).exists()
+        )
+    
+    def test_logged_out_token_can_no_longer_be_used(self):
+        # A deleted token should not authenticate subsequent requests.
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+        first_response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        second_response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            second_response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        
+    def test_logout_rejects_unauthenticated_request(self):
+        # Anonymous users should not be able to access logout.
+        
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
