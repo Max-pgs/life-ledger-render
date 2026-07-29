@@ -1,10 +1,51 @@
 from django.conf import settings
 from django.db import models
 
+class Category(models.Model):
+    # A reusable category for organising life-admin commitments.
+    
+    name = models.CharField(
+        max_length = 100,
+        unique = True,
+    )
+    
+    description = models.TextField(
+        blank = True,
+    )
+    
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "categories"
+        
+    def __str__(self):
+        return self.name
+    
+class Status(models.Model):
+    # A reusable lifecucle status for comitments records.
+    
+    name = models.CharField(
+        max_length = 100,
+        unique = True,
+    )
+    
+    description = models.TextField(
+        blank = True,
+    )
+    
+    class Meta:
+        ordering = ["name"]
+        verbose_name_plural = "statuses"
+        
+    def __str__(self):
+        return self.name
+
 class Commitment(models.Model):
     # A personal life-admin commitment owned by one authenticated user.
-    # Additional structured fields such as category, provider, dates,
-    # priority and status will be introduced in later user stories.
+    
+    class Priority(models.TextChoices):
+        LOW = "low", "Low"
+        MEDIUM = "medium", "Medium"
+        HIGH = "high", "High"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -12,17 +53,67 @@ class Commitment(models.Model):
         related_name = "commitments",
     )
     
-    title = models.CharField(max_length = 200)
+    category = models.ForeignKey(
+        Category,
+        on_delete = models.SET_NULL,
+        null = True,
+        blank = True,
+        related_name = "commitments",
+    )
     
-    notes = models.TextField(blank = True)
+    status = models.ForeignKey(
+        Status,
+        on_delete = models.SET_NULL,
+        null = True,
+        blank = True,
+        related_name = "commitments",
+    )
     
-    is_archived = models.BooleanField(default = False)
+    title = models.CharField(
+        max_length = 200,
+    )
     
-    archived_at = models.DateTimeField(null = True, blank = True)
+    provider_name = models.CharField(
+        max_length = 200,
+        blank = True,
+    )
     
-    created_at = models.DateTimeField(auto_now = True)
+    due_date = models.DateField(
+        null = True,
+        blank = True,
+    )
     
-    updated_at = models.DateTimeField(auto_now = True)
+    renewal_date = models.DateField(
+        null = True,
+        blank = True,
+    )
+    
+    priority = models.CharField(
+        max_length = 10,
+        choices = Priority.choices,
+        default = Priority.MEDIUM,
+    )
+    
+    notes = models.TextField(
+        blank = True
+    )
+    
+    is_archived = models.BooleanField(
+        default = False,
+    )
+    
+    archived_at = models.DateTimeField(
+        null = True, 
+        blank = True,
+    )
+    
+    created_at = models.DateTimeField(
+        auto_now = True,
+    )
+    
+    updated_at = models.DateTimeField(
+        auto_now = True,
+    )
     
     class Meta:
         ordering = ["-created_at"]

@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .models import Commitment
+from .models import Category, Commitment, Status
 
 User = get_user_model()
 
@@ -621,4 +621,231 @@ class CommitmentArchiveAPITests(APITestCase):
         self.assertEqual(
             second_response.status_code,
             status.HTTP_404_NOT_FOUND,
+        )
+        
+class CommitmentStructuredDetailsAPITests(APITestCase):
+    # Test structured commitment fields introduced for US8.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.category = Category.objects.create(
+            name = "Household Bills",
+            description = "Regular household payments.",
+        )
+
+        self.status = Status.objects.create(
+            name = "Active",
+            description = "The commitment is currently active.",
+        )
+
+        self.list_url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+        self.valid_payload = {
+            "title": "Council Tax",
+            "category_id": self.category.id,
+            "provider_name": "Edinburgh Council",
+            "due_date": "2026-08-15",
+            "renewal_date": "2027-04-01",
+            "priority": "high",
+            "status_id": self.status.id,
+            "notes": "Monthly council tax commitment.",
+        }
+
+    def authenticate(self):
+        # Authenticate requests using the current user's token.
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_user_can_create_commitment_with_structured_details(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.list_url,
+            self.valid_payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        commitment = Commitment.objects.get()
+
+        self.assertEqual(
+            commitment.category,
+            self.category,
+        )
+        self.assertEqual(
+            commitment.provider_name,
+            "Edinburgh Council",
+        )
+        self.assertEqual(
+            str(commitment.due_date),
+            "2026-08-15",
+        )
+        self.assertEqual(
+            str(commitment.renewal_date),
+            "2027-04-01",
+        )
+        self.assertEqual(
+            commitment.priority,
+            Commitment.Priority.HIGH,
+        )
+        self.assertEqual(
+            commitment.status,
+            self.status,
+        )
+
+    def test_structured_details_are_returned_in_api_response(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.list_url,
+            self.valid_payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.data["category"]["name"],
+            "Household Bills",
+        )
+        self.assertEqual(
+            response.data["status"]["name"],
+            "Active",
+        )
+        self.assertEqual(
+            response.data["provider_name"],
+            "Edinburgh Council",
+        )
+        self.assertEqual(
+            response.data["priority"],
+            "high",
+        )
+
+    def test_user_can_update_structured_commitment_details(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Council Tax",
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "category_id": self.category.id,
+                "provider_name": "Edinburgh Council",
+                "priority": "high",
+                "status_id": self.status.id,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.category,
+            self.category,
+        )
+        self.assertEqual(
+            commitment.provider_name,
+            "Edinburgh Council",
+        )
+        self.assertEqual(
+            commitment.priority,
+            Commitment.Priority.HIGH,
+        )
+        self.assertEqual(
+            commitment.status,
+            self.status,
+        )
+
+    def test_invalid_priority_is_rejected(self):
+        self.authenticate()
+
+        payload = self.valid_payload.copy()
+        payload["priority"] = "urgent"
+
+        response = self.client.post(
+            self.list_url,
+            payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertIn(
+            "priority",
+            response.data,
+        )
+
+    def test_unknown_category_is_rejected(self):
+        self.authenticate()
+
+        payload = self.valid_payload.copy()
+        payload["category_id"] = 999999
+
+        response = self.client.post(
+            self.list_url,
+            payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertIn(
+            "category_id",
+            response.data,
+        )
+
+    def test_invalid_date_format_is_rejected(self):
+        self.authenticate()
+
+        payload = self.valid_payload.copy()
+        payload["due_date"] = "15-08-2026"
+
+        response = self.client.post(
+            self.list_url,
+            payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertIn(
+            "due_date",
+            response.data,
         )
