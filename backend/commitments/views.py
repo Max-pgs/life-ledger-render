@@ -19,3 +19,16 @@ class CommitmentListCreateView(generics.ListCreateAPIView):
         # Attach a new commitment to the authenticated user.
         
         serializer.save(user = self.request.user)
+        
+class CommitmentDetailView(generics.RetrieveUpdateAPIView):
+    # Allow an authenticated user to view or update one commitment.
+    
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Restrict access to commitments owned by the current user.
+        
+        return Commitment.objects.filter(
+            user = self.request.user,
+        )

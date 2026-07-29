@@ -255,3 +255,184 @@ class CommitmentListAPITests(APITestCase):
             response.data[1]["id"],
             self.user_commitment_one.id,
         )
+        
+class CommitmentUpdateAPITests(APITestCase):
+    # Test retrieval and updating of individual commitments.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otheruser",
+            email = "other@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Old Council Tax",
+            notes = "Old notes.",
+        )
+
+        self.other_user_commitment = Commitment.objects.create(
+            user = self.other_user,
+            title = "Private commitment",
+            notes = "Must remain inaccessible.",
+        )
+
+        self.url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": self.commitment.pk},
+        )
+
+    def authenticate(self):
+        # Authenticate API requests with the current user's token.
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_view_own_commitment(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data["title"],
+            "Old Council Tax",
+        )
+
+    def test_authenticated_user_can_partially_update_commitment(self):
+        self.authenticate()
+
+        response = self.client.patch(
+            self.url,
+            {
+                "title": "Updated Council Tax",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.commitment.refresh_from_db()
+
+        self.assertEqual(
+            self.commitment.title,
+            "Updated Council Tax",
+        )
+        self.assertEqual(
+            self.commitment.notes,
+            "Old notes.",
+        )
+
+    def test_authenticated_user_can_fully_update_commitment(self):
+        self.authenticate()
+
+        response = self.client.put(
+            self.url,
+            {
+                "title": "Updated Council Tax",
+                "notes": "Updated notes.",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.commitment.refresh_from_db()
+
+        self.assertEqual(
+            self.commitment.title,
+            "Updated Council Tax",
+        )
+        self.assertEqual(
+            self.commitment.notes,
+            "Updated notes.",
+        )
+
+    def test_user_cannot_update_another_users_commitment(self):
+        self.authenticate()
+
+        other_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": self.other_user_commitment.pk},
+        )
+
+        response = self.client.patch(
+            other_url,
+            {
+                "title": "Unauthorised update",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        self.other_user_commitment.refresh_from_db()
+
+        self.assertEqual(
+            self.other_user_commitment.title,
+            "Private commitment",
+        )
+
+    def test_unauthenticated_user_cannot_update_commitment(self):
+        response = self.client.patch(
+            self.url,
+            {
+                "title": "Unauthorised update",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_update_rejects_blank_title(self):
+        self.authenticate()
+
+        response = self.client.patch(
+            self.url,
+            {
+                "title": "   ",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.commitment.refresh_from_db()
+
+        self.assertEqual(
+            self.commitment.title,
+            "Old Council Tax",
+        )
