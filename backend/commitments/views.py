@@ -2,11 +2,20 @@ from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Commitment
-from .serializers import CommitmentCreateSerializer
+from .serializers import CommitmentSerializer
 
-class CommitmentCreateView(generics.CreateAPIView):
-    # Allow an authenticated user to create a personal commitment.
+class CommitmentListCreateView(generics.ListCreateAPIView):
+    # Allow authenticated users to create and view their commitments.
     
-    queryset = Commitment.objects.all()
-    serializer_class = CommitmentCreateSerializer
+    serializer_class = CommitmentSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Return only commitments owned by the authenticated user.
+        
+        return Commitment.objects.filter(user = self.request.user)
+    
+    def perform_create(self, serializer):
+        # Attach a new commitment to the authenticated user.
+        
+        serializer.save(user = self.request.user)

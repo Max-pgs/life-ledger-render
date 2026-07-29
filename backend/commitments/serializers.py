@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from .models import Commitment
 
-class CommitmentCreateSerializer(serializers.ModelSerializer):
+class CommitmentSerializer(serializers.ModelSerializer):
     # Validate and create a basic personal commitment.
     
     class Meta:
@@ -30,12 +30,3 @@ class CommitmentCreateSerializer(serializers.ModelSerializer):
         
         return cleaned_title
     
-    def create(self, validated_data):
-        # Attach the commitment to the authenticated user.
-        
-        request = self.context["request"]
-        
-        return Commitment.objects.create (
-            user = request.user,
-            **validated_data,
-        )

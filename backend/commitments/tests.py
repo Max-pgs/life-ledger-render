@@ -12,7 +12,7 @@ class CommitmentCreateAPITests(APITestCase):
     # Test creation of personal commitment records.
     
     def setUp(self):
-        self.url = reverse("commitments:commitment-create")
+        self.url = reverse("commitments:commitment-list-create")
 
         self.user = User.objects.create_user(
             username = "testuser",
@@ -125,4 +125,133 @@ class CommitmentCreateAPITests(APITestCase):
         self.assertIn(
             "title",
             response.data,
+        )
+        
+class CommitmentListAPITests(APITestCase):
+    # Test retrieval of user-specific commitment records.
+
+    def setUp(self):
+        self.url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otheruser",
+            email = "other@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.user_commitment_one = Commitment.objects.create(
+            user = self.user,
+            title = "Council Tax",
+            notes = "Monthly household commitment.",
+        )
+
+        self.user_commitment_two = Commitment.objects.create(
+            user = self.user,
+            title = "Broadband",
+            notes = "Internet contract.",
+        )
+
+        self.other_user_commitment = Commitment.objects.create(
+            user = self.other_user,
+            title = "Private commitment",
+            notes = "This must not be visible.",
+        )
+
+    def authenticate(self):
+        # Authenticate requests using the current user's token.
+        
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_view_own_commitments(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            len(response.data),
+            2,
+        )
+
+        returned_titles = {
+            commitment["title"]
+            for commitment in response.data
+        }
+
+        self.assertIn(
+            "Council Tax",
+            returned_titles,
+        )
+
+        self.assertIn(
+            "Broadband",
+            returned_titles,
+        )
+
+    def test_user_cannot_view_another_users_commitments(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_titles = {
+            commitment["title"]
+            for commitment in response.data
+        }
+
+        self.assertNotIn(
+            "Private commitment",
+            returned_titles,
+        )
+
+    def test_unauthenticated_user_cannot_view_commitments(self):
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_commitments_are_returned_in_newest_first_order(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.data[0]["id"],
+            self.user_commitment_two.id,
+        )
+
+        self.assertEqual(
+            response.data[1]["id"],
+            self.user_commitment_one.id,
         )

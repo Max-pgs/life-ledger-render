@@ -1,13 +1,13 @@
 from django.urls import path
 
-from .views import CommitmentCreateView
+from .views import CommitmentListCreateView
 
 app_name = "commitments"
 
 urlpatterns = [
     path(
         "",
-        CommitmentCreateView.as_view(),
-        name = "commitment-create",
+        CommitmentListCreateView.as_view(),
+        name = "commitment-list-create",
     )
 ]
