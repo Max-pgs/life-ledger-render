@@ -436,3 +436,189 @@ class CommitmentUpdateAPITests(APITestCase):
             self.commitment.title,
             "Old Council Tax",
         )
+        
+class CommitmentArchiveAPITests(APITestCase):
+    # Test safe archival of commitment records.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otheruser",
+            email = "other@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Old Subscription",
+            notes = "No longer required.",
+        )
+
+        self.other_user_commitment = Commitment.objects.create(
+            user = self.other_user,
+            title = "Private commitment",
+            notes = "Must remain unchanged.",
+        )
+
+        self.url = reverse(
+            "commitments:commitment-archive",
+            kwargs = {"pk": self.commitment.pk},
+        )
+
+        self.list_url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+    def authenticate(self):
+        # Authenticate requests using the current user's token.
+    
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_archive_own_commitment(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["message"],
+            "Commitment archived successfully.",
+        )
+
+        self.commitment.refresh_from_db()
+
+        self.assertTrue(
+            self.commitment.is_archived,
+        )
+
+        self.assertIsNotNone(
+            self.commitment.archived_at,
+        )
+
+    def test_archived_commitment_is_removed_from_active_list(self):
+        self.authenticate()
+
+        self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        response = self.client.get(
+            self.list_url,
+            format = "json",
+        )
+
+        returned_ids = {
+            commitment["id"]
+            for commitment in response.data
+        }
+
+        self.assertNotIn(
+            self.commitment.id,
+            returned_ids,
+        )
+
+    def test_archived_commitment_is_not_available_from_active_detail(self):
+        self.authenticate()
+
+        self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": self.commitment.pk},
+        )
+
+        response = self.client.get(
+            detail_url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+    def test_user_cannot_archive_another_users_commitment(self):
+        self.authenticate()
+
+        other_url = reverse(
+            "commitments:commitment-archive",
+            kwargs = {"pk": self.other_user_commitment.pk},
+        )
+
+        response = self.client.post(
+            other_url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
+
+        self.other_user_commitment.refresh_from_db()
+
+        self.assertFalse(
+            self.other_user_commitment.is_archived,
+        )
+
+    def test_unauthenticated_user_cannot_archive_commitment(self):
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+        self.commitment.refresh_from_db()
+
+        self.assertFalse(
+            self.commitment.is_archived,
+        )
+
+    def test_commitment_cannot_be_archived_twice(self):
+        self.authenticate()
+
+        first_response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        second_response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            second_response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )

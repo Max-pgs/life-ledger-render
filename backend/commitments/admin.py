@@ -10,8 +10,14 @@ class CommitmentAdmin(admin.ModelAdmin):
         "id",
         "title",
         "user",
+        "is_archived",
+        "archived_at",
         "created_at",
         "updated_at",
+    )
+    
+    list_filter = (
+        "is_archived",
     )
     
     search_fields = (

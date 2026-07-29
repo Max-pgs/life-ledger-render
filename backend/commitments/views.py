@@ -1,4 +1,7 @@
-from rest_framework import generics
+from django.utils import timezone
+from rest_framework import generics, status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
 from .models import Commitment
@@ -13,7 +16,10 @@ class CommitmentListCreateView(generics.ListCreateAPIView):
     def get_queryset(self):
         # Return only commitments owned by the authenticated user.
         
-        return Commitment.objects.filter(user = self.request.user)
+        return Commitment.objects.filter(
+            user = self.request.user,
+            is_archived = False,
+        ).order_by("-created_at")
     
     def perform_create(self, serializer):
         # Attach a new commitment to the authenticated user.
@@ -27,8 +33,50 @@ class CommitmentDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
-        # Restrict access to commitments owned by the current user.
+        # Restrict access to active commitments owned by the current user.
         
         return Commitment.objects.filter(
             user = self.request.user,
+            is_archived = False,
+        )
+        
+class CommitmentArchiveView(APIView):
+    # Archive an active commitment owned by the authenticated user.
+    
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, pk):
+        # Mark the commitment as archived instead of deleting it.
+        
+        try:
+            commitment = Commitment.objects.get(
+                pk = pk,
+                user = request.user,
+                is_archived = False,
+            )
+        except Commitment.DoesNotExist:
+            return Response(
+                {
+                    "detail": "Commitment not found."
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+            
+        commitment.is_archived = True
+        commitment.archived_at = timezone.now()
+        
+        commitment.save(
+            update_fields = [
+                "is_archived",
+                "archived_at",
+                "updated_at",
+            ]
+        )
+        
+        return Response(
+            {
+                "message": "Commitment archived successfully.",
+                "id": commitment.id,
+            },
+            status = status.HTTP_200_OK,
         )

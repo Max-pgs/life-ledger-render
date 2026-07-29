@@ -11,11 +11,15 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "notes",
+            "is_archived",
+            "archived_at",
             "created_at",
             "updated_at",
         )
         read_only_fields = (
             "id",
+            "is_archived",
+            "archived_at",
             "created_at",
             "updated_at",
         )
