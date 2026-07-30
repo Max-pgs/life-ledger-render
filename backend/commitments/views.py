@@ -6,8 +6,8 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 
-from .models import Commitment, CommitmentGroup
-from .serializers import CommitmentGroupSerializer, CommitmentSerializer
+from .models import Commitment, CommitmentGroup, CommitmentTemplate
+from .serializers import CommitmentGroupSerializer, CommitmentSerializer, CommitmentTemplateSerializer
 
 class CommitmentListCreateView(generics.ListCreateAPIView):
     # Allow authenticated users to create and view their commitments.
@@ -174,4 +174,20 @@ class ReviewSoonCommitmentListView(generics.ListAPIView):
                 "calculated_cancellation_deadline",
                 "created_at",
             )
+        )
+        
+class CommitmentTemplateListView(generics.ListAPIView):
+    # Return active templates assigned to active commitment groups.
+
+    serializer_class = CommitmentTemplateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            CommitmentTemplate.objects.filter(
+                is_active = True,
+                group__is_active = True,
+            )
+            .select_related("group")
+            .order_by("group__name", "name")
         )

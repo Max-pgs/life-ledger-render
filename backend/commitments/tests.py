@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from datetime import timedelta
 
 
-from .models import CommitmentGroup, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
 
 User = get_user_model()
 
@@ -2300,4 +2300,216 @@ class ReviewSoonCommitmentListAPITests(APITestCase):
         self.assertEqual(
             response.data[1]["cancellation_deadline"],
             (today + timedelta(days = 20)).isoformat(),
+        )
+        
+class CommitmentTemplateListAPITests(APITestCase):
+    # Test read-only access to active commitment templates.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "templateuser",
+            email = "template@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.active_group = CommitmentGroup.objects.create(
+            name = "Household",
+            description = "Household commitments.",
+            information_url = "https://example.com/household/",
+            is_active = True,
+        )
+
+        self.inactive_group = CommitmentGroup.objects.create(
+            name = "Inactive Group",
+            description = "Hidden group.",
+            is_active = False,
+        )
+
+        self.active_template = CommitmentTemplate.objects.create(
+            name = "Council Tax",
+            description = "A common household commitment.",
+            group = self.active_group,
+            default_provider_name = "Local council",
+            default_amount = "150.00",
+            default_payment_frequency = "monthly",
+            default_priority = "high",
+            is_active = True,
+        )
+
+        self.inactive_template = CommitmentTemplate.objects.create(
+            name = "Inactive Template",
+            group = self.active_group,
+            is_active = False,
+        )
+
+        self.hidden_group_template = CommitmentTemplate.objects.create(
+            name = "Hidden Group Template",
+            group = self.inactive_group,
+            is_active = True,
+        )
+
+        self.url = reverse(
+            "commitments:commitment-template-list"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_view_active_templates(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            len(response.data),
+            1,
+        )
+
+        template = response.data[0]
+
+        self.assertEqual(
+            template["name"],
+            "Council Tax",
+        )
+        self.assertEqual(
+            template["description"],
+            "A common household commitment.",
+        )
+        self.assertEqual(
+            template["group"]["name"],
+            "Household",
+        )
+        self.assertEqual(
+            template["default_provider_name"],
+            "Local council",
+        )
+        self.assertEqual(
+            template["default_amount"],
+            "150.00",
+        )
+        self.assertEqual(
+            template["default_payment_frequency"],
+            "monthly",
+        )
+        self.assertEqual(
+            template["default_priority"],
+            "high",
+        )
+
+    def test_inactive_templates_are_not_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_names = {
+            template["name"]
+            for template in response.data
+        }
+
+        self.assertNotIn(
+            "Inactive Template",
+            returned_names,
+        )
+
+    def test_templates_from_inactive_groups_are_not_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_names = {
+            template["name"]
+            for template in response.data
+        }
+
+        self.assertNotIn(
+            "Hidden Group Template",
+            returned_names,
+        )
+
+    def test_unauthenticated_user_cannot_view_templates(self):
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_template_endpoint_does_not_allow_user_creation(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "name": "User-created template",
+                "group": self.active_group.id,
+                "default_priority": "medium",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+        self.assertFalse(
+            CommitmentTemplate.objects.filter(
+                name="User-created template",
+            ).exists()
+        )
+
+    def test_templates_are_ordered_by_group_and_name(self):
+        second_group = CommitmentGroup.objects.create(
+            name = "Subscriptions",
+            is_active = True,
+        )
+
+        second_household_template = CommitmentTemplate.objects.create(
+            name = "Broadband",
+            group = self.active_group,
+            is_active = True,
+        )
+
+        subscription_template = CommitmentTemplate.objects.create(
+            name = "Streaming Service",
+            group = second_group,
+            is_active = True,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            [template["id"] for template in response.data],
+            [
+                second_household_template.id,
+                self.active_template.id,
+                subscription_template.id,
+            ],
         )
