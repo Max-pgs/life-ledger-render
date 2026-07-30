@@ -6,6 +6,7 @@ from .views import (
     CommitmentGroupListView, 
     CommitmentArchiveView,
     UpcomingCommitmentListView,
+    OverdueCommitmentListView,
 )
 
 app_name = "commitments"
@@ -25,6 +26,11 @@ urlpatterns = [
         "upcoming/",
         UpcomingCommitmentListView.as_view(),
         name = "commitment-upcoming",
+    ),
+    path(
+        "ovedue/",
+        OverdueCommitmentListView.as_view(),
+        name = "commitment-overdue",
     ),
     path(
         "<int:pk>/",

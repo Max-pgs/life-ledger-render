@@ -58,6 +58,21 @@ class UpcomingCommitmentListView(generics.ListAPIView):
             due_date__lte = upcoming_limit,
         ).order_by("due_date", "created_at")
         
+class OverdueCommitmentListView(generics.ListAPIView):
+    # Return commitments with due dates earlier than today.
+    
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        today = timezone.localdate()
+        
+        return Commitment.objects.filter(
+            user = self.request.user,
+            is_archived = False,
+            due_date__lt = today,
+        ).order_by("due_date", "created_at")
+        
 class CommitmentArchiveView(APIView):
     # Archive an active commitment owned by the authenticated user.
     
