@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 
-from .models import Commitment
-from .serializers import CommitmentSerializer
+from .models import Commitment, CommitmentGroup
+from .serializers import CommitmentGroupSerializer, CommitmentSerializer
 
 class CommitmentListCreateView(generics.ListCreateAPIView):
     # Allow authenticated users to create and view their commitments.
@@ -79,4 +79,17 @@ class CommitmentArchiveView(APIView):
                 "id": commitment.id,
             },
             status = status.HTTP_200_OK,
+        )
+        
+class CommitmentGroupListView(generics.ListAPIView):
+    # Return active admin-managed commitment groups.
+    
+    serializer_class = CommitmentGroupSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Return only groups currently available to users.
+        
+        return CommitmentGroup.objects.filter(
+            is_active = True,
         )

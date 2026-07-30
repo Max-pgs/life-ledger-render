@@ -1,6 +1,6 @@
 from django.urls import path
 
-from .views import CommitmentListCreateView, CommitmentDetailView, CommitmentArchiveView
+from .views import CommitmentListCreateView, CommitmentDetailView, CommitmentGroupListView, CommitmentArchiveView
 
 app_name = "commitments"
 
@@ -9,6 +9,11 @@ urlpatterns = [
         "",
         CommitmentListCreateView.as_view(),
         name = "commitment-list-create",
+    ),
+    path(
+        "groups/",
+        CommitmentGroupListView.as_view(),
+        name = "commitment-group-list",
     ),
     path(
         "<int:pk>/",

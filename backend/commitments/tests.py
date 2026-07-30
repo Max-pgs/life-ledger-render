@@ -643,7 +643,7 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
                 "Household commitments may include council tax, "
                 "energy, water and broadband."
             ),
-            information_url = "https://www.moneysavingexpert.com/", # As an example for now, will change the website later
+            information_url = "https://www.moneysavingexpert.com/",
         )
 
         self.status = Status.objects.create(
@@ -945,4 +945,103 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         self.assertEqual(
             self.group.information_url,
             "https://www.moneysavingexpert.com/",
+        )
+        
+class CommitmentGroupListAPITests(APITestCase):
+    # Test read-only access to active commitment groups.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.active_group = CommitmentGroup.objects.create(
+            name = "Household",
+            description = "Household-related commitments.",
+            information_url = "https://www.moneysavingexpert.com/", # 
+            is_active = True,
+        )
+
+        self.inactive_group = CommitmentGroup.objects.create(
+            name = "Inactive Group",
+            description = "Hidden from users.",
+            information_url = "https://example.com/",
+            is_active = False,
+        )
+
+        self.url = reverse(
+            "commitments:commitment-group-list"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_view_active_groups(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            len(response.data),
+            1,
+        )
+
+        self.assertEqual(
+            response.data[0]["name"],
+            "Household",
+        )
+
+        self.assertEqual(
+            response.data[0]["description"],
+            "Household-related commitments.",
+        )
+
+        self.assertEqual(
+            response.data[0]["information_url"],
+            "https://www.moneysavingexpert.com/",
+        )
+
+    def test_inactive_groups_are_not_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_names = {
+            group["name"]
+            for group in response.data
+        }
+
+        self.assertNotIn(
+            "Inactive Group",
+            returned_names,
+        )
+
+    def test_unauthenticated_user_cannot_view_groups(self):
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
         )
