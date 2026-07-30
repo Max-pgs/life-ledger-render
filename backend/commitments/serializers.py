@@ -157,3 +157,27 @@ class CommitmentTemplateSerializer(serializers.ModelSerializer):
             "default_payment_frequency",
             "default_priority",
         ]
+        
+class GuidedSetupGroupSerializer(serializers.ModelSerializer):
+    templates = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = CommitmentGroup
+        fields = [
+            "id",
+            "name",
+            "description",
+            "templates",
+        ]
+        
+    def get_templates(self, obj):
+        templates = getattr(
+            obj,
+            "active_templates",
+            [],
+        )
+        
+        return CommitmentTemplateSerializer(
+            templates,
+            many = True,
+        ).data
