@@ -1,4 +1,5 @@
 from django.utils import timezone
+from django.db.models import F
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -125,4 +126,20 @@ class CommitmentGroupListView(generics.ListAPIView):
         
         return CommitmentGroup.objects.filter(
             is_active = True,
+        )
+        
+class HighPriorityCommitmentListView(generics.ListAPIView):
+    # Return active high-priority commitments for the current user.
+    
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        return Commitment.objects.filter(
+            user = self.request.user,
+            is_archived = False,
+            priority = Commitment.Priority.HIGH,
+        ).order_by(
+            F("due_date").asc(nulls_last = True),
+            "created_at",
         )
