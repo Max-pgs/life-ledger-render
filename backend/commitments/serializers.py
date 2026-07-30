@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from datetime import timedelta
 
 from .models import CommitmentGroup, Commitment, Status
 
@@ -31,6 +32,8 @@ class StatusSerializer(serializers.ModelSerializer):
 
 class CommitmentSerializer(serializers.ModelSerializer):
     # Validate and represent a structured personal commitment.
+    
+    cancellation_deadline = serializers.SerializerMethodField()
     
     group = CommitmentGroupSerializer(
         read_only = True,
@@ -69,6 +72,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "payment_status",
             "contract_end_date",
             "notice_period_days",
+            "cancellation_deadline",
             "due_date",
             "renewal_date",
             "priority",
@@ -114,7 +118,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
         return value
     
     def validate_notice_period_days(self, value):
-    # Reject negative notice periods.
+        # Reject negative notice periods.
 
         if value is not None and value < 0:
             raise serializers.ValidationError(
@@ -122,4 +126,19 @@ class CommitmentSerializer(serializers.ModelSerializer):
             )
 
         return value
+    
+    def get_cancellation_deadline(self, obj):
+        # Calculate the final date by which a contract should be cancelled.
+        
+        if (
+            obj.contract_end_date is None
+            or obj.notice_period_days is None
+        ):
+            return None
+        
+        deadline = (
+            obj.contract_end_date - timedelta(days = obj.notice_period_days)
+        )
+        
+        return deadline.isoformat()
         

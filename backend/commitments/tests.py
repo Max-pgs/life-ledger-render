@@ -1935,3 +1935,141 @@ class CommitmentPaymentStatusAPITests(APITestCase):
             response.status_code,
             status.HTTP_404_NOT_FOUND,
         )
+        
+class CommitmentCancellationDeadlineAPITests(APITestCase):
+    # Test cancellation-deadline calculation and API behaviour.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "cancellationuser",
+            email = "cancellation@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_cancellation_deadline_is_calculated(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Broadband contract",
+                "contract_end_date": "2027-06-30",
+                "notice_period_days": 30,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertEqual(
+            response.data["cancellation_deadline"],
+            "2027-05-31",
+        )
+
+    def test_deadline_is_null_without_contract_end_date(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Contract without end date",
+                "notice_period_days": 30,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertIsNone(
+            response.data["cancellation_deadline"],
+        )
+
+    def test_deadline_is_null_without_notice_period(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Contract without notice period",
+                "contract_end_date": "2027-06-30",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertIsNone(
+            response.data["cancellation_deadline"],
+        )
+
+    def test_deadline_is_recalculated_after_update(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Updated contract",
+            contract_end_date = "2027-06-30",
+            notice_period_days = 30,
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "notice_period_days": 60,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data["cancellation_deadline"],
+            "2027-05-01",
+        )
+
+    def test_cancellation_deadline_is_read_only(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Read-only deadline",
+                "contract_end_date": "2027-06-30",
+                "notice_period_days": 30,
+                "cancellation_deadline": "2030-01-01",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertEqual(
+            response.data["cancellation_deadline"],
+            "2027-05-31",
+        )
