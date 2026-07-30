@@ -2073,3 +2073,192 @@ class CommitmentCancellationDeadlineAPITests(APITestCase):
             response.data["cancellation_deadline"],
             "2027-05-31",
         )
+        
+class ReviewSoonCommitmentListAPITests(APITestCase):
+    # Test commitments approaching their cancellation deadline.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "reviewuser",
+            email = "review@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otherreviewuser",
+            email = "otherreview@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse(
+            "commitments:commitment-review-soon"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_only_commitments_with_deadlines_in_next_30_days_are_returned(self):
+        today = timezone.localdate()
+
+        due_today = Commitment.objects.create(
+            user = self.user,
+            title = "Review today",
+            contract_end_date = today + timedelta(days = 30),
+            notice_period_days = 30,
+        )
+
+        due_in_30_days = Commitment.objects.create(
+            user = self.user,
+            title = "Review in 30 days",
+            contract_end_date = today + timedelta(days = 60),
+            notice_period_days = 30,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Deadline already passed",
+            contract_end_date = today + timedelta(days = 20),
+            notice_period_days = 30,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Deadline too far away",
+            contract_end_date = today + timedelta(days = 61),
+            notice_period_days = 30,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Missing notice period",
+            contract_end_date = today + timedelta(days = 20),
+            notice_period_days = None,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Missing contract end date",
+            contract_end_date = None,
+            notice_period_days = 30,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                due_today.id,
+                due_in_30_days.id,
+            ],
+        )
+
+    def test_archived_commitments_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Archived review",
+            contract_end_date = today + timedelta(days = 35),
+            notice_period_days = 30,
+            is_archived = True,
+            archived_at = timezone.now(),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_owned_by_other_users_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.other_user,
+            title = "Other user's review",
+            contract_end_date = today + timedelta(days = 35),
+            notice_period_days = 30,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_are_ordered_by_nearest_cancellation_deadline(self):
+        today = timezone.localdate()
+
+        later = Commitment.objects.create(
+            user = self.user,
+            title = "Review later",
+            contract_end_date = today + timedelta(days = 50),
+            notice_period_days = 30,
+        )
+
+        sooner = Commitment.objects.create(
+            user = self.user,
+            title = "Review sooner",
+            contract_end_date = today + timedelta(days = 35),
+            notice_period_days = 30,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                sooner.id,
+                later.id,
+            ],
+        )
+
+        self.assertEqual(
+            response.data[0]["cancellation_deadline"],
+            (today + timedelta(days = 5)).isoformat(),
+        )
+
+        self.assertEqual(
+            response.data[1]["cancellation_deadline"],
+            (today + timedelta(days = 20)).isoformat(),
+        )
