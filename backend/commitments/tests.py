@@ -1,8 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
+from datetime import timedelta
+
 
 from .models import CommitmentGroup, Commitment, Status
 
@@ -1271,4 +1274,171 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
         self.assertIn(
             "notice_period_days",
             response.data,
+        )
+        
+class UpcomingCommitmentListAPITests(APITestCase):
+    # Test the upcoming commitments endpoint.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "upcominguser",
+            email = "upcoming@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otheruser",
+            email = "other@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user=self.user)
+
+        self.url = reverse(
+            "commitments:commitment-upcoming"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_only_commitments_due_within_next_30_days_are_returned(self):
+        today = timezone.localdate()
+
+        included_today = Commitment.objects.create(
+            user = self.user,
+            title = "Due today",
+            due_date = today,
+        )
+
+        included_later = Commitment.objects.create(
+            user = self.user,
+            title = "Due in 30 days",
+            due_date = today + timedelta(days = 30),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Overdue",
+            due_date = today - timedelta(days=1),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Too far away",
+            due_date = today + timedelta(days=31),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "No due date",
+            due_date = None,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        returned_ids = [
+            item["id"] for item in response.data
+        ]
+
+        self.assertEqual(
+            returned_ids,
+            [
+                included_today.id,
+                included_later.id,
+            ],
+        )
+
+    def test_archived_commitments_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Archived commitment",
+            due_date = today + timedelta(days = 5),
+            is_archived = True,
+            archived_at = timezone.now(),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_owned_by_other_users_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.other_user,
+            title = "Other user's commitment",
+            due_date = today + timedelta(days = 5),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_are_ordered_by_nearest_due_date(self):
+        today = timezone.localdate()
+
+        later = Commitment.objects.create(
+            user = self.user,
+            title = "Later",
+            due_date = today + timedelta(days = 20),
+        )
+
+        sooner = Commitment.objects.create(
+            user = self.user,
+            title = "Sooner",
+            due_date = today + timedelta(days = 3),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                sooner.id,
+                later.id,
+            ],
         )
