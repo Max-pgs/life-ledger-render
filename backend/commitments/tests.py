@@ -1605,3 +1605,160 @@ class OverdueCommitmentListAPITests(APITestCase):
                 recent.id,
             ],
         )
+        
+class HighPriorityCommitmentListAPITests(APITestCase):
+    # Test the high-priority commitments endpoint.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "priorityuser",
+            email = "priority@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otherpriorityuser",
+            email = "otherpriority@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse(
+            "commitments:commitment-high-priority"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_only_high_priority_commitments_are_returned(self):
+        today = timezone.localdate()
+
+        high_priority = Commitment.objects.create(
+            user = self.user,
+            title = "High priority commitment",
+            priority = Commitment.Priority.HIGH,
+            due_date = today + timedelta(days = 5),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Medium priority commitment",
+            priority = Commitment.Priority.MEDIUM,
+            due_date = today + timedelta(days = 3),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Low priority commitment",
+            priority = Commitment.Priority.LOW,
+            due_date = today + timedelta(days = 1),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [high_priority.id],
+        )
+
+    def test_archived_commitments_are_excluded(self):
+        Commitment.objects.create(
+            user = self.user,
+            title = "Archived high priority",
+            priority = Commitment.Priority.HIGH,
+            is_archived = True,
+            archived_at = timezone.now(),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_owned_by_other_users_are_excluded(self):
+        Commitment.objects.create(
+            user = self.other_user,
+            title = "Other user's high priority commitment",
+            priority = Commitment.Priority.HIGH,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_are_ordered_by_nearest_due_date(self):
+        today = timezone.localdate()
+
+        no_due_date = Commitment.objects.create(
+            user = self.user,
+            title = "No due date",
+            priority = Commitment.Priority.HIGH,
+            due_date = None,
+        )
+
+        later = Commitment.objects.create(
+            user = self.user,
+            title = "Later",
+            priority = Commitment.Priority.HIGH,
+            due_date = today + timedelta(days = 20),
+        )
+
+        sooner = Commitment.objects.create(
+            user = self.user,
+            title = "Sooner",
+            priority = Commitment.Priority.HIGH,
+            due_date = today + timedelta(days = 2),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                sooner.id,
+                later.id,
+                no_due_date.id,
+            ],
+        )
