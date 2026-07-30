@@ -1442,3 +1442,166 @@ class UpcomingCommitmentListAPITests(APITestCase):
                 later.id,
             ],
         )
+        
+class OverdueCommitmentListAPITests(APITestCase):
+    # Test the overdue commitments endpoint.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "overdueuser",
+            email = "overdue@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otheroverdueuser",
+            email = "otheroverdue@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse(
+            "commitments:commitment-overdue"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_only_overdue_commitments_are_returned(self):
+        today = timezone.localdate()
+
+        oldest = Commitment.objects.create(
+            user = self.user,
+            title = "Oldest overdue",
+            due_date = today - timedelta(days = 20),
+        )
+
+        recent = Commitment.objects.create(
+            user = self.user,
+            title = "Recently overdue",
+            due_date = today - timedelta(days = 1),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Due today",
+            due_date = today,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Future commitment",
+            due_date = today + timedelta(days = 1),
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "No due date",
+            due_date = None,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                oldest.id,
+                recent.id,
+            ],
+        )
+
+    def test_archived_commitments_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Archived overdue commitment",
+            due_date = today - timedelta(days = 5),
+            is_archived = True,
+            archived_at = timezone.now(),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_owned_by_other_users_are_excluded(self):
+        today = timezone.localdate()
+
+        Commitment.objects.create(
+            user = self.other_user,
+            title = "Other user's overdue commitment",
+            due_date = today - timedelta(days = 5),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            response.data,
+            [],
+        )
+
+    def test_commitments_are_ordered_by_oldest_due_date(self):
+        today = timezone.localdate()
+
+        recent = Commitment.objects.create(
+            user = self.user,
+            title = "Recent overdue",
+            due_date = today - timedelta(days = 2),
+        )
+
+        oldest = Commitment.objects.create(
+            user = self.user,
+            title = "Oldest overdue",
+            due_date = today - timedelta(days = 10),
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [
+                oldest.id,
+                recent.id,
+            ],
+        )
