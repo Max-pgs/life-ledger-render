@@ -62,6 +62,12 @@ class Commitment(models.Model):
         QUARTERLY = "quarterly", "Quarterly"
         ANNUALLY = "annually", "Annually"
         ONE_OFF = "one_off", "One-off"
+        
+    class PaymentStatus(models.TextChoices):
+        NOT_APPLICABLE = "not_applicable", "Not_applicable"
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        OVERDUE = "overdue", "Overdue"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -105,6 +111,12 @@ class Commitment(models.Model):
         max_length = 20,
         choices = PaymentFrequency.choices,
         blank = True,
+    )
+    
+    payment_status = models.CharField(
+        max_length = 20,
+        choices = PaymentStatus.choices,
+        default = PaymentStatus.NOT_APPLICABLE,
     )
     
     contract_end_date = models.DateField(

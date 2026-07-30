@@ -66,6 +66,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "provider_name",
             "amount",
             "payment_frequency",
+            "payment_status",
             "contract_end_date",
             "notice_period_days",
             "due_date",
