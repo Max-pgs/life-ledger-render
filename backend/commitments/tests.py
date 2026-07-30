@@ -1762,3 +1762,153 @@ class HighPriorityCommitmentListAPITests(APITestCase):
                 no_due_date.id,
             ],
         )
+        
+class CommitmentPaymentStatusAPITests(APITestCase):
+    # Test payment-status creation, updates and validation.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "paymentstatususer",
+            email = "paymentstatus@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_default_payment_status_is_not_applicable(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "General commitment",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertEqual(
+            response.data["payment_status"],
+            "not_applicable",
+        )
+
+    def test_user_can_create_commitment_with_payment_status(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Electricity bill",
+                "payment_status": "pending",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+        self.assertEqual(
+            response.data["payment_status"],
+            "pending",
+        )
+
+    def test_user_can_update_payment_status(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Council tax",
+            payment_status = Commitment.PaymentStatus.PENDING,
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.payment_status,
+            Commitment.PaymentStatus.PAID,
+        )
+
+    def test_invalid_payment_status_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Invalid status",
+                "payment_status": "partially_paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn(
+            "payment_status",
+            response.data,
+        )
+
+    def test_user_cannot_update_another_users_payment_status(self):
+        other_user = User.objects.create_user(
+            username = "otherpaymentuser",
+            email = "otherpayment@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        commitment = Commitment.objects.create(
+            user = other_user,
+            title = "Other user's bill",
+            payment_status=Commitment.PaymentStatus.PENDING,
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND,
+        )
