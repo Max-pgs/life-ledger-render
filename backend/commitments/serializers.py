@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from datetime import timedelta
 
-from .models import CommitmentGroup, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
 
 class CommitmentGroupSerializer(serializers.ModelSerializer):
     # Represent an admin-managed commitment group.
@@ -142,3 +142,18 @@ class CommitmentSerializer(serializers.ModelSerializer):
         
         return deadline.isoformat()
         
+class CommitmentTemplateSerializer(serializers.ModelSerializer):
+    group = CommitmentGroupSerializer(read_only = True)
+
+    class Meta:
+        model = CommitmentTemplate
+        fields = [
+            "id",
+            "name",
+            "description",
+            "group",
+            "default_provider_name",
+            "default_amount",
+            "default_payment_frequency",
+            "default_priority",
+        ]

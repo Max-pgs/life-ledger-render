@@ -5,6 +5,7 @@ from .views import (
     CommitmentDetailView, 
     CommitmentGroupListView, 
     CommitmentArchiveView,
+    CommitmentTemplateListView,
     UpcomingCommitmentListView,
     OverdueCommitmentListView,
     HighPriorityCommitmentListView,
@@ -35,14 +36,19 @@ urlpatterns = [
         name = "commitment-overdue",
     ),
     path(
-      "high-priority/",
-      HighPriorityCommitmentListView.as_view(),
-      name = "commitment-high-priority",  
+        "high-priority/",
+        HighPriorityCommitmentListView.as_view(),
+        name = "commitment-high-priority",  
     ),
     path(
-      "review-soon/",
-      ReviewSoonCommitmentListView.as_view(),
-      name = "commitment-review-soon",  
+        "review-soon/",
+        ReviewSoonCommitmentListView.as_view(),
+        name = "commitment-review-soon",  
+    ),
+    path(
+        "templates/",
+        CommitmentTemplateListView.as_view(),
+        name = "commitment-template-list",
     ),
     path(
         "<int:pk>/",

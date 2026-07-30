@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import CommitmentGroup, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
 
 
 @admin.register(CommitmentGroup)
@@ -86,4 +86,28 @@ class CommitmentAdmin(admin.ModelAdmin):
         "archived_at",
         "created_at",
         "updated_at",
+    )
+    
+@admin.register(CommitmentTemplate)
+class CommitmentTemplateAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "name",
+        "group",
+        "default_payment_frequency",
+        "default_priority",
+        "is_active",
+    )
+    
+    list_filter = (
+        "group",
+        "default_payment_frequency",
+        "default_priority",
+        "is_active",
+    )
+    
+    search_fields = (
+        "name",
+        "description",
+        "default_provider_name",
     )
