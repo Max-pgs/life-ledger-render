@@ -967,7 +967,7 @@ class CommitmentGroupListAPITests(APITestCase):
         self.active_group = CommitmentGroup.objects.create(
             name = "Household",
             description = "Household-related commitments.",
-            information_url = "https://www.moneysavingexpert.com/", # 
+            information_url = "https://www.moneysavingexpert.com/", 
             is_active = True,
         )
 
@@ -1047,6 +1047,29 @@ class CommitmentGroupListAPITests(APITestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
+        )
+    def test_group_endpoint_does_not_allow_user_modifications(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "name": "User-created group",
+                "description": "This should not be created.",
+                "information_url": "https://example.com/",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+        self.assertFalse(
+            CommitmentGroup.objects.filter(
+                name = "User-created group",
+            ).exists()
         )
         
 class CommitmentBillContractDetailsAPITests(APITestCase):
