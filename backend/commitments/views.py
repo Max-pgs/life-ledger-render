@@ -3,6 +3,7 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
+from datetime import timedelta
 
 from .models import Commitment, CommitmentGroup
 from .serializers import CommitmentGroupSerializer, CommitmentSerializer
@@ -39,6 +40,23 @@ class CommitmentDetailView(generics.RetrieveUpdateAPIView):
             user = self.request.user,
             is_archived = False,
         )
+        
+class UpcomingCommitmentListView(generics.ListAPIView):
+    # Return commitments due within the next 30 days.
+    
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        today = timezone.localdate()
+        upcoming_limit = today + timedelta(days = 30)
+        
+        return Commitment.objects.filter(
+            user = self.request.user,
+            is_archived = False,
+            due_date__gte = today,
+            due_date__lte = upcoming_limit,
+        ).order_by("due_date", "created_at")
         
 class CommitmentArchiveView(APIView):
     # Archive an active commitment owned by the authenticated user.
