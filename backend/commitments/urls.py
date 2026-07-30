@@ -10,6 +10,7 @@ from .views import (
     OverdueCommitmentListView,
     HighPriorityCommitmentListView,
     ReviewSoonCommitmentListView,
+    GuidedSetupView,
 )
 
 app_name = "commitments"
@@ -49,6 +50,11 @@ urlpatterns = [
         "templates/",
         CommitmentTemplateListView.as_view(),
         name = "commitment-template-list",
+    ),
+    path(
+        "guided_setup/",
+        GuidedSetupView.as_view(),
+        name = "commitment-guided-setup",  
     ),
     path(
         "<int:pk>/",

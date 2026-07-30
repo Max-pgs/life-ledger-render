@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.db.models import DateField, ExpressionWrapper, F
+from django.db.models import DateField, ExpressionWrapper, F, Prefetch
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -7,7 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 
 from .models import Commitment, CommitmentGroup, CommitmentTemplate
-from .serializers import CommitmentGroupSerializer, CommitmentSerializer, CommitmentTemplateSerializer
+from .serializers import (
+    CommitmentGroupSerializer,
+    CommitmentSerializer,
+    CommitmentTemplateSerializer,
+    GuidedSetupGroupSerializer,
+)
 
 class CommitmentListCreateView(generics.ListCreateAPIView):
     # Allow authenticated users to create and view their commitments.
@@ -190,4 +195,27 @@ class CommitmentTemplateListView(generics.ListAPIView):
             )
             .select_related("group")
             .order_by("group__name", "name")
+        )
+        
+class GuidedSetupView(generics.ListAPIView):
+    # Return active groups with their available commitment templates.
+    
+    serializer_class = GuidedSetupGroupSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        active_templates = CommitmentTemplate.objects.filter(
+            is_active = True,
+        ).order_by("name")
+        
+        return (
+            CommitmentGroup.objects.filter(
+                is_active = True,
+            ).prefetch_related(
+                Prefetch(
+                    "templates",
+                    queryset = active_templates,
+                    to_attr = "active_templates",
+                )
+            ).order_by("name")
         )

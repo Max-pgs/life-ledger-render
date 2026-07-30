@@ -2513,3 +2513,224 @@ class CommitmentTemplateListAPITests(APITestCase):
                 subscription_template.id,
             ],
         )
+        
+class GuidedSetupAPITests(APITestCase):
+    # Test the guided setup endpoint.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "guidedsetupuser",
+            email = "guidedsetup@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.active_group = CommitmentGroup.objects.create(
+            name = "Household",
+            description = "Common household commitments.",
+            is_active = True,
+        )
+
+        self.inactive_group = CommitmentGroup.objects.create(
+            name = "Inactive Group",
+            description = "Hidden group.",
+            is_active = False,
+        )
+
+        self.active_template = CommitmentTemplate.objects.create(
+            name = "Council Tax",
+            description = "Local authority tax commitment.",
+            group = self.active_group,
+            default_provider_name = "Local council",
+            default_payment_frequency = "monthly",
+            default_priority = "high",
+            is_active = True,
+        )
+
+        self.inactive_template = CommitmentTemplate.objects.create(
+            name = "Inactive Template",
+            group = self.active_group,
+            is_active = False,
+        )
+
+        CommitmentTemplate.objects.create(
+            name = "Hidden Group Template",
+            group = self.inactive_group,
+            is_active = True,
+        )
+
+        self.url = reverse(
+            "commitments:commitment-guided-setup"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_active_groups_and_templates_are_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+        self.assertEqual(
+            len(response.data),
+            1,
+        )
+
+        group = response.data[0]
+
+        self.assertEqual(
+            group["name"],
+            "Household",
+        )
+        self.assertEqual(
+            group["description"],
+            "Common household commitments.",
+        )
+        self.assertEqual(
+            len(group["templates"]),
+            1,
+        )
+
+        template = group["templates"][0]
+
+        self.assertEqual(
+            template["name"],
+            "Council Tax",
+        )
+        self.assertEqual(
+            template["default_provider_name"],
+            "Local council",
+        )
+        self.assertEqual(
+            template["default_payment_frequency"],
+            "monthly",
+        )
+        self.assertEqual(
+            template["default_priority"],
+            "high",
+        )
+
+    def test_inactive_groups_are_not_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_group_names = {
+            group["name"]
+            for group in response.data
+        }
+
+        self.assertNotIn(
+            "Inactive Group",
+            returned_group_names,
+        )
+
+    def test_inactive_templates_are_not_returned(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_template_names = {
+            template["name"]
+            for group in response.data
+            for template in group["templates"]
+        }
+
+        self.assertNotIn(
+            "Inactive Template",
+            returned_template_names,
+        )
+
+    def test_groups_without_active_templates_are_returned_with_empty_list(self):
+        CommitmentGroup.objects.create(
+            name = "Car Commitments",
+            description = "Vehicle-related commitments.",
+            is_active = True,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        car_group = next(
+            group
+            for group in response.data
+            if group["name"] == "Car Commitments"
+        )
+
+        self.assertEqual(
+            car_group["templates"],
+            [],
+        )
+
+    def test_guided_setup_endpoint_is_read_only(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "name": "User-created setup group",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def test_groups_are_ordered_by_name(self):
+        second_group = CommitmentGroup.objects.create(
+            name = "Subscriptions",
+            is_active = True,
+        )
+
+        CommitmentTemplate.objects.create(
+            name = "Streaming Service",
+            group = second_group,
+            is_active = True,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            [group["name"] for group in response.data],
+            [
+                "Household",
+                "Subscriptions",
+            ],
+        )
