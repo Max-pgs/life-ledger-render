@@ -55,6 +55,13 @@ class Commitment(models.Model):
         LOW = "low", "Low"
         MEDIUM = "medium", "Medium"
         HIGH = "high", "High"
+        
+    class PaymentFrequency(models.TextChoices):
+        WEEKLY = "weekly", "Weekly"
+        MONTHLY = "monthly", "Monthly"
+        QUARTERLY = "quarterly", "Quarterly"
+        ANNUALLY = "annually", "Annually"
+        ONE_OFF = "one_off", "One-off"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -84,6 +91,29 @@ class Commitment(models.Model):
     
     provider_name = models.CharField(
         max_length = 200,
+        blank = True,
+    )
+    
+    amount = models.DecimalField(
+        max_digits = 10,
+        decimal_places = 2,
+        null = True,
+        blank = True,
+    )
+    
+    payment_frequency = models.CharField(
+        max_length = 20,
+        choices = PaymentFrequency.choices,
+        blank = True,
+    )
+    
+    contract_end_date = models.DateField(
+        null = True,
+        blank = True,
+    )
+    
+    notice_period_days = models.PositiveIntegerField(
+        null = True,
         blank = True,
     )
     
@@ -129,3 +159,4 @@ class Commitment(models.Model):
         
     def __str__(self):
         return self.title
+    
