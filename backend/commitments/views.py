@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.db.models import F
+from django.db.models import DateField, ExpressionWrapper, F
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -142,4 +142,36 @@ class HighPriorityCommitmentListView(generics.ListAPIView):
         ).order_by(
             F("due_date").asc(nulls_last = True),
             "created_at",
+        )
+        
+class ReviewSoonCommitmentListView(generics.ListAPIView):
+    # Return commitments approaching their cancellation deadline.
+    
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        today = timezone.localdate()
+        review_limit = today + timedelta(days = 30)
+        
+        cancellation_deadline = ExpressionWrapper(
+            F("contract_end_date") - F("notice_period_days"),
+            output_field = DateField(),
+        )
+        
+        return (
+            Commitment.objects.filter(
+                user = self.request.user,
+                is_archived = False,
+                contract_end_date__isnull = False,
+                notice_period_days__isnull = False,
+            ).annotate(
+                calculated_cancellation_deadline = cancellation_deadline,
+            ).filter(
+                calculated_cancellation_deadline__gte = today,
+                calculated_cancellation_deadline__lte = review_limit,
+            ).order_by(
+                "calculated_cancellation_deadline",
+                "created_at",
+            )
         )

@@ -8,6 +8,7 @@ from .views import (
     UpcomingCommitmentListView,
     OverdueCommitmentListView,
     HighPriorityCommitmentListView,
+    ReviewSoonCommitmentListView,
 )
 
 app_name = "commitments"
@@ -37,6 +38,11 @@ urlpatterns = [
       "high-priority/",
       HighPriorityCommitmentListView.as_view(),
       name = "commitment-high-priority",  
+    ),
+    path(
+      "review-soon/",
+      ReviewSoonCommitmentListView.as_view(),
+      name = "commitment-review-soon",  
     ),
     path(
         "<int:pk>/",
