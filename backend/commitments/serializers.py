@@ -64,6 +64,10 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "group",
             "group_id",
             "provider_name",
+            "amount",
+            "payment_frequency",
+            "contract_end_date",
+            "notice_period_days",
             "due_date",
             "renewal_date",
             "priority",
@@ -98,3 +102,23 @@ class CommitmentSerializer(serializers.ModelSerializer):
         
         return value.strip()
     
+    def validate_amount(self, value):
+        # Reject negative monetary values.
+        
+        if value is not None and value < 0:
+            raise serializers.ValidationError(
+                "Amount cannot be negative."
+            )
+
+        return value
+    
+    def validate_notice_period_days(self, value):
+    # Reject negative notice periods.
+
+        if value is not None and value < 0:
+            raise serializers.ValidationError(
+                "Notice period cannot be negative."
+            )
+
+        return value
+        

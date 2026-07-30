@@ -54,6 +54,10 @@ class CommitmentAdmin(admin.ModelAdmin):
         "user",
         "group",
         "provider_name",
+        "amount",
+        "payment_frequency",
+        "contract_end_date",
+        "notice_period_days",
         "due_date",
         "priority",
         "status",
@@ -63,6 +67,7 @@ class CommitmentAdmin(admin.ModelAdmin):
     
     list_filter = (
         "group",
+        "payment_frequency",
         "priority",
         "status",
         "is_archived",

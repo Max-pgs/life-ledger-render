@@ -624,7 +624,7 @@ class CommitmentArchiveAPITests(APITestCase):
         )
         
 class CommitmentStructuredDetailsAPITests(APITestCase):
-    # Test structured commitment fields introduced for US8.
+    # Test structured commitment fields.
 
     def setUp(self):
         self.user = User.objects.create_user(
@@ -1044,4 +1044,231 @@ class CommitmentGroupListAPITests(APITestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
+        )
+        
+class CommitmentBillContractDetailsAPITests(APITestCase):
+    # Test bill and contract detail fields.
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.url = reverse(
+            "commitments:commitment-list-create"
+        )
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_user_can_create_commitment_with_bill_and_contract_details(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Broadband Contract",
+                "provider_name": "Example Broadband",
+                "amount": "39.99",
+                "payment_frequency": "monthly",
+                "contract_end_date": "2027-06-30",
+                "notice_period_days": 30,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        commitment = Commitment.objects.get()
+
+        self.assertEqual(
+            str(commitment.amount),
+            "39.99",
+        )
+        self.assertEqual(
+            commitment.payment_frequency,
+            Commitment.PaymentFrequency.MONTHLY,
+        )
+        self.assertEqual(
+            str(commitment.contract_end_date),
+            "2027-06-30",
+        )
+        self.assertEqual(
+            commitment.notice_period_days,
+            30,
+        )
+
+    def test_bill_and_contract_details_are_returned_in_response(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Car Insurance",
+                "amount": "600.00",
+                "payment_frequency": "annually",
+                "contract_end_date": "2027-08-01",
+                "notice_period_days": 21,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.data["amount"],
+            "600.00",
+        )
+        self.assertEqual(
+            response.data["payment_frequency"],
+            "annually",
+        )
+        self.assertEqual(
+            response.data["contract_end_date"],
+            "2027-08-01",
+        )
+        self.assertEqual(
+            response.data["notice_period_days"],
+            21,
+        )
+
+    def test_user_can_update_bill_and_contract_details(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Old Contract",
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "amount": "45.50",
+                "payment_frequency": "monthly",
+                "contract_end_date": "2027-12-31",
+                "notice_period_days": 30,
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            str(commitment.amount),
+            "45.50",
+        )
+        self.assertEqual(
+            commitment.payment_frequency,
+            Commitment.PaymentFrequency.MONTHLY,
+        )
+        self.assertEqual(
+            str(commitment.contract_end_date),
+            "2027-12-31",
+        )
+        self.assertEqual(
+            commitment.notice_period_days,
+            30,
+        )
+
+    def test_negative_amount_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Invalid Bill",
+                "amount": "-10.00",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn(
+            "amount",
+            response.data,
+        )
+
+    def test_invalid_payment_frequency_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Invalid Contract",
+                "payment_frequency": "fortnightly",
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn(
+            "payment_frequency",
+            response.data,
+        )
+
+    def test_invalid_contract_end_date_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Invalid Contract",
+                "contract_end_date": "31-12-2027",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn(
+            "contract_end_date",
+            response.data,
+        )
+
+    def test_negative_notice_period_is_rejected(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Invalid Contract",
+                "notice_period_days": -1,
+            },
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn(
+            "notice_period_days",
+            response.data,
         )
