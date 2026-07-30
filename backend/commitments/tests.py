@@ -32,6 +32,13 @@ class CommitmentCreateAPITests(APITestCase):
             "notes": "Monthly household commitment.",
         }
         
+        self.active_group = CommitmentGroup.objects.create(
+            name="Bills",
+            description="General guidance for bills.",
+            information_url="https://example.com/bills",
+            is_active=True,
+        )
+        
     def authenticate(self):
         # Authenticate API requests using the user's DRF token.
         
@@ -128,6 +135,38 @@ class CommitmentCreateAPITests(APITestCase):
         self.assertIn(
             "title",
             response.data,
+        )
+        
+    def test_group_guidance_cannot_be_modified_through_api(self):
+        self.authenticate()
+
+        detail_url = reverse(
+            "commitments:commitment-group-list"
+        )
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "description": "User-modified guidance.",
+                "information_url": "https://example.org/",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+        self.active_group.refresh_from_db()
+
+        self.assertEqual(
+            self.active_group.description,
+            "General guidance for bills.",
+        )
+        self.assertEqual(
+            self.active_group.information_url,
+            "https://example.com/bills",
         )
         
 class CommitmentListAPITests(APITestCase):
