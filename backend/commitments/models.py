@@ -1,8 +1,10 @@
 from django.conf import settings
 from django.db import models
 
-class Category(models.Model):
-    # A reusable category for organising life-admin commitments.
+class CommitmentGroup(models.Model):
+    # An admin-managed group used to organise related commitments.
+    # The description and external information link are maintained
+    # centrally and cannot be edited by ordinary users.
     
     name = models.CharField(
         max_length = 100,
@@ -13,9 +15,16 @@ class Category(models.Model):
         blank = True,
     )
     
+    information_url = models.URLField(
+        blank = True,
+    )
+    
+    is_active = models.BooleanField(
+        default = True,
+    )
+    
     class Meta:
         ordering = ["name"]
-        verbose_name_plural = "categories"
         
     def __str__(self):
         return self.name
@@ -53,8 +62,8 @@ class Commitment(models.Model):
         related_name = "commitments",
     )
     
-    category = models.ForeignKey(
-        Category,
+    group = models.ForeignKey(
+        CommitmentGroup,
         on_delete = models.SET_NULL,
         null = True,
         blank = True,

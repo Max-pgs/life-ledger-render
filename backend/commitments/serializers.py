@@ -1,17 +1,21 @@
 from rest_framework import serializers
 
-from .models import Category, Commitment, Status
+from .models import CommitmentGroup, Commitment, Status
 
-class CategorySerializer(serializers.ModelSerializer):
-    # Represent a reusable commitment category.
+class CommitmentGroupSerializer(serializers.ModelSerializer):
+    # Represent an admin-managed commitment group.
+    # Ordinary users can view group guidance but cannot create
+    # or modify the group, description or information link.
     
     class Meta:
-        model = Category
+        model = CommitmentGroup
         fields = (
             "id",
             "name",
             "description",
+            "information_url",
         )
+        read_only_fields = fields
         
 class StatusSerializer(serializers.ModelSerializer):
     # Represent a reusable commitment lifecycle status.
@@ -23,17 +27,18 @@ class StatusSerializer(serializers.ModelSerializer):
             "name",
             "description",
         )
+        read_only_fields = fields
 
 class CommitmentSerializer(serializers.ModelSerializer):
     # Validate and represent a structured personal commitment.
     
-    category = CategorySerializer(
+    group = CommitmentGroupSerializer(
         read_only = True,
     )
     
-    category_id = serializers.PrimaryKeyRelatedField(
-        source = "category",
-        queryset = Category.objects.all(),
+    group_id = serializers.PrimaryKeyRelatedField(
+        source = "group",
+        queryset = CommitmentGroup.objects.filter(is_active = True),
         write_only = True,
         required = False,
         allow_null = True,
@@ -56,8 +61,8 @@ class CommitmentSerializer(serializers.ModelSerializer):
         fields = (
             "id",
             "title",
-            "category",
-            "category_id",
+            "group",
+            "group_id",
             "provider_name",
             "due_date",
             "renewal_date",

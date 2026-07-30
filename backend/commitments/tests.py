@@ -4,7 +4,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 
-from .models import Category, Commitment, Status
+from .models import CommitmentGroup, Commitment, Status
 
 User = get_user_model()
 
@@ -637,9 +637,13 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             user = self.user,
         )
 
-        self.category = Category.objects.create(
-            name = "Household Bills",
-            description = "Regular household payments.",
+        self.group = CommitmentGroup.objects.create(
+            name = "Household",
+            description = (
+                "Household commitments may include council tax, "
+                "energy, water and broadband."
+            ),
+            information_url = "https://www.moneysavingexpert.com/", # As an example for now, will change the website later
         )
 
         self.status = Status.objects.create(
@@ -653,7 +657,7 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
 
         self.valid_payload = {
             "title": "Council Tax",
-            "category_id": self.category.id,
+            "group_id": self.group.id,
             "provider_name": "Edinburgh Council",
             "due_date": "2026-08-15",
             "renewal_date": "2027-04-01",
@@ -686,8 +690,8 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         commitment = Commitment.objects.get()
 
         self.assertEqual(
-            commitment.category,
-            self.category,
+            commitment.group,
+            self.group,
         )
         self.assertEqual(
             commitment.provider_name,
@@ -720,9 +724,23 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         )
 
         self.assertEqual(
-            response.data["category"]["name"],
-            "Household Bills",
+            response.data["group"]["name"],
+            "Household",
         )
+
+        self.assertEqual(
+            response.data["group"]["description"],
+            (
+                "Household commitments may include council tax, "
+                "energy, water and broadband."
+            ),
+        )
+
+        self.assertEqual(
+            response.data["group"]["information_url"],
+            "https://www.moneysavingexpert.com/",
+        )
+        
         self.assertEqual(
             response.data["status"]["name"],
             "Active",
@@ -752,7 +770,7 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         response = self.client.patch(
             detail_url,
             {
-                "category_id": self.category.id,
+                "group_id": self.group.id,
                 "provider_name": "Edinburgh Council",
                 "priority": "high",
                 "status_id": self.status.id,
@@ -768,8 +786,8 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         commitment.refresh_from_db()
 
         self.assertEqual(
-            commitment.category,
-            self.category,
+            commitment.group,
+            self.group,
         )
         self.assertEqual(
             commitment.provider_name,
@@ -806,16 +824,16 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             response.data,
         )
 
-    def test_unknown_category_is_rejected(self):
+    def test_unknown_group_is_rejected(self):
         self.authenticate()
 
         payload = self.valid_payload.copy()
-        payload["category_id"] = 999999
+        payload["group_id"] = 999999
 
         response = self.client.post(
             self.list_url,
             payload,
-            format = "json",
+            format="json",
         )
 
         self.assertEqual(
@@ -824,7 +842,7 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         )
 
         self.assertIn(
-            "category_id",
+            "group_id",
             response.data,
         )
 
@@ -848,4 +866,83 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         self.assertIn(
             "due_date",
             response.data,
+        )
+    def test_inactive_group_cannot_be_selected(self):
+        inactive_group = CommitmentGroup.objects.create(
+            name = "Inactive Group",
+            description = "This group is not available to users.",
+            information_url = "https://example.com/",
+            is_active = False,
+        )
+
+        self.authenticate()
+
+        payload = self.valid_payload.copy()
+        payload["group_id"] = inactive_group.id
+
+        response = self.client.post(
+            self.list_url,
+            payload,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertIn(
+            "group_id",
+            response.data,
+        )
+        
+    def test_user_cannot_modify_admin_managed_group_content(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Council Tax",
+            group = self.group,
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "group": {
+                    "name": "Changed Group",
+                    "description": "Changed by user.",
+                    "information_url": "https://malicious.example/",
+                }
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.group.refresh_from_db()
+
+        self.assertEqual(
+            self.group.name,
+            "Household",
+        )
+
+        self.assertEqual(
+            self.group.description,
+            (
+                "Household commitments may include council tax, "
+                "energy, water and broadband."
+            ),
+        )
+
+        self.assertEqual(
+            self.group.information_url,
+            "https://www.moneysavingexpert.com/",
         )
