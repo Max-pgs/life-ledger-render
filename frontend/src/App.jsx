@@ -1,14 +1,15 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 
-import ProtectedRoute from "./components/ProtectedRoute";
 import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Redirects the root URL to the registration page. */}
         <Route
           path="/"
           element={<Navigate to="/register" replace />}
@@ -24,6 +25,7 @@ function App() {
           element={<LoginPage />}
         />
 
+        {/* Restricts dashboard access to users with a stored auth token. */}
         <Route
           path="/dashboard"
           element={
@@ -33,6 +35,7 @@ function App() {
           }
         />
 
+        {/* Handles unknown routes with a predictable fallback. */}
         <Route
           path="*"
           element={<Navigate to="/register" replace />}

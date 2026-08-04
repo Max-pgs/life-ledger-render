@@ -35,3 +35,25 @@ export async function loginUser(credentials) {
   return parseResponse(response);
 }
 
+export async function logoutUser() {
+  const token = localStorage.getItem("authToken");
+
+  /* Avoids an unnecessary API request when no local session exists. */
+  if (!token) {
+    return;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/logout/`, {
+    method: "POST",
+    headers: {
+      Authorization: `Token ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  /* Logout failures are handled by the layout, which still clears local auth data. */
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw data;
+  }
+}
