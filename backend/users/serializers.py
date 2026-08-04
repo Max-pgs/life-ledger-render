@@ -1,17 +1,28 @@
 from django.contrib.auth import get_user_model, authenticate
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.password_validation import validate_password as django_validate_password
 from rest_framework import serializers
+import re
 
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
     # Validate registration details and securely create a Django user.
     
-    password = serializers.CharField(
-        write_only = True,
-        validators = [validate_password],
+    email = serializers.EmailField(
+        required=True,
+        allow_blank=False,
     )
-    password_confirm = serializers.CharField(write_only = True)
+    
+    password = serializers.CharField(
+        write_only=True,
+        validators=[django_validate_password],
+        trim_whitespace=False,
+    )
+    
+    password_confirm = serializers.CharField(
+        write_only=True,
+        trim_whitespace=False,    
+    )
     
     class Meta:
         model = User
@@ -57,6 +68,19 @@ class RegisterSerializer(serializers.ModelSerializer):
             **validated_data,
         )
         
+    def validate_password(self, value):
+        if not re.search(r"[A-Z]", value):
+            raise serializers.ValidationError(
+                "Password must contain at least one uppercase letter."
+            )
+
+        if not re.search(r"\d", value):
+            raise serializers.ValidationError(
+                "Password must contain at least one number."
+            )
+
+        return value
+        
 class LoginSerializer(serializers.Serializer):
     # Validate user credentials for token-based login.
     
@@ -77,7 +101,7 @@ class LoginSerializer(serializers.Serializer):
         
         if user is None:
             raise serializers.ValidationError(
-                "Invalod username or password."
+                "Invalid username or password."
             )
             
         if not user.is_active:

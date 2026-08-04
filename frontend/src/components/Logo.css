@@ -1,0 +1,63 @@
+/* Shared logo variables and base sizing for all logo variants. */
+.logo {
+  --logo-size: 46px;
+  --logo-primary: #f4f0e8;
+  --logo-secondary: #a9c98f;
+  --logo-stroke: 7;
+
+  display: inline-flex;
+  width: var(--logo-size);
+  height: var(--logo-size);
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Large version used during the successful-login transition. */
+.logo--large {
+  --logo-size: clamp(120px, 18vw, 180px);
+  --logo-stroke: 8;
+}
+
+/* Compact version used in the dashboard navigation. */
+.logo--compact {
+  --logo-size: 46px;
+  --logo-stroke: 2;
+}
+
+.logo__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+/* Keeps both SVG letters scalable and independently animatable. */
+.logo__letter {
+  fill: none;
+  stroke-width: var(--logo-stroke);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  vector-effect: non-scaling-stroke;
+  transform-box: fill-box;
+  transform-origin: center;
+  backface-visibility: hidden;
+  will-change: transform, opacity, filter;
+}
+
+.logo__letter--first {
+  stroke: var(--logo-primary);
+}
+
+.logo__letter--second {
+  stroke: var(--logo-secondary);
+}
+
+/* Minimises decorative motion when reduced motion is enabled. */
+@media (prefers-reduced-motion: reduce) {
+  .logo,
+  .logo * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

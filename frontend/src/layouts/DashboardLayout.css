@@ -1,0 +1,241 @@
+/* Two-column application shell with a fixed-width sidebar. */
+.dashboard-layout {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 240px minmax(0, 1fr);
+  color: #f4f1e8;
+  background: #09090a;
+}
+
+.dashboard-sidebar {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  padding: 28px;
+  background: #09090a;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dashboard-sidebar__logo {
+  width: 46px;
+  height: 46px;
+  margin-bottom: 8px;
+}
+
+.dashboard-layout__nav {
+  display: grid;
+  margin-top: 44px;
+  border-top: 1px solid rgba(243, 240, 232, 0.12);
+}
+
+.dashboard-layout__nav-link {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  padding: 0;
+  color: rgba(243, 240, 232, 0.46);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(243, 240, 232, 0.12);
+  cursor: pointer;
+  font-size: 0.92rem;
+  font-weight: 500;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    color 180ms ease,
+    padding-left 180ms ease,
+    border-color 180ms ease;
+}
+
+.dashboard-layout__nav-link:hover:not(:disabled) {
+  padding-left: 20px;
+  color: #f3f0e8;
+  border-bottom-color: rgba(243, 240, 232, 0.26);
+}
+
+/* Highlights the current section with brighter text and an accent marker. */
+.dashboard-layout__nav-link--active {
+  position: relative;
+  padding-left: 16px;
+  color: #f3f0e8;
+}
+
+.dashboard-layout__nav-link--active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  background: #a9c98f;
+  border-radius: 50%;
+}
+
+.dashboard-layout__nav-link:focus-visible {
+  outline: 2px solid #a9c98f;
+  outline-offset: 5px;
+}
+
+.dashboard-layout__nav-link:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+/* Pushes logout controls to the bottom of the sidebar. */
+.dashboard-layout__sidebar-footer {
+  margin-top: auto;
+  padding-top: 32px;
+}
+
+.dashboard-layout__logout {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  color: rgba(243, 240, 232, 0.58);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid rgba(243, 240, 232, 0.12);
+  border-bottom: 1px solid rgba(243, 240, 232, 0.12);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: left;
+  text-transform: uppercase;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.dashboard-layout__logout:hover:not(:disabled) {
+  color: #f3f0e8;
+  border-color: rgba(243, 240, 232, 0.28);
+}
+
+.dashboard-layout__logout:hover:not(:disabled)::after {
+  transform: translateX(4px);
+}
+
+.dashboard-layout__logout:focus-visible {
+  outline: 2px solid #a9c98f;
+  outline-offset: 5px;
+}
+
+.dashboard-layout__logout:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.dashboard-content {
+  display: block;
+  min-width: 0;
+  min-height: 100vh;
+  padding: 48px;
+  background: #09090a;
+}
+
+.dashboard-content h1 {
+  color: #f4f1e8;
+}
+
+@media (max-width: 900px) {
+  .dashboard-layout {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+
+  .dashboard-sidebar {
+    padding: 24px 20px;
+  }
+
+  .dashboard-content {
+    padding: 40px 32px;
+  }
+}
+
+/* Collapses navigation labels into short abbreviations on narrow screens. */
+@media (max-width: 720px) {
+  .dashboard-layout {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .dashboard-sidebar {
+    padding: 20px 18px;
+  }
+
+  .dashboard-sidebar__logo {
+    width: 42px;
+    height: 42px;
+    margin-inline: auto;
+  }
+
+  .dashboard-layout__nav {
+    margin-top: 36px;
+  }
+
+  .dashboard-layout__nav-link {
+    min-height: 48px;
+    justify-content: center;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .dashboard-layout__nav-link::after {
+    color: rgba(243, 240, 232, 0.5);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+  }
+
+  .dashboard-layout__nav-link:nth-child(1)::after {
+    content: "OV";
+  }
+
+  .dashboard-layout__nav-link:nth-child(2)::after {
+    content: "CO";
+  }
+
+  .dashboard-layout__nav-link:nth-child(3)::after {
+    content: "GS";
+  }
+
+  .dashboard-layout__nav-link:nth-child(4)::after {
+    content: "UK";
+  }
+
+  .dashboard-layout__nav-link:nth-child(5)::after {
+    content: "ST";
+  }
+
+  .dashboard-layout__nav-link--active {
+    padding-left: 0;
+  }
+
+  .dashboard-layout__nav-link--active::before {
+    left: 50%;
+    bottom: 8px;
+    transform: translateX(-50%);
+  }
+
+  .dashboard-layout__logout {
+    justify-content: center;
+    font-size: 0;
+  }
+
+  .dashboard-layout__logout::before {
+    content: "OUT";
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+  }
+
+  .dashboard-layout__logout::after {
+    display: none;
+  }
+
+  .dashboard-content {
+    padding: 32px 24px;
+  }
+}
