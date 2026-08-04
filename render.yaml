@@ -33,7 +33,6 @@ services:
   - type: web
     name: lifeledger-frontend
     runtime: static
-    plan: starter
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
