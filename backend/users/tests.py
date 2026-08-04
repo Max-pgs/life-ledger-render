@@ -69,6 +69,67 @@ class RegisterAPITests(APITestCase):
         self.assertEqual(User.objects.count(), 1)
         self.assertIn("email", response.data)
         
+    def test_registration_requires_email(self):
+        payload = self.valid_payload.copy()
+        payload["email"] = ""
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("email", response.data)
+        self.assertFalse(
+            User.objects.filter(username=payload["username"]).exists()
+        )
+        
+    def test_registration_rejects_password_without_uppercase_letter(self):
+        payload = self.valid_payload.copy()
+        payload["password"] = "securetestpassword1!"
+        payload["password_confirm"] = "securetestpassword1!"
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn("password", response.data)
+        self.assertFalse(
+            User.objects.filter(
+                username=payload["username"],
+            ).exists()
+        )
+
+
+    def test_registration_rejects_password_without_number(self):
+        payload = self.valid_payload.copy()
+        payload["password"] = "SecureTestPassword!"
+        payload["password_confirm"] = "SecureTestPassword!"
+
+        response = self.client.post(
+            self.url,
+            payload,
+            format="json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+        self.assertIn("password", response.data)
+        self.assertFalse(
+            User.objects.filter(
+                username=payload["username"],
+            ).exists()
+        )
+        
 class LoginAPITests(APITestCase):
     # Test the token-based login endpoint.
     
