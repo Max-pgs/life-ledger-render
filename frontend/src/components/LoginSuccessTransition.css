@@ -1,0 +1,141 @@
+/* Full-screen overlay shown after a successful login. */
+.login-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+
+  background: #09090a;
+  opacity: 1;
+
+  /* Fades the overlay out to reveal the dashboard underneath. */
+  transition:
+    opacity 2000ms cubic-bezier(0.22, 1, 0.36, 1);
+
+  will-change: opacity;
+}
+
+/* Moves and scales the completed logo towards the dashboard logo position. */
+.login-transition__logo {
+  position: relative;
+
+  transform: translate3d(0, 0, 0) scale(1);
+  transform-origin: center;
+
+  transition:
+    transform 850ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 250ms ease;
+
+  will-change: transform, opacity;
+}
+
+/* Temporary glow displayed while the two logo letters form. */
+.login-transition__logo::after {
+  content: "";
+  position: absolute;
+  inset: 18%;
+  z-index: -1;
+  border-radius: 50%;
+  background: rgba(169, 201, 143, 0.14);
+  filter: blur(26px);
+  opacity: 0;
+}
+
+/* Animates each SVG letter separately before they form the final logo. */
+.login-transition--forming .logo__letter--first {
+  animation: form-logo-left 1350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.login-transition--forming .logo__letter--second {
+  animation: form-logo-right 1350ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.login-transition--forming .login-transition__logo::after {
+  animation: logo-glow 900ms ease-out 700ms both;
+}
+
+
+
+@keyframes form-logo-left {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate(-62px, 38px) rotate(-95deg) scale(0.58);
+  }
+
+  45% {
+    opacity: 1;
+    filter: blur(1px);
+    transform: translate(10px, -8px) rotate(10deg) scale(1.06);
+  }
+
+  72% {
+    transform: translate(-5px, 3px) rotate(-3deg) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes form-logo-right {
+  0% {
+    opacity: 0;
+    filter: blur(8px);
+    transform: translate(62px, -38px) rotate(95deg) scale(0.58);
+  }
+
+  45% {
+    opacity: 1;
+    filter: blur(1px);
+    transform: translate(-10px, 8px) rotate(-10deg) scale(1.06);
+  }
+
+  72% {
+    transform: translate(5px, -3px) rotate(3deg) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translate(0, 0) rotate(0) scale(1);
+  }
+}
+
+@keyframes logo-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.65);
+  }
+
+  45% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.45);
+  }
+}
+
+/* Disables decorative motion for users who prefer reduced animation. */
+@media (prefers-reduced-motion: reduce) {
+  .login-transition__logo,
+  .login-transition .logo__letter,
+  .login-transition__logo::after {
+    animation: none !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Final phase: makes the overlay transparent and exposes the dashboard. */
+.login-transition--revealing {
+  opacity: 0;
+  pointer-events: none;
+}

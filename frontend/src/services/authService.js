@@ -23,3 +23,15 @@ export async function registerUser(userData) {
   return parseResponse(response);
 }
 
+export async function loginUser(credentials) {
+  const response = await fetch(`${API_BASE_URL}/login/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(credentials),
+  });
+
+  return parseResponse(response);
+}
+
