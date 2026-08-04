@@ -1,0 +1,46 @@
+databases:
+  - name: lifeledger-db
+    plan: basic-256mb
+    diskSizeGB: 1
+    databaseName: lifeledger
+    user: lifeledger
+
+services:
+  - type: web
+    name: lifeledger-backend
+    runtime: python
+    plan: starter
+    rootDir: backend
+    buildCommand: bash build.sh
+    preDeployCommand: python manage.py migrate
+    startCommand: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: lifeledger-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: lifeledger-backend.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://lifeledger-frontend.onrender.com
+      - key: PYTHON_VERSION
+        value: 3.11.9
+
+  - type: web
+    name: lifeledger-frontend
+    runtime: static
+    plan: starter
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://lifeledger-backend.onrender.com/api/auth
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
