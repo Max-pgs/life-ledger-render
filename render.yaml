@@ -38,7 +38,7 @@ services:
     staticPublishPath: ./dist
     envVars:
       - key: VITE_API_BASE_URL
-        value: https://lifeledger-backend-d8ev.onrender.com/api/auth
+        value: https://lifeledger-backend-d8ev.onrender.com/api
     routes:
       - type: rewrite
         source: /*
