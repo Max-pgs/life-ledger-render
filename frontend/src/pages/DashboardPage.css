@@ -498,6 +498,234 @@
   font-size: 0.9rem;
 }
 
+.dashboard-overview-grid {
+  display: grid;
+  grid-template-columns: minmax(420px, 0.95fr) minmax(480px, 1.25fr);
+  gap: 24px;
+  margin-top: 28px;
+  align-items: stretch;
+}
+
+.dashboard-overview-grid .dashboard-payment-status,
+.dashboard-overview-grid .dashboard-upcoming {
+  height: 100%;
+  margin-top: 0;
+}
+
+.dashboard-payment-status {
+  display: flex;
+  flex-direction: column;
+  padding: 22px;
+  border: 1px solid #28312d;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.dashboard-payment-status__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.dashboard-payment-status__eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8aa899;
+}
+
+.dashboard-payment-status h2 {
+  margin: 0;
+  font-size: 1.3rem;
+  color: #f4f7f5;
+}
+
+.dashboard-payment-status__tracked {
+  flex-shrink: 0;
+  padding: 6px 10px;
+  border: 1px solid #33413a;
+  border-radius: 999px;
+  color: #aeb9b3;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.dashboard-payment-status__message {
+  margin: 0;
+  color: #aeb9b3;
+}
+
+.dashboard-payment-status__message--error {
+  color: #d99a9a;
+}
+
+.dashboard-payment-status__content {
+  display: grid;
+  grid-template-columns: 190px minmax(190px, 1fr);
+  align-items: center;
+  gap: 24px;
+  margin-top: auto;
+}
+
+.dashboard-payment-status__chart {
+  position: relative;
+  width: 175px;
+  aspect-ratio: 1;
+  justify-self: center;
+  border-radius: 50%;
+}
+
+.dashboard-payment-status__chart::after {
+  content: "";
+  position: absolute;
+  inset: 24%;
+  border-radius: 50%;
+  background: #151b18;
+}
+
+.dashboard-payment-status__chart-centre {
+  position: absolute;
+  z-index: 1;
+  inset: 24%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+}
+
+.dashboard-payment-status__chart-centre strong {
+  color: #f4f7f5;
+  font-size: 1rem;
+  line-height: 1.1;
+}
+
+.dashboard-payment-status__chart-centre span {
+  color: #78867f;
+  font-size: 0.72rem;
+}
+
+.dashboard-payment-status__legend {
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-payment-status__legend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 13px 0;
+  border-bottom: 1px solid #28312d;
+}
+
+.dashboard-payment-status__legend-item:first-child {
+  padding-top: 0;
+}
+
+.dashboard-payment-status__legend-item:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.dashboard-payment-status__legend-label {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #aeb9b3;
+  font-size: 0.85rem;
+}
+
+.dashboard-payment-status__legend-value {
+  min-width: 98px;
+}
+
+.dashboard-payment-status__dot {
+  width: 9px;
+  height: 9px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.dashboard-payment-status__dot--paid {
+  background: #76bd99;
+}
+
+.dashboard-payment-status__dot--pending {
+  background: #cdb77e;
+}
+
+.dashboard-payment-status__dot--overdue {
+  background: #d6a0a0;
+}
+
+.dashboard-payment-status__legend-value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 7px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.dashboard-payment-status__legend-value strong {
+  color: #f4f7f5;
+  font-size: 0.9rem;
+}
+
+.dashboard-payment-status__legend-value span {
+  color: #78867f;
+  font-size: 0.75rem;
+}
+
+@media (max-width: 1430px) {
+  .dashboard-overview-grid {
+    grid-template-columns: minmax(380px, 0.9fr) minmax(460px, 1.1fr);
+    gap: 18px;
+  }
+
+  .dashboard-payment-status {
+    padding: 18px;
+  }
+
+  .dashboard-payment-status__content {
+    grid-template-columns: 170px minmax(180px, 1fr);
+    gap: 18px;
+  }
+
+  .dashboard-payment-status__chart {
+    width: 160px;
+  }
+
+  .dashboard-payment-status__legend-item {
+    gap: 10px;
+  }
+
+  .dashboard-payment-status__legend-value {
+    min-width: 90px;
+    gap: 5px;
+  }
+
+  .dashboard-upcoming {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 1320px) {
+  .dashboard-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-payment-status__content {
+    grid-template-columns: 190px minmax(220px, 1fr);
+  }
+}
+
 @media (max-width: 900px) {
   .dashboard-page {
     padding: 24px;
@@ -525,7 +753,8 @@
   .dashboard-page__summary {
     grid-template-columns: 1fr;
   }
-    .dashboard-upcoming {
+
+  .dashboard-upcoming {
     padding: 18px;
   }
 
@@ -587,6 +816,19 @@
   .dashboard-high-priority-item__main strong {
     white-space: normal;
   }
+
+  .dashboard-payment-status {
+    padding: 18px;
+  }
+
+  .dashboard-payment-status__content {
+    grid-template-columns: 1fr 1.2fr;
+    gap: 22px;
+  }
+
+  .dashboard-payment-status__chart {
+    width: min(160px, 100%);
+  }
 }
 
 @media (max-width: 480px) {
@@ -633,5 +875,34 @@
     flex-direction: row;
     align-items: center;
     gap: 8px;
+  }
+
+  .dashboard-payment-status__header {
+    flex-direction: column;
+  }
+
+  .dashboard-payment-status__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dashboard-payment-status__content {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+
+  .dashboard-payment-status__chart {
+    width: 170px;
+  }
+
+  .dashboard-payment-status__legend {
+    width: 100%;
+  }
+
+  .dashboard-payment-status__legend-item {
+    gap: 12px;
+  }
+
+  .dashboard-payment-status__legend-value {
+    gap: 6px;
   }
 }
