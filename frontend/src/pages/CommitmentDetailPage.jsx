@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useParams, useSearchParams } from "react-router";
 
 import { getCommitment } from "../services/commitmentService";
 
@@ -7,6 +7,12 @@ import "./CommitmentDetailPage.css";
 
 function CommitmentDetailPage() {
   const { commitmentId } = useParams();
+  const [searchParams] = useSearchParams();
+
+  const backPath =
+    searchParams.get("from") === "archived"
+      ? "/commitments?view=archived"
+      : "/commitments";
 
   const [commitment, setCommitment] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,16 +82,18 @@ function CommitmentDetailPage() {
         </div>
 
         <div className="commitment-detail-page__actions">
-          <Link
-            className="commitment-detail-page__edit"
-            to={`/commitments/${commitment.id}/edit`}
-          >
-            Edit
-          </Link>
+          {!commitment.is_archived && (
+            <Link
+              className="commitment-detail-page__edit"
+              to={`/commitments/${commitment.id}/edit`}
+            >
+              Edit
+            </Link>
+          )}
 
           <Link
             className="commitment-detail-page__back"
-            to="/commitments"
+            to={backPath}
           >
             Back
           </Link>

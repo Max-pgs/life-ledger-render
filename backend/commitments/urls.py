@@ -10,6 +10,8 @@ from .views import (
     OverdueCommitmentListView,
     HighPriorityCommitmentListView,
     ReviewSoonCommitmentListView,
+    ArchivedCommitmentListView,
+    CommitmentRestoreView,
     GuidedSetupView,
     StatusListView,
 )
@@ -63,6 +65,11 @@ urlpatterns = [
         name = "commitment-guided-setup",  
     ),
     path(
+        "archived/",
+        ArchivedCommitmentListView.as_view(),
+        name = "commitment-archived-list",
+    ),
+    path(
         "<int:pk>/",
         CommitmentDetailView.as_view(),
         name = "commitment-detail",
@@ -71,5 +78,10 @@ urlpatterns = [
         "<int:pk>/archive/",
         CommitmentArchiveView.as_view(),
         name = "commitment-archive",
-    )
+    ),
+    path(
+        "<int:pk>/restore/",
+        CommitmentRestoreView.as_view(),
+        name="commitment-restore",
+    ),
 ]

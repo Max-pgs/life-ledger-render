@@ -82,3 +82,54 @@ export async function updateCommitment(
 
   return parseResponse(response);
 }
+
+export async function archiveCommitment(commitmentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/archive/`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function getArchivedCommitments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/archived/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function restoreCommitment(commitmentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/restore/`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function deleteCommitment(commitmentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    },
+  );
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return parseResponse(response);
+}

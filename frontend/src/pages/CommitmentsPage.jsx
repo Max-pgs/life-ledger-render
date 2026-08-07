@@ -1,10 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 
 import {
+    archiveCommitment,
     getCommitments,
     getCommitmentGroups,
     getCommitmentStatuses,
+    getArchivedCommitments,
+    restoreCommitment,
+    deleteCommitment,
 } from "../services/commitmentService";
 
 import "./CommitmentsPage.css";
@@ -22,7 +26,23 @@ function CommitmentsPage() {
     const [statusFilter, setStatusFilter] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("");
 
+    const [actionError, setActionError] = useState("");
+    const [commitmentToArchive, setCommitmentToArchive] = useState(null);
+    const [commitmentToDelete, setCommitmentToDelete] = useState(null);
+
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    const listMode = searchParams.get("view") === "archived" ? "archived" : "current";
+
     useEffect(() => {
+        async function loadCommitmentsForMode(mode) {
+            if (mode === "archived") {
+                return getArchivedCommitments();
+            }
+
+            return getCommitments();
+        }
+
         async function loadPageData() {
             try {
                 const [
@@ -30,7 +50,7 @@ function CommitmentsPage() {
                     groupData,
                     statusData,
                 ] = await Promise.all([
-                    getCommitments(),
+                    loadCommitmentsForMode(listMode),
                     getCommitmentGroups(),
                     getCommitmentStatuses(),
                 ]);
@@ -48,7 +68,7 @@ function CommitmentsPage() {
         }
 
         loadPageData();
-    }, []);
+    }, [listMode]);
 
     /* Formats date-only API values without shifting them across time zones. */
     function formatDate(dateValue) {
@@ -57,6 +77,70 @@ function CommitmentsPage() {
         }
 
         return new Date(`${dateValue}T00:00:00`).toLocaleDateString("en-GB");
+    }
+
+    async function handleArchive() {
+        if (!commitmentToArchive) {
+            return;
+        }
+
+        setActionError("");
+
+        try {
+            await archiveCommitment(commitmentToArchive.id);
+
+            setCommitments((current) =>
+                current.filter(
+                    (item) => item.id !== commitmentToArchive.id,
+                ),
+            );
+
+            setCommitmentToArchive(null);
+        } catch {
+            setActionError(
+                "Commitment could not be archived. Please try again.",
+            );
+        }
+    }
+
+    async function handleRestore(commitment) {
+        setActionError("");
+
+        try {
+            await restoreCommitment(commitment.id);
+
+            setCommitments((current) =>
+                current.filter((item) => item.id !== commitment.id),
+            );
+        } catch {
+            setActionError(
+                "Commitment could not be restored. Please try again.",
+            );
+        }
+    }
+
+    async function handleDelete() {
+        if (!commitmentToDelete) {
+            return;
+        }
+
+        setActionError("");
+
+        try {
+            await deleteCommitment(commitmentToDelete.id);
+
+            setCommitments((current) =>
+                current.filter(
+                    (item) => item.id !== commitmentToDelete.id,
+                ),
+            );
+
+            setCommitmentToDelete(null);
+        } catch {
+            setActionError(
+                "Commitment could not be deleted. Please try again.",
+            );
+        }
     }
 
     if (isLoading) {
@@ -118,116 +202,160 @@ function CommitmentsPage() {
                 </Link>
             </header>
 
-            {loadError && (
+            <div className="commitments-page__tabs">
+                <button
+                    type="button"
+                    className={
+                        listMode === "current"
+                            ? "commitments-page__tab commitments-page__tab--active"
+                            : "commitments-page__tab"
+                    }
+                    onClick={() => {
+                        setSearchParams({});
+                    }}
+                >
+                    Current
+                </button>
+
+                <button
+                    type="button"
+                    className={
+                        listMode === "archived"
+                            ? "commitments-page__tab commitments-page__tab--active"
+                            : "commitments-page__tab"
+                    }
+                    onClick={() => {
+                        setSearchParams({ view: "archived" });
+                    }}
+                >
+                    Archived
+                </button>
+            </div>
+
+            {actionError && (
                 <div
                     className="commitments-page__message commitments-page__message--error"
                     role="alert"
                 >
-                    {loadError}
+                    {actionError}
                 </div>
             )}
 
             {!loadError && commitments.length === 0 && (
                 <div className="commitments-page__empty">
-                    <h2>No commitments yet</h2>
+                    {listMode === "current" ? (
+                        <>
+                            <h2>No commitments yet</h2>
 
-                    <p>
-                        Add your first commitment to start tracking bills,
-                        contracts and important deadlines.
-                    </p>
+                            <p>
+                                Add your first commitment to start tracking bills,
+                                contracts and important deadlines.
+                            </p>
 
-                    <Link to="/commitments/new">
-                        Add commitment
-                    </Link>
+                            <Link to="/commitments/new">
+                                Add commitment
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            <h2>No archived commitments</h2>
+
+                            <p>
+                                Commitments you archive will appear here.
+                            </p>
+                        </>
+                    )}
                 </div>
             )}
+            {!loadError && commitments.length > 0 && (
+                <>
+                    <div className="commitments-toolbar">
+                        <div className="commitments-toolbar__field commitments-toolbar__field--search">
+                            <label htmlFor="commitment-search">
+                                Search
+                            </label>
 
-            <div className="commitments-toolbar">
-                <div className="commitments-toolbar__field commitments-toolbar__field--search">
-                    <label htmlFor="commitment-search">
-                        Search
-                    </label>
+                            <input
+                                id="commitment-search"
+                                type="search"
+                                placeholder="Search commitments..."
+                                value={searchQuery}
+                                onChange={(event) => setSearchQuery(event.target.value)}
+                            />
+                        </div>
 
-                    <input
-                        id="commitment-search"
-                        type="search"
-                        placeholder="Search commitments..."
-                        value={searchQuery}
-                        onChange={(event) => setSearchQuery(event.target.value)}
-                    />
-                </div>
+                        <div className="commitments-toolbar__field">
+                            <label htmlFor="group-filter">
+                                Commitment group
+                            </label>
 
-                <div className="commitments-toolbar__field">
-                    <label htmlFor="group-filter">
-                        Commitment group
-                    </label>
+                            <select
+                                id="group-filter"
+                                value={groupFilter}
+                                onChange={(event) => setGroupFilter(event.target.value)}
+                            >
+                                <option value="">All groups</option>
 
-                    <select
-                        id="group-filter"
-                        value={groupFilter}
-                        onChange={(event) => setGroupFilter(event.target.value)}
-                    >
-                        <option value="">All groups</option>
+                                {groups.map((group) => (
+                                    <option key={group.id} value={group.id}>
+                                        {group.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        {groups.map((group) => (
-                            <option key={group.id} value={group.id}>
-                                {group.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                        <div className="commitments-toolbar__field">
+                            <label htmlFor="status-filter">
+                                Status
+                            </label>
 
-                <div className="commitments-toolbar__field">
-                    <label htmlFor="status-filter">
-                        Status
-                    </label>
+                            <select
+                                id="status-filter"
+                                value={statusFilter}
+                                onChange={(event) => setStatusFilter(event.target.value)}
+                            >
+                                <option value="">All statuses</option>
 
-                    <select
-                        id="status-filter"
-                        value={statusFilter}
-                        onChange={(event) => setStatusFilter(event.target.value)}
-                    >
-                        <option value="">All statuses</option>
+                                {statuses.map((status) => (
+                                    <option key={status.id} value={status.id}>
+                                        {status.name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
-                        {statuses.map((status) => (
-                            <option key={status.id} value={status.id}>
-                                {status.name}
-                            </option>
-                        ))}
-                    </select>
-                </div>
+                        <div className="commitments-toolbar__field">
+                            <label htmlFor="priority-filter">
+                                Priority
+                            </label>
 
-                <div className="commitments-toolbar__field">
-                    <label htmlFor="priority-filter">
-                        Priority
-                    </label>
+                            <select
+                                id="priority-filter"
+                                value={priorityFilter}
+                                onChange={(event) => setPriorityFilter(event.target.value)}
+                            >
+                                <option value="">All priorities</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                            </select>
+                        </div>
 
-                    <select
-                        id="priority-filter"
-                        value={priorityFilter}
-                        onChange={(event) => setPriorityFilter(event.target.value)}
-                    >
-                        <option value="">All priorities</option>
-                        <option value="high">High</option>
-                        <option value="medium">Medium</option>
-                        <option value="low">Low</option>
-                    </select>
-                </div>
-
-                <button
-                    type="button"
-                    className="commitments-toolbar__clear"
-                    onClick={() => {
-                        setSearchQuery("");
-                        setGroupFilter("");
-                        setStatusFilter("");
-                        setPriorityFilter("");
-                    }}
-                >
-                    Clear filters
-                </button>
-            </div>
-
+                        <button
+                            type="button"
+                            className="commitments-toolbar__clear"
+                            onClick={() => {
+                                setSearchQuery("");
+                                setGroupFilter("");
+                                setStatusFilter("");
+                                setPriorityFilter("");
+                            }}
+                        >
+                            Clear filters
+                        </button>
+                    </div>
+                </>
+            )}
             {!loadError &&
                 commitments.length > 0 &&
                 filteredCommitments.length === 0 && (
@@ -303,17 +431,46 @@ function CommitmentsPage() {
 
                                         <td>
                                             <div className="commitments-table__actions">
-                                                <Link to={`/commitments/${commitment.id}`}>
+                                                <Link
+                                                    to={
+                                                        listMode === "archived"
+                                                            ? `/commitments/${commitment.id}?from=archived`
+                                                            : `/commitments/${commitment.id}`
+                                                    }
+                                                >
                                                     View
                                                 </Link>
 
-                                                <Link to={`/commitments/${commitment.id}/edit`}>
-                                                    Edit
-                                                </Link>
+                                                {listMode === "current" ? (
+                                                    <>
+                                                        <Link to={`/commitments/${commitment.id}/edit`}>
+                                                            Edit
+                                                        </Link>
 
-                                                <button type="button" disabled>
-                                                    Archive
-                                                </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCommitmentToArchive(commitment)}
+                                                        >
+                                                            Archive
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => handleRestore(commitment)}
+                                                        >
+                                                            Restore
+                                                        </button>
+
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setCommitmentToDelete(commitment)}
+                                                        >
+                                                            Delete
+                                                        </button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -368,26 +525,142 @@ function CommitmentsPage() {
                                     </div>
                                 </dl>
 
-                                <div className="commitments-mobile-card__actions">
-                                    <Link to={`/commitments/${commitment.id}`}>
+                                <div className="commitments-table__actions">
+                                    <Link
+                                        to={
+                                            listMode === "archived"
+                                                ? `/commitments/${commitment.id}?from=archived`
+                                                : `/commitments/${commitment.id}`
+                                        }
+                                    >
                                         View
                                     </Link>
 
-                                    <Link to={`/commitments/${commitment.id}/edit`}>
-                                        Edit
-                                    </Link>
+                                    {listMode === "current" ? (
+                                        <>
+                                            <Link to={`/commitments/${commitment.id}/edit`}>
+                                                Edit
+                                            </Link>
 
-                                    <button type="button" disabled>
-                                        Archive
-                                    </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setCommitmentToArchive(commitment)}
+                                            >
+                                                Archive
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRestore(commitment)}
+                                            >
+                                                Restore
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                onClick={() => setCommitmentToDelete(commitment)}
+                                            >
+                                                Delete
+                                            </button>
+                                        </>
+                                    )}
                                 </div>
                             </article>
                         ))}
                     </div>
                 </div>
             )}
+
+            {commitmentToArchive && (
+                <div
+                    className="commitment-modal"
+                    role="presentation"
+                >
+                    <div
+                        className="commitment-modal__dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="archive-dialog-title"
+                    >
+                        <p className="commitment-modal__eyebrow">
+                            Archive commitment
+                        </p>
+
+                        <h2 id="archive-dialog-title">
+                            Archive "{commitmentToArchive.title}"?
+                        </h2>
+
+                        <p className="commitment-modal__text">
+                            This commitment will be removed from your active list.
+                        </p>
+
+                        <div className="commitment-modal__actions">
+                            <button
+                                type="button"
+                                className="commitment-modal__cancel"
+                                onClick={() => setCommitmentToArchive(null)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="commitment-modal__confirm"
+                                onClick={handleArchive}
+                            >
+                                Archive
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {commitmentToDelete && (
+                <div
+                    className="commitment-modal"
+                    role="presentation"
+                >
+                    <div
+                        className="commitment-modal__dialog"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="delete-dialog-title"
+                    >
+                        <p className="commitment-modal__eyebrow">
+                            Delete commitment
+                        </p>
+
+                        <h2 id="delete-dialog-title">
+                            Delete "{commitmentToDelete.title}"?
+                        </h2>
+
+                        <p className="commitment-modal__text">
+                            This action is permanent and cannot be undone.
+                        </p>
+
+                        <div className="commitment-modal__actions">
+                            <button
+                                type="button"
+                                className="commitment-modal__cancel"
+                                onClick={() => setCommitmentToDelete(null)}
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                type="button"
+                                className="commitment-modal__delete"
+                                onClick={handleDelete}
+                            >
+                                Delete permanently
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </section>
     );
 }
-
 export default CommitmentsPage;
