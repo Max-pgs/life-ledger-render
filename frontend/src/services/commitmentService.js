@@ -133,3 +133,14 @@ export async function deleteCommitment(commitmentId) {
 
   return parseResponse(response);
 }
+
+export async function getUpcomingCommitments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/upcoming/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
