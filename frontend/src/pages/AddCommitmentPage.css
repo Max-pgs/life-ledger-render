@@ -166,6 +166,8 @@
   opacity: 1;
 }
 
+
+/* Keeps the prefixed amount and notice-period fields visually as one control. */
 .commitment-form__amount,
 .commitment-form__notice-period {
   display: flex;
@@ -260,6 +262,7 @@
   cursor: not-allowed;
 }
 
+/* Stacks the form into a single column on smaller screens. */
 @media (max-width: 760px) {
   .add-commitment-page {
     padding: 22px 18px;

@@ -1,15 +1,20 @@
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { useRef, useState } from "react";
+import { Link, useNavigate, useLocation, Outlet } from "react-router";
 
 import Logo from "../components/Logo";
 import { logoutUser } from "../services/authService";
 
 import "./DashboardLayout.css";
 
-function DashboardLayout({ logoRef, children }) {
+function DashboardLayout() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const dashboardLogoRef = useRef(null);
 
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   /* Prevents duplicate logout requests while the current one is in progress. */
   async function handleLogout() {
@@ -38,72 +43,96 @@ function DashboardLayout({ logoRef, children }) {
     <div className="dashboard-layout">
       <aside className="dashboard-sidebar">
         {/* The ref provides the target position for the post-login logo animation. */}
-        <div ref={logoRef} className="dashboard-sidebar__logo">
+        <div ref={dashboardLogoRef} className="dashboard-sidebar__logo">
           <Logo variant="compact" />
         </div>
 
-        <nav
-          className="dashboard-layout__nav"
-          aria-label="Main navigation"
+        <button
+          className="dashboard-sidebar__menu-toggle"
+          type="button"
+          aria-label="Toggle navigation menu"
+          aria-expanded={isMobileMenuOpen}
+          onClick={() => setIsMobileMenuOpen((current) => !current)}
         >
-          <Link
-            to="/dashboard"
-            className="dashboard-layout__nav-link dashboard-layout__nav-link--active"
-            aria-current="page"
+          <span />
+          <span />
+          <span />
+        </button>
+        <div
+          className={`dashboard-sidebar__mobile-menu ${isMobileMenuOpen
+            ? "dashboard-sidebar__mobile-menu--open"
+            : ""
+            }`}
+        >
+          <nav
+            className="dashboard-layout__nav"
+            aria-label="Main navigation"
           >
-            Overview
-          </Link>
+            <Link
+              to="/dashboard"
+              className={`dashboard-layout__nav-link ${location.pathname === "/dashboard"
+                ? "dashboard-layout__nav-link--active"
+                : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Dashboard
+            </Link>
 
-          <button
-            type="button"
-            className="dashboard-layout__nav-link"
-            disabled
-          >
-            Commitments
-          </button>
+            <Link
+              to="/commitments"
+              className={`dashboard-layout__nav-link ${location.pathname === "/commitments"
+                ? "dashboard-layout__nav-link--active"
+                : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Commitments
+            </Link>
 
-          <button
-            type="button"
-            className="dashboard-layout__nav-link"
-            disabled
-          >
-            Guided setup
-          </button>
+            <button
+              type="button"
+              className="dashboard-layout__nav-link"
+              disabled
+            >
+              Guided setup
+            </button>
 
-          <button
-            type="button"
-            className="dashboard-layout__nav-link"
-            disabled
-          >
-            UK guidance
-          </button>
+            <button
+              type="button"
+              className="dashboard-layout__nav-link"
+              disabled
+            >
+              UK guidance
+            </button>
 
-          <button
-            type="button"
-            className="dashboard-layout__nav-link"
-            disabled
-          >
-            Settings
-          </button>
-        </nav>
+            <button
+              type="button"
+              className="dashboard-layout__nav-link"
+              disabled
+            >
+              Settings
+            </button>
+          </nav>
 
-        <div className="dashboard-layout__sidebar-footer">
-          <button
-            type="button"
-            className="dashboard-layout__logout"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            <span>{isLoggingOut ? "Logging out" : "Log out"}</span>
-          </button>
+          <div className="dashboard-layout__sidebar-footer">
+            <button
+              type="button"
+              className="dashboard-layout__logout"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              <span>{isLoggingOut ? "Logging out" : "Log out"}</span>
+            </button>
 
+          </div>
         </div>
-      </aside>
+      </aside >
 
       <main className="dashboard-content">
-        {children}
+        <Outlet context={{ dashboardLogoRef }} />
       </main>
-    </div>
+    </div >
   );
 }
 

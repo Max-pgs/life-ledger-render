@@ -113,6 +113,7 @@ function AddCommitmentPage() {
         );
     }
 
+    /* Mirrors the backend deadline calculation for immediate form feedback. */
     function getCancellationDeadline() {
         if (
             !formData.contract_end_date ||
@@ -386,9 +387,6 @@ function AddCommitmentPage() {
                                 value={formData.payment_status}
                                 onChange={handleChange}
                             >
-                                <option value="not_applicable">
-                                    Not applicable
-                                </option>
                                 <option value="not_applicable">Not applicable</option>
                                 <option value="pending">Pending</option>
                                 <option value="paid">Paid</option>
@@ -548,7 +546,7 @@ function AddCommitmentPage() {
                     <button
                         type="button"
                         className="commitment-form__cancel"
-                        onClick={() => navigate("/dashboard")}
+                        onClick={() => navigate("/commitments")}
                         disabled={isSubmitting}
                     >
                         Cancel

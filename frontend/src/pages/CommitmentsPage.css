@@ -1,0 +1,404 @@
+.commitments-page {
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.commitments-page__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+
+.commitments-page__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8aa899;
+}
+
+.commitments-page h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  color: #f4f7f5;
+}
+
+.commitments-page__intro {
+  margin: 12px 0 0;
+  color: #aeb9b3;
+  line-height: 1.6;
+}
+
+.commitments-page__add {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid #76bd99;
+  border-radius: 10px;
+  background: #76bd99;
+  color: #0c1510;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.commitments-page__add:hover {
+  border-color: #88c9a8;
+  background: #88c9a8;
+}
+
+.commitments-page__message {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.commitments-page__message--error {
+  border: 1px solid rgba(244, 112, 112, 0.35);
+  background: rgba(244, 112, 112, 0.08);
+  color: #ffb3b3;
+}
+
+.commitments-page__empty {
+  padding: 36px 24px;
+  border: 1px dashed #35423c;
+  border-radius: 16px;
+  background: #131916;
+  text-align: center;
+}
+
+.commitments-page__empty h2 {
+  margin: 0 0 8px;
+  font-size: 1.25rem;
+  color: #f4f7f5;
+}
+
+.commitments-page__empty p {
+  margin: 0;
+  color: #91a099;
+}
+
+.commitments-page__empty a {
+  display: inline-block;
+  margin-top: 18px;
+  color: #86c9a7;
+  font-weight: 700;
+}
+
+.commitments-toolbar {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr auto;
+  gap: 14px;
+  align-items: end;
+  margin-bottom: 24px;
+  padding: 18px;
+  border: 1px solid #28312d;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.commitments-toolbar__field {
+  min-width: 0;
+}
+
+.commitments-toolbar__field label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #dce4df;
+}
+
+.commitments-toolbar input,
+.commitments-toolbar select {
+  width: 100%;
+  min-height: 42px;
+  box-sizing: border-box;
+  padding: 0 11px;
+  border: 1px solid #303b36;
+  border-radius: 9px;
+  background: #0f1412;
+  color: #f4f7f5;
+  font: inherit;
+}
+
+.commitments-toolbar input:focus,
+.commitments-toolbar select:focus {
+  outline: none;
+  border-color: #74b996;
+  box-shadow: 0 0 0 3px rgba(116, 185, 150, 0.12);
+}
+
+.commitments-toolbar__clear {
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid #35423c;
+  border-radius: 9px;
+  background: transparent;
+  color: #d3ddd7;
+  font: inherit;
+  cursor: pointer;
+}
+
+.commitments-toolbar__clear:hover {
+  border-color: #506159;
+  background: #1a211e;
+}
+
+.commitments-table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #28312d;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.commitments-table__summary {
+  padding: 14px 18px;
+  border-bottom: 1px solid #28312d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #aeb9b3;
+}
+
+.commitments-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.commitments-table th,
+.commitments-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #28312d;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.commitments-table th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #819087;
+}
+
+.commitments-table td {
+  font-size: 0.9rem;
+  color: #dce4df;
+}
+
+.commitments-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.commitments-table tbody tr:hover {
+  background: #19211d;
+}
+
+.commitments-table__title {
+  font-weight: 700;
+  color: #f4f7f5;
+}
+
+.commitments-table__priority {
+  display: inline-flex;
+  min-width: 62px;
+  justify-content: center;
+  padding: 4px 8px;
+  border: 1px solid #35423c;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+
+.commitments-table__priority--high {
+  border-color: rgba(244, 112, 112, 0.35);
+}
+
+.commitments-table__priority--medium {
+  border-color: rgba(222, 189, 100, 0.35);
+}
+
+.commitments-table__priority--low {
+  border-color: rgba(116, 185, 150, 0.35);
+}
+
+.commitments-table__actions {
+  display: flex;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.commitments-table__actions a,
+.commitments-table__actions button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 0.82rem;
+  text-decoration: underline;
+}
+
+.commitments-table__actions a {
+  color: #86c9a7;
+  cursor: pointer;
+}
+
+.commitments-table__actions a:hover {
+  color: #a1d8bd;
+}
+
+.commitments-table__actions button:disabled {
+  color: #86c9a7;
+  opacity: 0.45;
+  cursor: default;
+}
+
+.commitments-mobile {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .commitments-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .commitments-toolbar__field--search {
+    grid-column: 1 / -1;
+  }
+
+  .commitments-toolbar__clear {
+    width: 100%;
+  }
+}
+
+@media (max-width: 760px) {
+  .commitments-page {
+    padding: 22px 18px;
+  }
+
+  .commitments-page__header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .commitments-page__add {
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 4px;
+  }
+
+  .commitments-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .commitments-toolbar__field--search {
+    grid-column: auto;
+  }
+
+  .commitments-desktop {
+    display: none;
+  }
+
+  .commitments-mobile {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .commitments-mobile-card {
+    padding: 18px;
+    border: 1px solid #28312d;
+    border-radius: 14px;
+    background: #151b18;
+  }
+
+  .commitments-mobile-card__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .commitments-mobile-card__header h2 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #f4f7f5;
+  }
+
+  .commitments-mobile-card__header p {
+    margin: 6px 0 0;
+    font-size: 0.85rem;
+    color: #91a099;
+  }
+
+  .commitments-mobile-card__details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    margin: 18px 0 0;
+    padding-top: 16px;
+    border-top: 1px solid #28312d;
+  }
+
+  .commitments-mobile-card__details div {
+    min-width: 0;
+  }
+
+  .commitments-mobile-card__details dt {
+    margin-bottom: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #78867f;
+  }
+
+  .commitments-mobile-card__details dd {
+    margin: 0;
+    color: #dce4df;
+    text-transform: capitalize;
+    overflow-wrap: anywhere;
+  }
+
+  .commitments-mobile-card__actions {
+    display: flex;
+    gap: 16px;
+    margin-top: 18px;
+    padding-top: 14px;
+    border-top: 1px solid #28312d;
+  }
+
+  .commitments-mobile-card__actions a,
+  .commitments-mobile-card__actions button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: #86c9a7;
+    font: inherit;
+    font-size: 0.85rem;
+    text-decoration: underline;
+  }
+
+  .commitments-mobile-card__actions a {
+    cursor: pointer;
+  }
+
+  .commitments-mobile-card__actions button:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+}
+
+@media (max-width: 430px) {
+  .commitments-mobile-card__details {
+    grid-template-columns: 1fr;
+  }
+}
