@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router";
-import { getUpcomingCommitments } from "../services/commitmentService";
+import {
+  getOverdueCommitments,
+  getUpcomingCommitments,
+} from "../services/commitmentService";
 
 import LoginSuccessTransition from "../components/LoginSuccessTransition";
 
@@ -32,6 +35,10 @@ function DashboardPage() {
   const [upcomingLoading, setUpcomingLoading] = useState(true);
   const [upcomingError, setUpcomingError] = useState("");
 
+  const [overdueCommitments, setOverdueCommitments] = useState([]);
+  const [overdueLoading, setOverdueLoading] = useState(true);
+  const [overdueError, setOverdueError] = useState("");
+
   /* Marks the intro as completed and removes the temporary route state. */
   function handleTransitionComplete() {
     setShowLoginTransition(false);
@@ -61,6 +68,21 @@ function DashboardPage() {
     }
 
     loadUpcomingCommitments();
+  }, []);
+
+  useEffect(() => {
+    async function loadOverdueCommitments() {
+      try {
+        const data = await getOverdueCommitments();
+        setOverdueCommitments(data);
+      } catch {
+        setOverdueError("Unable to load overdue commitments.");
+      } finally {
+        setOverdueLoading(false);
+      }
+    }
+
+    loadOverdueCommitments();
   }, []);
 
   return (
@@ -100,6 +122,23 @@ function DashboardPage() {
 
             <span className="dashboard-summary-card__hint">
               Due in the next 30 days
+            </span>
+          </article>
+          <article className="dashboard-summary-card">
+            <span className="dashboard-summary-card__label">
+              Overdue
+            </span>
+
+            <strong className="dashboard-summary-card__value">
+              {overdueLoading
+                ? "—"
+                : overdueError
+                  ? "—"
+                  : overdueCommitments.length}
+            </strong>
+
+            <span className="dashboard-summary-card__hint">
+              Needs your attention
             </span>
           </article>
         </section>
@@ -163,6 +202,74 @@ function DashboardPage() {
                     </div>
 
                     <div className="dashboard-upcoming-item__due">
+                      <span>Due</span>
+                      <strong>{formatDate(commitment.due_date)}</strong>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+        </section>
+        <section className="dashboard-overdue">
+          <div className="dashboard-overdue__header">
+            <div>
+              <p className="dashboard-overdue__eyebrow">
+                Past due
+              </p>
+              <h2>Overdue commitments</h2>
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-overdue__view-all"
+              onClick={() => navigate("/commitments")}
+            >
+              View all
+            </button>
+          </div>
+
+          {overdueLoading && (
+            <p className="dashboard-overdue__message">
+              Loading overdue commitments...
+            </p>
+          )}
+
+          {!overdueLoading && overdueError && (
+            <p className="dashboard-overdue__message dashboard-overdue__message--error">
+              {overdueError}
+            </p>
+          )}
+
+          {!overdueLoading &&
+            !overdueError &&
+            overdueCommitments.length === 0 && (
+              <p className="dashboard-overdue__message">
+                You have no overdue commitments.
+              </p>
+            )}
+
+          {!overdueLoading &&
+            !overdueError &&
+            overdueCommitments.length > 0 && (
+              <div className="dashboard-overdue__list">
+                {overdueCommitments.map((commitment) => (
+                  <button
+                    key={commitment.id}
+                    type="button"
+                    className="dashboard-overdue-item"
+                    onClick={() =>
+                      navigate(`/commitments/${commitment.id}`)
+                    }
+                  >
+                    <div className="dashboard-overdue-item__main">
+                      <strong>{commitment.title}</strong>
+
+                      <span>
+                        {commitment.group?.name || "No commitment group"}
+                      </span>
+                    </div>
+
+                    <div className="dashboard-overdue-item__due">
                       <span>Due</span>
                       <strong>{formatDate(commitment.due_date)}</strong>
                     </div>
