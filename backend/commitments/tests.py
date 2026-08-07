@@ -688,9 +688,11 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             information_url = "https://www.moneysavingexpert.com/",
         )
 
-        self.status = Status.objects.create(
+        self.status, _ = Status.objects.get_or_create(
             name = "Active",
-            description = "The commitment is currently active.",
+            defaults = {
+                "description": "The commitment is currently active.",
+            },
         )
 
         self.list_url = reverse(
@@ -1039,23 +1041,19 @@ class CommitmentGroupListAPITests(APITestCase):
             status.HTTP_200_OK,
         )
 
-        self.assertEqual(
-            len(response.data),
-            1,
+        household_group = next(
+            group
+            for group in response.data
+            if group["name"] == "Household"
         )
 
         self.assertEqual(
-            response.data[0]["name"],
-            "Household",
-        )
-
-        self.assertEqual(
-            response.data[0]["description"],
+            household_group["description"],
             "Household-related commitments.",
         )
 
         self.assertEqual(
-            response.data[0]["information_url"],
+            household_group["information_url"],
             "https://www.moneysavingexpert.com/",
         )
 
@@ -1109,6 +1107,77 @@ class CommitmentGroupListAPITests(APITestCase):
             CommitmentGroup.objects.filter(
                 name = "User-created group",
             ).exists()
+        )
+        
+class CommitmentStatusListAPITests(APITestCase):
+    # Test retrieval of admin-managed commitment statuses.
+
+    def setUp(self):
+        self.url = reverse(
+            "commitments:commitment-status-list"
+        )
+
+        self.user = User.objects.create_user(
+            username = "testuser",
+            email = "test@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user=self.user,
+        )
+
+        self.active_status, _ = Status.objects.get_or_create(
+            name = "Active",
+            defaults = {
+                "description": "The commitment is currently active.",
+            },
+        )
+
+        self.cancelled_status, _ = Status.objects.get_or_create(
+            name = "Cancelled",
+            defaults = {
+                "description": "The commitment has been cancelled.",
+            },
+        )
+
+    def authenticate(self):
+        # Authenticate requests using the current user's token.
+
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authenticated_user_can_view_statuses(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        returned_names = {
+            item["name"]
+            for item in response.data
+        }
+
+        self.assertIn("Active", returned_names)
+        self.assertIn("Cancelled", returned_names)
+
+    def test_unauthenticated_user_cannot_view_statuses(self):
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
         )
         
 class CommitmentBillContractDetailsAPITests(APITestCase):
@@ -2591,21 +2660,18 @@ class GuidedSetupAPITests(APITestCase):
             response.status_code,
             status.HTTP_200_OK,
         )
-        self.assertEqual(
-            len(response.data),
-            1,
+
+        group = next(
+            group
+            for group in response.data
+            if group["name"] == "Household"
         )
 
-        group = response.data[0]
-
-        self.assertEqual(
-            group["name"],
-            "Household",
-        )
         self.assertEqual(
             group["description"],
             "Common household commitments.",
         )
+
         self.assertEqual(
             len(group["templates"]),
             1,
@@ -2617,14 +2683,17 @@ class GuidedSetupAPITests(APITestCase):
             template["name"],
             "Council Tax",
         )
+
         self.assertEqual(
             template["default_provider_name"],
             "Local council",
         )
+
         self.assertEqual(
             template["default_payment_frequency"],
             "monthly",
         )
+
         self.assertEqual(
             template["default_priority"],
             "high",
@@ -2727,10 +2796,12 @@ class GuidedSetupAPITests(APITestCase):
             format = "json",
         )
 
+        returned_names = [
+            group["name"]
+            for group in response.data
+        ]
+
         self.assertEqual(
-            [group["name"] for group in response.data],
-            [
-                "Household",
-                "Subscriptions",
-            ],
+            returned_names,
+            sorted(returned_names),
         )

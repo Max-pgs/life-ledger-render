@@ -11,6 +11,7 @@ from .views import (
     HighPriorityCommitmentListView,
     ReviewSoonCommitmentListView,
     GuidedSetupView,
+    StatusListView,
 )
 
 app_name = "commitments"
@@ -27,12 +28,17 @@ urlpatterns = [
         name = "commitment-group-list",
     ),
     path(
+        "statuses/",
+        StatusListView.as_view(),
+        name = "commitment-status-list",
+    ),
+    path(
         "upcoming/",
         UpcomingCommitmentListView.as_view(),
         name = "commitment-upcoming",
     ),
     path(
-        "ovedue/",
+        "overdue/",
         OverdueCommitmentListView.as_view(),
         name = "commitment-overdue",
     ),
