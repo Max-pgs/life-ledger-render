@@ -6,12 +6,13 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 
-from .models import Commitment, CommitmentGroup, CommitmentTemplate
+from .models import Commitment, CommitmentGroup, CommitmentTemplate, Status
 from .serializers import (
     CommitmentGroupSerializer,
     CommitmentSerializer,
     CommitmentTemplateSerializer,
     GuidedSetupGroupSerializer,
+    StatusSerializer,
 )
 
 class CommitmentListCreateView(generics.ListCreateAPIView):
@@ -219,3 +220,12 @@ class GuidedSetupView(generics.ListAPIView):
                 )
             ).order_by("name")
         )
+        
+class StatusListView(generics.ListAPIView):
+    # Return admin-managed lifecycle statuses available for commitments.
+
+    serializer_class = StatusSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Status.objects.all()
