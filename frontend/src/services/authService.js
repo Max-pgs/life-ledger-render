@@ -1,5 +1,6 @@
+/* Uses the deployed API URL when available and falls back to local Django during development. */
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api/auth";
+  import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
 
 /* Parses successful responses and forwards backend validation errors unchanged. */
 async function parseResponse(response) {
@@ -13,7 +14,7 @@ async function parseResponse(response) {
 }
 
 export async function registerUser(userData) {
-  const response = await fetch(`${API_BASE_URL}/register/`, {
+  const response = await fetch(`${API_BASE_URL}/auth/register/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -25,7 +26,7 @@ export async function registerUser(userData) {
 }
 
 export async function loginUser(credentials) {
-  const response = await fetch(`${API_BASE_URL}/login/`, {
+  const response = await fetch(`${API_BASE_URL}/auth/login/`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -44,7 +45,7 @@ export async function logoutUser() {
     return;
   }
 
-  const response = await fetch(`${API_BASE_URL}/logout/`, {
+  const response = await fetch(`${API_BASE_URL}/auth/logout/`, {
     method: "POST",
     headers: {
       Authorization: `Token ${token}`,

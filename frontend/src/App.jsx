@@ -4,6 +4,7 @@ import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AddCommitmentPage from "./pages/AddCommitmentPage";
 
 function App() {
   return (
@@ -31,6 +32,15 @@ function App() {
           element={
             <ProtectedRoute>
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/commitments/new"
+          element={
+            <ProtectedRoute>
+              <AddCommitmentPage />
             </ProtectedRoute>
           }
         />

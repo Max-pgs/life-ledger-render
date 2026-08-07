@@ -1,0 +1,283 @@
+.add-commitment-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.add-commitment-page__header {
+  margin-bottom: 28px;
+}
+
+.add-commitment-page__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8aa899;
+}
+
+.add-commitment-page h1 {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.1;
+  color: #f4f7f5;
+}
+
+.add-commitment-page__intro {
+  max-width: 640px;
+  margin: 12px 0 0;
+  color: #aeb9b3;
+  line-height: 1.6;
+}
+
+.add-commitment-page__loading {
+  color: #aeb9b3;
+}
+
+.add-commitment-page__message {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+}
+
+.add-commitment-page__message--error {
+  border: 1px solid rgba(244, 112, 112, 0.35);
+  background: rgba(244, 112, 112, 0.08);
+  color: #ffb3b3;
+}
+
+.commitment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.commitment-form__section {
+  margin: 0;
+  padding: 24px;
+  border: 1px solid #28312d;
+  border-radius: 16px;
+  background: #151b18;
+}
+
+.commitment-form__section legend {
+  padding: 0 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #93aa9f;
+}
+
+.commitment-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.commitment-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.commitment-form__field--full {
+  width: 100%;
+}
+
+.commitment-form__field label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #dce4df;
+}
+
+.commitment-form__field input[readonly] {
+  cursor: default;
+  background: #1a211e;
+  color: #aeb9b3;
+}
+
+.commitment-form__hint {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: #78867f;
+}
+
+.commitment-form__field input,
+.commitment-form__field select,
+.commitment-form__field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #303b36;
+  border-radius: 10px;
+  background: #0f1412;
+  color: #f4f7f5;
+  font: inherit;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.commitment-form__field input,
+.commitment-form__field select {
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.commitment-form__field textarea {
+  min-height: 120px;
+  padding: 12px;
+  resize: vertical;
+}
+
+.commitment-form__field input:hover,
+.commitment-form__field select:hover,
+.commitment-form__field textarea:hover {
+  border-color: #415049;
+}
+
+.commitment-form__field input:focus,
+.commitment-form__field select:focus,
+.commitment-form__field textarea:focus {
+  outline: none;
+  border-color: #74b996;
+  box-shadow: 0 0 0 3px rgba(116, 185, 150, 0.12);
+}
+
+.commitment-form__field input::placeholder,
+.commitment-form__field textarea::placeholder {
+  color: #64716a;
+}
+
+.commitment-form__field input[type="date"] {
+  color-scheme: dark;
+}
+
+.commitment-form__field input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.8;
+}
+
+.commitment-form__field input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+.commitment-form__amount,
+.commitment-form__notice-period {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #303b36;
+  border-radius: 10px;
+  background: #0f1412;
+}
+
+.commitment-form__amount:focus-within,
+.commitment-form__notice-period:focus-within {
+  border-color: #74b996;
+  box-shadow: 0 0 0 3px rgba(116, 185, 150, 0.12);
+}
+
+.commitment-form__amount span,
+.commitment-form__notice-period span {
+  flex-shrink: 0;
+  padding: 0 12px;
+  color: #8d9b94;
+}
+
+.commitment-form__amount input,
+.commitment-form__notice-period input {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.commitment-form__amount input:focus,
+.commitment-form__notice-period input:focus {
+  border: 0;
+  box-shadow: none;
+}
+
+.commitment-form__error {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #ff9d9d;
+}
+
+.commitment-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 4px;
+}
+
+.commitment-form__actions button {
+  min-height: 44px;
+  padding: 0 20px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.commitment-form__actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.commitment-form__cancel {
+  border: 1px solid #35423c;
+  background: transparent;
+  color: #d3ddd7;
+}
+
+.commitment-form__cancel:hover:not(:disabled) {
+  border-color: #506159;
+  background: #1a211e;
+}
+
+.commitment-form__submit {
+  border: 1px solid #76bd99;
+  background: #76bd99;
+  color: #0c1510;
+}
+
+.commitment-form__submit:hover:not(:disabled) {
+  background: #88c9a8;
+  border-color: #88c9a8;
+}
+
+.commitment-form__actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 760px) {
+  .add-commitment-page {
+    padding: 22px 18px;
+  }
+
+  .commitment-form__section {
+    padding: 20px 16px;
+  }
+
+  .commitment-form__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .commitment-form__actions {
+    flex-direction: column-reverse;
+  }
+
+  .commitment-form__actions button {
+    width: 100%;
+  }
+}
