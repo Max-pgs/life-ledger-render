@@ -307,9 +307,9 @@ function CommitmentsPage() {
                                                     View
                                                 </Link>
 
-                                                <button type="button" disabled>
+                                                <Link to={`/commitments/${commitment.id}/edit`}>
                                                     Edit
-                                                </button>
+                                                </Link>
 
                                                 <button type="button" disabled>
                                                     Archive
@@ -373,9 +373,9 @@ function CommitmentsPage() {
                                         View
                                     </Link>
 
-                                    <button type="button" disabled>
+                                    <Link to={`/commitments/${commitment.id}/edit`}>
                                         Edit
-                                    </button>
+                                    </Link>
 
                                     <button type="button" disabled>
                                         Archive

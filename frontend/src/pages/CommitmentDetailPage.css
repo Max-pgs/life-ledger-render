@@ -52,6 +52,39 @@
   background: #1a211e;
 }
 
+.commitment-detail-page__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.commitment-detail-page__edit,
+.commitment-detail-page__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  text-decoration: none;
+}
+
+.commitment-detail-page__edit {
+  border: 1px solid #76bd99;
+  background: #76bd99;
+  color: #0c1510;
+  font-weight: 700;
+}
+
+.commitment-detail-page__edit:hover {
+  border-color: #88c9a8;
+  background: #88c9a8;
+}
+
+.commitment-detail-page__back {
+  border: 1px solid #35423c;
+  color: #dce4df;
+}
+
 .commitment-detail {
   display: flex;
   flex-direction: column;
@@ -120,6 +153,15 @@
   .commitment-detail-page__back {
     width: 100%;
     box-sizing: border-box;
+  }
+
+  .commitment-detail-page__actions {
+    width: 100%;
+  }
+
+  .commitment-detail-page__edit,
+  .commitment-detail-page__back {
+    flex: 1;
   }
 
   .commitment-detail__grid {

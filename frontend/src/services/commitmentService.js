@@ -66,3 +66,19 @@ export async function getCommitment(commitmentId) {
 
   return parseResponse(response);
 }
+
+export async function updateCommitment(
+  commitmentId,
+  commitmentData,
+) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(commitmentData),
+    },
+  );
+
+  return parseResponse(response);
+}
