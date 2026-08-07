@@ -5,12 +5,14 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AddCommitmentPage from "./pages/AddCommitmentPage";
+import CommitmentsPage from "./pages/CommitmentsPage";
+import CommitmentDetailPage from "./pages/CommitmentDetailPage";
+import DashboardLayout from "./layouts/DashboardLayout";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Redirects the root URL to the registration page. */}
         <Route
           path="/"
           element={<Navigate to="/register" replace />}
@@ -26,21 +28,38 @@ function App() {
           element={<LoginPage />}
         />
 
-        {/* Restricts dashboard access to users with a stored auth token. */}
         <Route
-          path="/dashboard"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <DashboardLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route
+            path="/dashboard"
+            element={<DashboardPage />}
+          />
+
+          <Route
+            path="/commitments"
+            element={<CommitmentsPage />}
+          />
+        </Route>
 
         <Route
           path="/commitments/new"
           element={
             <ProtectedRoute>
               <AddCommitmentPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/commitments/:commitmentId"
+          element={
+            <ProtectedRoute>
+              <CommitmentDetailPage />
             </ProtectedRoute>
           }
         />

@@ -22,6 +22,16 @@
   margin-bottom: 8px;
 }
 
+.dashboard-sidebar__menu-toggle {
+  display: none;
+}
+
+.dashboard-sidebar__mobile-menu {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
 .dashboard-layout__nav {
   display: grid;
   margin-top: 44px;
@@ -116,10 +126,6 @@
   border-color: rgba(243, 240, 232, 0.28);
 }
 
-.dashboard-layout__logout:hover:not(:disabled)::after {
-  transform: translateX(4px);
-}
-
 .dashboard-layout__logout:focus-visible {
   outline: 2px solid #a9c98f;
   outline-offset: 5px;
@@ -156,86 +162,119 @@
   }
 }
 
-/* Collapses navigation labels into short abbreviations on narrow screens. */
 @media (max-width: 720px) {
   .dashboard-layout {
-    grid-template-columns: 84px minmax(0, 1fr);
+    display: block;
   }
 
   .dashboard-sidebar {
-    padding: 20px 18px;
+    position: relative;
+    display: grid;
+    min-height: auto;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    padding: 16px 18px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .dashboard-sidebar__logo {
+    width: 40px;
+    height: 40px;
+    margin: 0;
+  }
+
+  .dashboard-sidebar__menu-toggle {
+    display: inline-flex;
     width: 42px;
     height: 42px;
-    margin-inline: auto;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    padding: 0;
+    border: 1px solid rgba(243, 240, 232, 0.18);
+    border-radius: 10px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .dashboard-sidebar__menu-toggle span {
+    width: 18px;
+    height: 2px;
+    background: #f3f0e8;
+    border-radius: 999px;
+  }
+
+  .dashboard-sidebar__menu-toggle:hover {
+    border-color: rgba(243, 240, 232, 0.34);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .dashboard-sidebar__menu-toggle:focus-visible {
+    outline: 2px solid #a9c98f;
+    outline-offset: 4px;
+  }
+
+  .dashboard-sidebar__mobile-menu {
+    display: none;
+    grid-column: 1 / -1;
+    margin-top: 14px;
+  }
+
+  .dashboard-sidebar__mobile-menu--open {
+    display: flex;
+    flex-direction: column;
   }
 
   .dashboard-layout__nav {
-    margin-top: 36px;
+    display: grid;
+    margin-top: 0;
+    border-top: 1px solid rgba(243, 240, 232, 0.12);
   }
 
   .dashboard-layout__nav-link {
     min-height: 48px;
-    justify-content: center;
-    padding: 0;
-    font-size: 0;
+    padding: 0 4px;
+    font-size: 0.9rem;
   }
 
-  .dashboard-layout__nav-link::after {
-    color: rgba(243, 240, 232, 0.5);
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-  }
-
-  .dashboard-layout__nav-link:nth-child(1)::after {
-    content: "OV";
-  }
-
-  .dashboard-layout__nav-link:nth-child(2)::after {
-    content: "CO";
-  }
-
-  .dashboard-layout__nav-link:nth-child(3)::after {
-    content: "GS";
-  }
-
-  .dashboard-layout__nav-link:nth-child(4)::after {
-    content: "UK";
-  }
-
-  .dashboard-layout__nav-link:nth-child(5)::after {
-    content: "ST";
+  .dashboard-layout__nav-link:hover:not(:disabled) {
+    padding-left: 12px;
   }
 
   .dashboard-layout__nav-link--active {
-    padding-left: 0;
+    padding-left: 14px;
   }
 
-  .dashboard-layout__nav-link--active::before {
-    left: 50%;
-    bottom: 8px;
-    transform: translateX(-50%);
+  .dashboard-layout__sidebar-footer {
+    margin-top: 10px;
+    padding-top: 0;
   }
 
   .dashboard-layout__logout {
-    justify-content: center;
-    font-size: 0;
-  }
-
-  .dashboard-layout__logout::before {
-    content: "OUT";
-    font-size: 0.68rem;
-    letter-spacing: 0.12em;
-  }
-
-  .dashboard-layout__logout::after {
-    display: none;
+    min-height: 48px;
+    justify-content: flex-start;
+    padding: 0 4px;
+    border-top: 0;
+    border-bottom: 1px solid rgba(243, 240, 232, 0.12);
+    color: rgba(243, 240, 232, 0.7);
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
   }
 
   .dashboard-content {
-    padding: 32px 24px;
+    min-height: auto;
+    padding: 28px 18px 40px;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-sidebar {
+    padding: 14px;
+  }
+
+  .dashboard-content {
+    padding: 24px 14px 36px;
   }
 }

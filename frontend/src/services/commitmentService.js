@@ -22,6 +22,14 @@ async function parseResponse(response) {
   return data;
 }
 
+export async function getCommitments() {
+  const response = await fetch(`${API_BASE_URL}/commitments/`, {
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse(response);
+}
+
 export async function getCommitmentGroups() {
   const response = await fetch(`${API_BASE_URL}/commitments/groups/`, {
     headers: getAuthHeaders(),
@@ -44,6 +52,17 @@ export async function createCommitment(commitmentData) {
     headers: getAuthHeaders(),
     body: JSON.stringify(commitmentData),
   });
+
+  return parseResponse(response);
+}
+
+export async function getCommitment(commitmentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
 
   return parseResponse(response);
 }
