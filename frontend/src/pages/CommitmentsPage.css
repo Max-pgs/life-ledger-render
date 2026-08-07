@@ -93,6 +93,49 @@
   font-weight: 700;
 }
 
+.commitments-page__tabs {
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 20px;
+  padding: 4px;
+  border: 1px solid #28312d;
+  border-radius: 12px;
+  background: #111714;
+}
+
+.commitments-page__tab {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #91a099;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commitments-page__tab:hover {
+  color: #dce4df;
+  background: #18201c;
+}
+
+.commitments-page__tab--active {
+  background: #76bd99;
+  color: #0c1510;
+}
+
+.commitments-page__tab--active:hover {
+  background: #88c9a8;
+  color: #0c1510;
+}
+
+.commitments-page__tab:focus-visible {
+  outline: 2px solid #a9c98f;
+  outline-offset: 3px;
+}
+
 .commitments-toolbar {
   display: grid;
   grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr auto;
@@ -255,14 +298,106 @@
   color: #a1d8bd;
 }
 
-.commitments-table__actions button:disabled {
+.commitments-table__actions button:not(:disabled),
+.commitments-mobile-card__actions button:not(:disabled) {
   color: #86c9a7;
-  opacity: 0.45;
-  cursor: default;
+  cursor: pointer;
 }
 
 .commitments-mobile {
   display: none;
+}
+
+.commitment-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.72);
+}
+
+.commitment-modal__dialog {
+  width: 100%;
+  max-width: 440px;
+  padding: 26px;
+  border: 1px solid #35423c;
+  border-radius: 16px;
+  background: #151b18;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.commitment-modal__eyebrow {
+  margin: 0 0 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8aa899;
+}
+
+.commitment-modal__dialog h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: #f4f7f5;
+}
+
+.commitment-modal__text {
+  margin: 12px 0 0;
+  color: #aeb9b3;
+  line-height: 1.5;
+}
+
+.commitment-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.commitment-modal__cancel,
+.commitment-modal__confirm {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commitment-modal__cancel {
+  border: 1px solid #35423c;
+  background: transparent;
+  color: #dce4df;
+}
+
+.commitment-modal__confirm {
+  border: 1px solid #76bd99;
+  background: #76bd99;
+  color: #0c1510;
+}
+
+.commitment-modal__confirm:hover {
+  background: #88c9a8;
+  border-color: #88c9a8;
+}
+
+.commitment-modal__delete {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid rgba(244, 112, 112, 0.45);
+  border-radius: 10px;
+  background: rgba(244, 112, 112, 0.12);
+  color: #ffb3b3;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commitment-modal__delete:hover {
+  background: rgba(244, 112, 112, 0.2);
+  border-color: rgba(244, 112, 112, 0.65);
 }
 
 @media (max-width: 900px) {
@@ -295,6 +430,16 @@
     margin-top: 4px;
   }
 
+  .commitments-page__tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+  }
+
+  .commitments-page__tab {
+    width: 100%;
+  }
+
   .commitments-toolbar {
     grid-template-columns: 1fr;
   }
@@ -307,10 +452,21 @@
     display: none;
   }
 
+  .commitments-table-wrapper {
+    border: none;
+  }
+
+  .commitments-table__actions {
+    margin-top: 6px;
+  }
+
   .commitments-mobile {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
+    background: #09090a;
+    padding: 0;
+    border: 0;
   }
 
   .commitments-mobile-card {
@@ -394,6 +550,27 @@
   .commitments-mobile-card__actions button:disabled {
     opacity: 0.45;
     cursor: default;
+  }
+}
+
+@media (max-width: 480px) {
+  .commitment-modal__dialog {
+    padding: 20px;
+  }
+
+  .commitment-modal__actions {
+    flex-direction: column-reverse;
+  }
+
+  .commitment-modal__cancel,
+  .commitment-modal__confirm {
+    width: 100%;
+  }
+
+  .commitment-modal__cancel,
+  .commitment-modal__confirm,
+  .commitment-modal__delete {
+    width: 100%;
   }
 }
 

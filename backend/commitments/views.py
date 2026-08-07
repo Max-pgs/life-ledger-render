@@ -34,18 +34,58 @@ class CommitmentListCreateView(generics.ListCreateAPIView):
         
         serializer.save(user = self.request.user)
         
-class CommitmentDetailView(generics.RetrieveUpdateAPIView):
+class ArchivedCommitmentListView(generics.ListAPIView):
+    serializer_class = CommitmentSerializer
+    permission_classes = [IsAuthenticated]
+    
+    # Returns only the current user's archived commitments, newest first.
+    def get_queryset(self):
+        return Commitment.objects.filter(
+            user = self.request.user,
+            is_archived = True,
+        ).order_by("-archived_at")
+        
+class CommitmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     # Allow an authenticated user to view or update one commitment.
     
     serializer_class = CommitmentSerializer
     permission_classes = [IsAuthenticated]
-    
+        
     def get_queryset(self):
         # Restrict access to active commitments owned by the current user.
-        
         return Commitment.objects.filter(
-            user = self.request.user,
-            is_archived = False,
+            user=self.request.user,
+        )
+        
+    def update(self, request, *args, **kwargs):
+        commitment = self.get_object()
+
+        if commitment.is_archived:
+            return Response(
+                {
+                    "detail": "Archived commitments cannot be edited."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().update(request, *args, **kwargs)
+
+
+    def destroy(self, request, *args, **kwargs):
+        commitment = self.get_object()
+
+        if not commitment.is_archived:
+            return Response(
+                {
+                    "detail": "Only archived commitments can be deleted."
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        commitment.delete()
+
+        return Response(
+            status=status.HTTP_204_NO_CONTENT,
         )
         
 class UpcomingCommitmentListView(generics.ListAPIView):
@@ -119,6 +159,44 @@ class CommitmentArchiveView(APIView):
                 "id": commitment.id,
             },
             status = status.HTTP_200_OK,
+        )
+        
+class CommitmentRestoreView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        try:
+            commitment = Commitment.objects.get(
+                pk=pk,
+                user=request.user,
+                is_archived=True,
+            )
+        except Commitment.DoesNotExist:
+            return Response(
+                {
+                    "detail": "Archived commitment not found."
+                },
+                status = status.HTTP_404_NOT_FOUND,
+            )
+
+        # Restore the commitment to the active list and clear its archive timestamp.
+        commitment.is_archived = False
+        commitment.archived_at = None
+
+        commitment.save(
+            update_fields = [
+                "is_archived",
+                "archived_at",
+                "updated_at",
+            ]
+        )
+
+        return Response(
+            {
+                "message": "Commitment restored successfully.",
+                "id": commitment.id,
+            },
+            status=status.HTTP_200_OK,
         )
         
 class CommitmentGroupListView(generics.ListAPIView):
