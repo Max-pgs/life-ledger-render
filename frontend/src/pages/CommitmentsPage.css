@@ -180,6 +180,24 @@
   box-shadow: 0 0 0 3px rgba(116, 185, 150, 0.12);
 }
 
+.commitments-toolbar select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 46px;
+
+  background-color: #0f1412;
+  background-image:
+    linear-gradient(45deg, transparent 50%, #aeb9b3 50%),
+    linear-gradient(135deg, #aeb9b3 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 50%,
+    calc(100% - 14px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+}
+
 .commitments-toolbar__clear {
   min-height: 42px;
   padding: 0 14px;
