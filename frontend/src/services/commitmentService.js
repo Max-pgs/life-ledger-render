@@ -144,3 +144,14 @@ export async function getUpcomingCommitments() {
 
   return parseResponse(response);
 }
+
+export async function getOverdueCommitments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/overdue/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
