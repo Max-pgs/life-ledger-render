@@ -75,12 +75,21 @@ function CommitmentDetailPage() {
           </p>
         </div>
 
-        <Link
-          className="commitment-detail-page__back"
-          to="/commitments"
-        >
-          Back
-        </Link>
+        <div className="commitment-detail-page__actions">
+          <Link
+            className="commitment-detail-page__edit"
+            to={`/commitments/${commitment.id}/edit`}
+          >
+            Edit
+          </Link>
+
+          <Link
+            className="commitment-detail-page__back"
+            to="/commitments"
+          >
+            Back
+          </Link>
+        </div>
       </header>
 
       <div className="commitment-detail">

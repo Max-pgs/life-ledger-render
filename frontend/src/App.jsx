@@ -8,6 +8,7 @@ import AddCommitmentPage from "./pages/AddCommitmentPage";
 import CommitmentsPage from "./pages/CommitmentsPage";
 import CommitmentDetailPage from "./pages/CommitmentDetailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
+import EditCommitmentPage from "./pages/EditCommitmentPage";
 
 function App() {
   return (
@@ -60,6 +61,15 @@ function App() {
           element={
             <ProtectedRoute>
               <CommitmentDetailPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/commitments/:commitmentId/edit"
+          element={
+            <ProtectedRoute>
+              <EditCommitmentPage />
             </ProtectedRoute>
           }
         />
