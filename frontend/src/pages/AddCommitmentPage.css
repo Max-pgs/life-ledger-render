@@ -77,12 +77,6 @@
   gap: 20px;
 }
 
-.commitment-form__field {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .commitment-form__field--full {
   width: 100%;
 }
@@ -262,6 +256,70 @@
   cursor: not-allowed;
 }
 
+.commitment-form input,
+.commitment-form select,
+.commitment-form textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.commitment-form__field,
+.commitment-form__grid,
+.commitment-form__section {
+  min-width: 0;
+}
+
+.commitment-form select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 46px;
+
+  background-image:
+    linear-gradient(45deg, transparent 50%, #aeb9b3 50%),
+    linear-gradient(135deg, #aeb9b3 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) 50%,
+    calc(100% - 14px) 50%;
+  background-size:
+    6px 6px,
+    6px 6px;
+  background-repeat: no-repeat;
+}
+
+.commitment-form input[type="date"] {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  inline-size: 100%;
+  max-inline-size: 100%;
+  box-sizing: border-box;
+  padding: 12px 0;
+  -webkit-appearance: none;
+  appearance: none;
+  overflow: hidden;
+  color-scheme: dark;
+}
+
+.commitment-form input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  padding-left: 6px;
+}
+
+.commitment-form__field {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
 /* Stacks the form into a single column on smaller screens. */
 @media (max-width: 760px) {
   .add-commitment-page {
@@ -282,5 +340,11 @@
 
   .commitment-form__actions button {
     width: 100%;
+  }
+
+  .commitment-form input,
+  .commitment-form select,
+  .commitment-form textarea {
+    font-size: 16px;
   }
 }

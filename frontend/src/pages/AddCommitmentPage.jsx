@@ -67,8 +67,7 @@ function AddCommitmentPage() {
           <h1>Add commitment</h1>
 
           <p className="add-commitment-page__intro">
-            Record the details you want Life Ledger to track.
-            Only the title is required.
+            Add the core details for this commitment and any optional information you want Life Ledger to track.
           </p>
         </div>
       </header>
