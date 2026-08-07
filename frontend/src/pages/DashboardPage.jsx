@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router";
 import {
+  getCommitments,
   getHighPriorityCommitments,
   getOverdueCommitments,
   getUpcomingCommitments,
@@ -20,6 +21,14 @@ function formatDate(date) {
   return new Intl.DateTimeFormat("en-GB").format(
     new Date(`${date}T00:00:00`),
   );
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-GB", {
+    style: "currency",
+    currency: "GBP",
+    maximumFractionDigits: 2,
+  }).format(value);
 }
 
 function DashboardPage() {
@@ -43,6 +52,10 @@ function DashboardPage() {
   const [highPriorityCommitments, setHighPriorityCommitments] = useState([]);
   const [highPriorityLoading, setHighPriorityLoading] = useState(true);
   const [highPriorityError, setHighPriorityError] = useState("");
+
+  const [paymentCommitments, setPaymentCommitments] = useState([]);
+  const [paymentLoading, setPaymentLoading] = useState(true);
+  const [paymentError, setPaymentError] = useState("");
 
   /* Marks the intro as completed and removes the temporary route state. */
   function handleTransitionComplete() {
@@ -105,6 +118,64 @@ function DashboardPage() {
     loadHighPriorityCommitments();
   }, []);
 
+  useEffect(() => {
+    async function loadPaymentCommitments() {
+      try {
+        const data = await getCommitments();
+        setPaymentCommitments(data);
+      } catch {
+        setPaymentError("Unable to load payment status summary.");
+      } finally {
+        setPaymentLoading(false);
+      }
+    }
+
+    loadPaymentCommitments();
+  }, []);
+
+  const paymentStatusSummary = paymentCommitments.reduce(
+    (summary, commitment) => {
+      const status = commitment.payment_status || "not_applicable";
+      const amount = Number.parseFloat(commitment.amount) || 0;
+
+      summary[status].count += 1;
+      summary[status].amount += amount;
+
+      return summary;
+    },
+    {
+      paid: { count: 0, amount: 0 },
+      pending: { count: 0, amount: 0 },
+      overdue: { count: 0, amount: 0 },
+      not_applicable: { count: 0, amount: 0 },
+    },
+  );
+
+  const trackedPaymentAmount =
+    paymentStatusSummary.paid.amount +
+    paymentStatusSummary.pending.amount +
+    paymentStatusSummary.overdue.amount;
+
+  const getPaymentPercentage = (amount) => {
+    if (trackedPaymentAmount === 0) {
+      return 0;
+    }
+
+    return Math.round((amount / trackedPaymentAmount) * 100);
+  };
+
+  const paidPercentage = getPaymentPercentage(
+    paymentStatusSummary.paid.amount,
+  );
+
+  const pendingPercentage = getPaymentPercentage(
+    paymentStatusSummary.pending.amount,
+  );
+
+  const overduePercentage = getPaymentPercentage(
+    paymentStatusSummary.overdue.amount,
+  );
+
   return (
     <>
       <div className="dashboard-page">
@@ -120,7 +191,7 @@ function DashboardPage() {
           <button
             type="button"
             className="dashboard-page__add-button"
-            onClick={() => navigate("/commitments/add")}
+            onClick={() => navigate("/commitments/new")}
           >
             Add commitment
           </button>
@@ -179,74 +250,168 @@ function DashboardPage() {
             </span>
           </article>
         </section>
-        <section className="dashboard-upcoming">
-          <div className="dashboard-upcoming__header">
-            <div>
-              <p className="dashboard-upcoming__eyebrow">
-                Next 30 days
-              </p>
-              <h2>Upcoming commitments</h2>
+        <div className="dashboard-overview-grid">
+          <section className="dashboard-payment-status">
+            <div className="dashboard-payment-status__header">
+              <div>
+                <p className="dashboard-payment-status__eyebrow">
+                  Payment overview
+                </p>
+                <h2>Payment status</h2>
+              </div>
+
+              <span className="dashboard-payment-status__tracked">
+                {paymentStatusSummary.paid.count +
+                  paymentStatusSummary.pending.count +
+                  paymentStatusSummary.overdue.count}{" "}
+                tracked
+              </span>
             </div>
 
-            <button
-              type="button"
-              className="dashboard-upcoming__view-all"
-              onClick={() => navigate("/commitments")}
-            >
-              View all
-            </button>
-          </div>
-
-          {upcomingLoading && (
-            <p className="dashboard-upcoming__message">
-              Loading upcoming commitments...
-            </p>
-          )}
-
-          {!upcomingLoading && upcomingError && (
-            <p className="dashboard-upcoming__message dashboard-upcoming__message--error">
-              {upcomingError}
-            </p>
-          )}
-
-          {!upcomingLoading &&
-            !upcomingError &&
-            upcomingCommitments.length === 0 && (
-              <p className="dashboard-upcoming__message">
-                No commitments are due in the next 30 days.
+            {paymentLoading && (
+              <p className="dashboard-payment-status__message">
+                Loading payment status...
               </p>
             )}
 
-          {!upcomingLoading &&
-            !upcomingError &&
-            upcomingCommitments.length > 0 && (
-              <div className="dashboard-upcoming__list">
-                {upcomingCommitments.map((commitment) => (
-                  <button
-                    key={commitment.id}
-                    type="button"
-                    className="dashboard-upcoming-item"
-                    onClick={() =>
-                      navigate(`/commitments/${commitment.id}`)
-                    }
-                  >
-                    <div className="dashboard-upcoming-item__main">
-                      <strong>{commitment.title}</strong>
+            {!paymentLoading && paymentError && (
+              <p className="dashboard-payment-status__message dashboard-payment-status__message--error">
+                {paymentError}
+              </p>
+            )}
 
-                      <span>
-                        {commitment.group?.name || "No commitment group"}
-                      </span>
-                    </div>
+            {!paymentLoading && !paymentError && (
+              <div className="dashboard-payment-status__content">
+                <div
+                  className="dashboard-payment-status__chart"
+                  style={{
+                    background: `conic-gradient(
+          #76bd99 0% ${paidPercentage}%,
+          #cdb77e ${paidPercentage}% ${paidPercentage + pendingPercentage}%,
+          #d6a0a0 ${paidPercentage + pendingPercentage}% 100%
+        )`,
+                  }}
+                >
+                  <div className="dashboard-payment-status__chart-centre">
+                    <strong>{formatCurrency(trackedPaymentAmount)}</strong>
+                  </div>
+                </div>
 
-                    <div className="dashboard-upcoming-item__due">
-                      <span>Due</span>
-                      <strong>{formatDate(commitment.due_date)}</strong>
-                    </div>
-                  </button>
-                ))}
+                <div className="dashboard-payment-status__legend">
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--paid" />
+                      Paid
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>
+                        {formatCurrency(paymentStatusSummary.paid.amount)}
+                      </strong>
+                      <span>{paidPercentage}%</span>
+                    </span>
+                  </div>
+
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--pending" />
+                      Pending
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>
+                        {formatCurrency(paymentStatusSummary.pending.amount)}
+                      </strong>
+                      <span>{pendingPercentage}%</span>
+                    </span>
+                  </div>
+
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--overdue" />
+                      Overdue
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>
+                        {formatCurrency(paymentStatusSummary.overdue.amount)}
+                      </strong>
+                      <span>{overduePercentage}%</span>
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
-        </section>
+          </section>
+          <section className="dashboard-upcoming">
+            <div className="dashboard-upcoming__header">
+              <div>
+                <p className="dashboard-upcoming__eyebrow">
+                  Next 30 days
+                </p>
+                <h2>Upcoming commitments</h2>
+              </div>
+
+              <button
+                type="button"
+                className="dashboard-upcoming__view-all"
+                onClick={() => navigate("/commitments")}
+              >
+                View all
+              </button>
+            </div>
+
+            {upcomingLoading && (
+              <p className="dashboard-upcoming__message">
+                Loading upcoming commitments...
+              </p>
+            )}
+
+            {!upcomingLoading && upcomingError && (
+              <p className="dashboard-upcoming__message dashboard-upcoming__message--error">
+                {upcomingError}
+              </p>
+            )}
+
+            {!upcomingLoading &&
+              !upcomingError &&
+              upcomingCommitments.length === 0 && (
+                <p className="dashboard-upcoming__message">
+                  No commitments are due in the next 30 days.
+                </p>
+              )}
+
+            {!upcomingLoading &&
+              !upcomingError &&
+              upcomingCommitments.length > 0 && (
+                <div className="dashboard-upcoming__list">
+                  {upcomingCommitments.map((commitment) => (
+                    <button
+                      key={commitment.id}
+                      type="button"
+                      className="dashboard-upcoming-item"
+                      onClick={() =>
+                        navigate(`/commitments/${commitment.id}`)
+                      }
+                    >
+                      <div className="dashboard-upcoming-item__main">
+                        <strong>{commitment.title}</strong>
+
+                        <span>
+                          {commitment.group?.name || "No commitment group"}
+                        </span>
+                      </div>
+
+                      <div className="dashboard-upcoming-item__due">
+                        <span>Due</span>
+                        <strong>{formatDate(commitment.due_date)}</strong>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+          </section>
+        </div>
         <section className="dashboard-overdue">
           <div className="dashboard-overdue__header">
             <div>
