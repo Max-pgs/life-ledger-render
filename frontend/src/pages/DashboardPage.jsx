@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router";
 import {
+  getHighPriorityCommitments,
   getOverdueCommitments,
   getUpcomingCommitments,
 } from "../services/commitmentService";
@@ -38,6 +39,10 @@ function DashboardPage() {
   const [overdueCommitments, setOverdueCommitments] = useState([]);
   const [overdueLoading, setOverdueLoading] = useState(true);
   const [overdueError, setOverdueError] = useState("");
+
+  const [highPriorityCommitments, setHighPriorityCommitments] = useState([]);
+  const [highPriorityLoading, setHighPriorityLoading] = useState(true);
+  const [highPriorityError, setHighPriorityError] = useState("");
 
   /* Marks the intro as completed and removes the temporary route state. */
   function handleTransitionComplete() {
@@ -83,6 +88,21 @@ function DashboardPage() {
     }
 
     loadOverdueCommitments();
+  }, []);
+
+  useEffect(() => {
+    async function loadHighPriorityCommitments() {
+      try {
+        const data = await getHighPriorityCommitments();
+        setHighPriorityCommitments(data);
+      } catch {
+        setHighPriorityError("Unable to load high-priority commitments.");
+      } finally {
+        setHighPriorityLoading(false);
+      }
+    }
+
+    loadHighPriorityCommitments();
   }, []);
 
   return (
@@ -139,6 +159,23 @@ function DashboardPage() {
 
             <span className="dashboard-summary-card__hint">
               Needs your attention
+            </span>
+          </article>
+          <article className="dashboard-summary-card">
+            <span className="dashboard-summary-card__label">
+              High priority
+            </span>
+
+            <strong className="dashboard-summary-card__value">
+              {highPriorityLoading
+                ? "—"
+                : highPriorityError
+                  ? "—"
+                  : highPriorityCommitments.length}
+            </strong>
+
+            <span className="dashboard-summary-card__hint">
+              Important commitments
             </span>
           </article>
         </section>
@@ -272,6 +309,74 @@ function DashboardPage() {
                     <div className="dashboard-overdue-item__due">
                       <span>Due</span>
                       <strong>{formatDate(commitment.due_date)}</strong>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+        </section>
+        <section className="dashboard-high-priority">
+          <div className="dashboard-high-priority__header">
+            <div>
+              <p className="dashboard-high-priority__eyebrow">
+                Important
+              </p>
+              <h2>High priority commitments</h2>
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-high-priority__view-all"
+              onClick={() => navigate("/commitments")}
+            >
+              View all
+            </button>
+          </div>
+
+          {highPriorityLoading && (
+            <p className="dashboard-high-priority__message">
+              Loading high-priority commitments...
+            </p>
+          )}
+
+          {!highPriorityLoading && highPriorityError && (
+            <p className="dashboard-high-priority__message dashboard-high-priority__message--error">
+              {highPriorityError}
+            </p>
+          )}
+
+          {!highPriorityLoading &&
+            !highPriorityError &&
+            highPriorityCommitments.length === 0 && (
+              <p className="dashboard-high-priority__message">
+                You have no high-priority commitments.
+              </p>
+            )}
+
+          {!highPriorityLoading &&
+            !highPriorityError &&
+            highPriorityCommitments.length > 0 && (
+              <div className="dashboard-high-priority__list">
+                {highPriorityCommitments.map((commitment) => (
+                  <button
+                    key={commitment.id}
+                    type="button"
+                    className="dashboard-high-priority-item"
+                    onClick={() =>
+                      navigate(`/commitments/${commitment.id}`)
+                    }
+                  >
+                    <div className="dashboard-high-priority-item__main">
+                      <strong>{commitment.title}</strong>
+
+                      <span>
+                        {commitment.group?.name || "No commitment group"}
+                      </span>
+                    </div>
+
+                    <div className="dashboard-high-priority-item__meta">
+                      <span>Priority</span>
+                      <strong>High</strong>
                     </div>
                   </button>
                 ))}

@@ -155,3 +155,14 @@ export async function getOverdueCommitments() {
 
   return parseResponse(response);
 }
+
+export async function getHighPriorityCommitments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/high-priority/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
