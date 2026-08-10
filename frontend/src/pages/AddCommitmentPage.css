@@ -176,6 +176,7 @@
   color: #aeb9b3;
   font-size: 0.9rem;
   line-height: 1.55;
+  text-align: justify;
 }
 
 .commitment-form__group-guide-link {
@@ -328,7 +329,7 @@
   inline-size: 100%;
   max-inline-size: 100%;
   box-sizing: border-box;
-  padding: 12px 0;
+  padding: 12px;
   -webkit-appearance: none;
   appearance: none;
   overflow: hidden;
@@ -337,7 +338,7 @@
 
 .commitment-form input[type="date"]::-webkit-date-and-time-value {
   text-align: left;
-  padding-left: 6px;
+  padding-left: 12px;
 }
 
 .commitment-form__field {

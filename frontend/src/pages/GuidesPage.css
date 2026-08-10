@@ -88,10 +88,10 @@
 }
 
 .guides-page__description {
-  max-width: 760px;
   margin: 12px 0 0;
   color: #b7c2bc;
   line-height: 1.7;
+  text-align: justify;
 }
 
 .guides-page__links {
@@ -136,15 +136,48 @@
   font-size: 0.9rem;
 }
 
-.guides-page__disclaimer {
-  margin-top: 24px;
-  padding: 14px 16px;
-  border: 1px solid #343d39;
-  border-radius: 12px;
-  background: #0d1210;
-  color: #8f9b95;
+.guidance-warning {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border: 1px solid #4a2a2a;
+  border-radius: 10px;
+  background: #181313;
+}
+
+.guidance-warning__icon {
+  width: 18px;
+  height: 28px;
+  margin-top: 2px;
+  object-fit: contain;
+}
+
+.guidance-warning__content {
+  min-width: 0;
+}
+
+.guidance-warning__content strong {
+  display: block;
+  margin: 0 0 5px;
+  color: #e2a1a1;
+  font-size: 0.9rem;
+}
+
+.guidance-warning__content p {
+  margin: 0;
+  color: #aeb9b3;
   font-size: 0.88rem;
-  line-height: 1.6;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .guides-page__layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
 }
 
 @media (max-width: 720px) {
@@ -188,8 +221,20 @@
   }
 
   .guides-page__description {
-    margin-top: 10px;
+    max-width: 880px;
+    margin: 18px 0 32px;
     line-height: 1.6;
+  }
+
+  .guides-page__description p {
+    margin: 0 0 18px;
+    color: #aeb9b3;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .guides-page__description p:last-child {
+    margin-bottom: 0;
   }
 
   .guides-page__links {
