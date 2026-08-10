@@ -76,9 +76,20 @@ function CommitmentDetailPage() {
 
           <h1>{commitment.title}</h1>
 
-          <p>
-            {commitment.group?.name || "No commitment group"}
-          </p>
+          <div className="commitment-detail-page__group">
+            <p>
+              {commitment.group?.name || "No commitment group"}
+            </p>
+
+            {commitment.group?.id && (
+              <Link
+                className="commitment-detail-page__guide-link"
+                to={`/guides?group=${commitment.group.id}`}
+              >
+                View full guide
+              </Link>
+            )}
+          </div>
         </div>
 
         <div className="commitment-detail-page__actions">

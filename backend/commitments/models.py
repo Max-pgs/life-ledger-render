@@ -27,14 +27,19 @@ class CommitmentGroup(models.Model):
         blank = True,
     )
     
-    information_url = models.URLField(
-        blank = True,
-    )
-    
     is_active = models.BooleanField(
         default = True,
     )
     
+    last_reviewed_at = models.DateField(
+        null = True,
+        blank = True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now = True,
+    )
+        
     class Meta:
         ordering = ["name"]
         

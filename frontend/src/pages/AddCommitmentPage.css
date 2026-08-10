@@ -160,6 +160,37 @@
   opacity: 1;
 }
 
+.commitment-form__group-guidance {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border: 1px solid #28322d;
+  border-radius: 10px;
+  background: #0f1512;
+  grid-column: 1 / -1;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.commitment-form__group-description {
+  margin: 0;
+  color: #aeb9b3;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.commitment-form__group-guide-link {
+  display: inline-flex;
+  margin-top: 8px;
+  color: #9ed7b0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.commitment-form__group-guide-link:hover {
+  text-decoration: underline;
+}
+
 
 /* Keeps the prefixed amount and notice-period fields visually as one control. */
 .commitment-form__amount,
@@ -346,5 +377,14 @@
   .commitment-form select,
   .commitment-form textarea {
     font-size: 16px;
+  }
+
+  .commitment-form__group-guidance {
+    padding: 12px;
+  }
+
+  .commitment-form__group-description,
+  .commitment-form__group-guide-link {
+    font-size: 0.95rem;
   }
 }

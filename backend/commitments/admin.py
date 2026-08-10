@@ -2,6 +2,24 @@ from django.contrib import admin
 
 from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
 
+from guides.models import GroupInformationLink
+
+class GroupInformationLinkInline(admin.TabularInline):
+    model = GroupInformationLink
+    extra = 0
+
+    fields = (
+        "title",
+        "url",
+        "is_active",
+        "created_at",
+        "updated_at",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
 
 @admin.register(CommitmentGroup)
 class CommitmentGroupAdmin(admin.ModelAdmin):
@@ -11,7 +29,13 @@ class CommitmentGroupAdmin(admin.ModelAdmin):
         "id",
         "name",
         "is_active",
-        "information_url",
+        "last_reviewed_at",
+        "updated_at",
+    )
+    
+    list_display_links = (
+        "id",
+        "name",
     )
     
     list_filter = (
@@ -26,8 +50,17 @@ class CommitmentGroupAdmin(admin.ModelAdmin):
     fields = (
         "name",
         "description",
-        "information_url",
+        "last_reviewed_at",
+        "updated_at",
         "is_active",
+    )
+
+    readonly_fields = (
+        "updated_at",
+    )
+    
+    inlines = (
+        GroupInformationLinkInline,
     )
     
 @admin.register(Status)

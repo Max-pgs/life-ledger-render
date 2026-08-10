@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router";
 
 /* Provides the default values shared by create and edit forms. */
 const EMPTY_FORM_DATA = {
@@ -97,6 +98,9 @@ function CommitmentForm({
     }
 
     const cancellationDeadline = getCancellationDeadline();
+    const selectedGroup = groups.find(
+        (group) => String(group.id) === String(formData.group_id),
+    );
 
     return (
         <form
@@ -169,6 +173,21 @@ function CommitmentForm({
                             </p>
                         )}
                     </div>
+
+                    {selectedGroup && (
+                        <div className="commitment-form__group-guidance">
+                            <p className="commitment-form__group-description">
+                                {selectedGroup.description}
+                            </p>
+
+                            <Link
+                                className="commitment-form__group-guide-link"
+                                to={`/guides?group=${selectedGroup.id}`}
+                            >
+                                View full guide
+                            </Link>
+                        </div>
+                    )}
 
                     <div className="commitment-form__field">
                         <label htmlFor="provider_name">
