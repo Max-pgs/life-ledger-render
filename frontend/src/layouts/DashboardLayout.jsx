@@ -98,13 +98,16 @@ function DashboardLayout() {
               Guided setup
             </button>
 
-            <button
-              type="button"
-              className="dashboard-layout__nav-link"
-              disabled
+            <Link
+              to="/guides"
+              className={`dashboard-layout__nav-link ${location.pathname.startsWith("/guides")
+                  ? "dashboard-layout__nav-link--active"
+                  : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               UK guidance
-            </button>
+            </Link>
 
             <button
               type="button"

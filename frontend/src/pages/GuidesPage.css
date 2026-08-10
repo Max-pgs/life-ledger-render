@@ -1,0 +1,236 @@
+.guides-page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.guides-page__header h1 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.guides-page__header p {
+  margin: 8px 0 0;
+  color: #aeb9b3;
+}
+
+.guides-page__layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.guides-page__sidebar {
+  padding: 18px;
+  border: 1px solid #28322d;
+  border-radius: 16px;
+  background: #111714;
+}
+
+.guides-page__sidebar-title {
+  margin: 0 0 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #aeb9b3;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.guides-page__mobile-select {
+  display: none;
+}
+
+.guides-page__group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guides-page__group-button {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  color: #d9e2dd;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.guides-page__group-button:hover {
+  background: #18201c;
+}
+
+.guides-page__group-button--active {
+  border-color: #315840;
+  background: #18271f;
+  color: #dff6e7;
+}
+
+.guides-page__content {
+  min-width: 0;
+  padding: 28px;
+  border: 1px solid #28322d;
+  border-radius: 16px;
+  background: #111714;
+}
+
+.guides-page__content-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+}
+
+.guides-page__description {
+  max-width: 760px;
+  margin: 12px 0 0;
+  color: #b7c2bc;
+  line-height: 1.7;
+}
+
+.guides-page__links {
+  margin-top: 28px;
+}
+
+.guides-page__links h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+}
+
+.guides-page__link-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.guides-page__external-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid #315840;
+  border-radius: 12px;
+  background: #142019;
+  color: #dff6e7;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.guides-page__external-link:hover {
+  border-color: #427653;
+  background: #192a20;
+}
+
+.guides-page__review-date {
+  margin: 24px 0 0;
+  color: #8f9b95;
+  font-size: 0.9rem;
+}
+
+.guides-page__disclaimer {
+  margin-top: 24px;
+  padding: 14px 16px;
+  border: 1px solid #343d39;
+  border-radius: 12px;
+  background: #0d1210;
+  color: #8f9b95;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 720px) {
+  .guides-page__layout {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .guides-page__sidebar {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .guides-page__sidebar-title {
+    margin-bottom: 8px;
+  }
+
+  .guides-page__group-list {
+    display: none;
+  }
+
+  .guides-page__mobile-select {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 42px 0 14px;
+    border: 1px solid rgba(243, 240, 232, 0.18);
+    border-radius: 10px;
+    color: #f3f0e8;
+    background: #111714;
+    font-size: 16px;
+  }
+
+  .guides-page__content {
+    padding: 20px 18px;
+  }
+
+  .guides-page__content-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .guides-page__description {
+    margin-top: 10px;
+    line-height: 1.6;
+  }
+
+  .guides-page__links {
+    margin-top: 22px;
+  }
+
+  .guides-page__external-link {
+    padding: 14px;
+  }
+
+  .guides-page__review-date {
+    margin-top: 20px;
+  }
+
+  .guides-page__disclaimer {
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 760px) {
+  .guides-page {
+    gap: 18px;
+  }
+
+  .guides-page__header h1 {
+    font-size: 1.65rem;
+  }
+
+  .guides-page__content {
+    padding: 20px;
+  }
+
+  .guides-page__content-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .guides-page__description {
+    line-height: 1.6;
+  }
+
+  .guides-page__external-link {
+    padding: 13px 14px;
+  }
+}

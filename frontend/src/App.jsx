@@ -9,6 +9,7 @@ import CommitmentsPage from "./pages/CommitmentsPage";
 import CommitmentDetailPage from "./pages/CommitmentDetailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import EditCommitmentPage from "./pages/EditCommitmentPage";
+import GuidesPage from "./pages/GuidesPage";
 
 function App() {
   return (
@@ -44,6 +45,11 @@ function App() {
           <Route
             path="/commitments"
             element={<CommitmentsPage />}
+          />
+
+          <Route
+            path="/guides"
+            element={<GuidesPage />}
           />
         </Route>
 

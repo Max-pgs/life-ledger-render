@@ -85,6 +85,28 @@
   color: #dce4df;
 }
 
+.commitment-detail-page__group {
+  margin-top: 10px;
+}
+
+.commitment-detail-page__group p {
+  margin: 0;
+  color: #91a099;
+}
+
+.commitment-detail-page__guide-link {
+  display: inline-flex;
+  margin-top: 6px;
+  color: #9ed7b0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.commitment-detail-page__guide-link:hover {
+  text-decoration: underline;
+}
+
 .commitment-detail {
   display: flex;
   flex-direction: column;

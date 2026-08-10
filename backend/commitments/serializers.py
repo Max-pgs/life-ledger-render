@@ -3,10 +3,17 @@ from datetime import timedelta
 
 from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
 
+from guides.serializers import GroupInformationLinkSerializer
+
 class CommitmentGroupSerializer(serializers.ModelSerializer):
     # Represent an admin-managed commitment group.
     # Ordinary users can view group guidance but cannot create
     # or modify the group, description or information link.
+    
+    information_links = GroupInformationLinkSerializer(
+        many=True,
+        read_only=True,
+    )
     
     class Meta:
         model = CommitmentGroup
@@ -14,7 +21,10 @@ class CommitmentGroupSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
-            "information_url",
+            "last_reviewed_at",
+            "updated_at",
+            "is_active",
+            "information_links",
         )
         read_only_fields = fields
         

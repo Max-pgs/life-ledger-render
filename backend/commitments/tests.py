@@ -8,6 +8,7 @@ from datetime import timedelta
 
 
 from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
+from guides.models import GroupInformationLink
 
 User = get_user_model()
 
@@ -33,10 +34,9 @@ class CommitmentCreateAPITests(APITestCase):
         }
         
         self.active_group = CommitmentGroup.objects.create(
-            name="Bills",
-            description="General guidance for bills.",
-            information_url="https://example.com/bills",
-            is_active=True,
+            name = "Bills",
+            description = "General guidance for bills.",
+            is_active = True
         )
         
     def authenticate(self):
@@ -148,7 +148,7 @@ class CommitmentCreateAPITests(APITestCase):
             detail_url,
             {
                 "description": "User-modified guidance.",
-                "information_url": "https://example.org/",
+                "last_reviewed_at": "2026-08-11",
             },
             format = "json",
         )
@@ -164,9 +164,8 @@ class CommitmentCreateAPITests(APITestCase):
             self.active_group.description,
             "General guidance for bills.",
         )
-        self.assertEqual(
-            self.active_group.information_url,
-            "https://example.com/bills",
+        self.assertIsNone(
+            self.active_group.last_reviewed_at,
         )
         
 class CommitmentListAPITests(APITestCase):
@@ -578,7 +577,7 @@ class CommitmentArchiveAPITests(APITestCase):
             returned_ids,
         )
 
-    def test_archived_commitment_is_not_available_from_active_detail(self):
+    def test_archived_commitment_can_be_viewed_from_detail(self):
         self.authenticate()
 
         self.client.post(
@@ -598,9 +597,18 @@ class CommitmentArchiveAPITests(APITestCase):
 
         self.assertEqual(
             response.status_code,
-            status.HTTP_404_NOT_FOUND,
+            status.HTTP_200_OK,
         )
 
+        self.assertEqual(
+            response.data["id"],
+            self.commitment.id,
+        )
+
+        self.assertTrue(
+            response.data["is_archived"],
+    )
+    
     def test_user_cannot_archive_another_users_commitment(self):
         self.authenticate()
 
@@ -684,8 +692,13 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             description = (
                 "Household commitments may include council tax, "
                 "energy, water and broadband."
-            ),
-            information_url = "https://www.moneysavingexpert.com/",
+            )
+        )
+        
+        GroupInformationLink.objects.create(
+            group = self.group,
+            title = "Household guidance",
+            url = "https://www.moneysavingexpert.com/",
         )
 
         self.status, _ = Status.objects.get_or_create(
@@ -781,8 +794,13 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         )
 
         self.assertEqual(
-            response.data["group"]["information_url"],
+            response.data["group"]["information_links"][0]["url"],
             "https://www.moneysavingexpert.com/",
+        )
+        
+        self.assertEqual(
+            response.data["group"]["information_links"][0]["title"],
+            "Household guidance",
         )
         
         self.assertEqual(
@@ -915,7 +933,6 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         inactive_group = CommitmentGroup.objects.create(
             name = "Inactive Group",
             description = "This group is not available to users.",
-            information_url = "https://example.com/",
             is_active = False,
         )
 
@@ -960,7 +977,7 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
                 "group": {
                     "name": "Changed Group",
                     "description": "Changed by user.",
-                    "information_url": "https://malicious.example/",
+                    "last_reviewed_at": "2026-08-11",
                 }
             },
             format = "json",
@@ -987,8 +1004,18 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
         )
 
         self.assertEqual(
-            self.group.information_url,
+            self.group.information_links.count(),
+            1,
+        )
+
+        self.assertEqual(
+            self.group.information_links.first().url,
             "https://www.moneysavingexpert.com/",
+        )
+        
+        self.assertEqual(
+            self.group.information_links.first().title,
+            "Household guidance",
         )
         
 class CommitmentGroupListAPITests(APITestCase):
@@ -1008,14 +1035,18 @@ class CommitmentGroupListAPITests(APITestCase):
         self.active_group = CommitmentGroup.objects.create(
             name = "Household",
             description = "Household-related commitments.",
-            information_url = "https://www.moneysavingexpert.com/", 
             is_active = True,
+        )
+
+        GroupInformationLink.objects.create(
+            group = self.active_group,
+            title = "Household guidance",
+            url = "https://www.moneysavingexpert.com/",
         )
 
         self.inactive_group = CommitmentGroup.objects.create(
             name = "Inactive Group",
             description = "Hidden from users.",
-            information_url = "https://example.com/",
             is_active = False,
         )
 
@@ -1053,7 +1084,12 @@ class CommitmentGroupListAPITests(APITestCase):
         )
 
         self.assertEqual(
-            household_group["information_url"],
+            household_group["information_links"][0]["title"],
+            "Household guidance",
+        )
+
+        self.assertEqual(
+            household_group["information_links"][0]["url"],
             "https://www.moneysavingexpert.com/",
         )
 
@@ -1062,7 +1098,7 @@ class CommitmentGroupListAPITests(APITestCase):
 
         response = self.client.get(
             self.url,
-            format = "json",
+            format="json",
         )
 
         returned_names = {
@@ -1078,13 +1114,14 @@ class CommitmentGroupListAPITests(APITestCase):
     def test_unauthenticated_user_cannot_view_groups(self):
         response = self.client.get(
             self.url,
-            format = "json",
+            format="json",
         )
 
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
         )
+
     def test_group_endpoint_does_not_allow_user_modifications(self):
         self.authenticate()
 
@@ -1093,7 +1130,7 @@ class CommitmentGroupListAPITests(APITestCase):
             {
                 "name": "User-created group",
                 "description": "This should not be created.",
-                "information_url": "https://example.com/",
+                "last_reviewed_at": "2026-08-11",
             },
             format = "json",
         )
@@ -1124,7 +1161,7 @@ class CommitmentStatusListAPITests(APITestCase):
         )
 
         self.token = Token.objects.create(
-            user=self.user,
+            user = self.user,
         )
 
         self.active_status, _ = Status.objects.get_or_create(
@@ -1216,7 +1253,7 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
                 "contract_end_date": "2027-06-30",
                 "notice_period_days": 30,
             },
-            format="json",
+            format = "json",
         )
 
         self.assertEqual(
@@ -1332,7 +1369,7 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
                 "title": "Invalid Bill",
                 "amount": "-10.00",
             },
-            format="json",
+            format = "json",
         )
 
         self.assertEqual(
@@ -1353,7 +1390,7 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
                 "title": "Invalid Contract",
                 "payment_frequency": "fortnightly",
             },
-            format="json",
+            format = "json",
         )
 
         self.assertEqual(
@@ -1395,7 +1432,7 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
                 "title": "Invalid Contract",
                 "notice_period_days": -1,
             },
-            format="json",
+            format = "json",
         )
 
         self.assertEqual(
@@ -2388,7 +2425,6 @@ class CommitmentTemplateListAPITests(APITestCase):
         self.active_group = CommitmentGroup.objects.create(
             name = "Household",
             description = "Household commitments.",
-            information_url = "https://example.com/household/",
             is_active = True,
         )
 
