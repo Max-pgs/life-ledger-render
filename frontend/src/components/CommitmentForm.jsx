@@ -177,7 +177,9 @@ function CommitmentForm({
                     {selectedGroup && (
                         <div className="commitment-form__group-guidance">
                             <p className="commitment-form__group-description">
-                                {selectedGroup.description}
+                                {selectedGroup.description
+                                    ?.split(/\n\s*\n/)
+                                    .filter(Boolean)[0]}
                             </p>
 
                             <Link

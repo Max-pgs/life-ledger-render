@@ -3,6 +3,8 @@ import { useSearchParams } from "react-router";
 
 import { getCommitmentGroups } from "../services/commitmentService";
 
+import attentionIcon from "../assets/icons/guides/attention.svg";
+
 import "./GuidesPage.css";
 
 function GuidesPage() {
@@ -105,9 +107,14 @@ function GuidesPage() {
                         <div className="guides-page__content-header">
                             <h2>{selectedGroup.name}</h2>
 
-                            <p className="guides-page__description">
-                                {selectedGroup.description}
-                            </p>
+                            <div className="guides-page__description">
+                                {selectedGroup.description
+                                    .split(/\n\s*\n/)
+                                    .filter(Boolean)
+                                    .map((paragraph, index) => (
+                                        <p key={index}>{paragraph}</p>
+                                    ))}
+                            </div>
                         </div>
 
                         {selectedGroup.information_links.length > 0 && (
@@ -144,10 +151,22 @@ function GuidesPage() {
                             </p>
                         )}
 
-                        <div className="guides-page__disclaimer">
-                            This information is provided for practical guidance only.
-                            Always check the linked official or trusted source for the
-                            most accurate and up-to-date information.
+                        <div className="guidance-warning">
+                            <img
+                                src={attentionIcon}
+                                alt=""
+                                className="guidance-warning__icon"
+                            />
+
+                            <div className="guidance-warning__content">
+                                <strong>Warning:</strong>
+
+                                <p>
+                                    This is a practical summary only and not legal, financial, or official
+                                    advice. Always check the official GOV.UK guidance for the most accurate
+                                    information.
+                                </p>
+                            </div>
                         </div>
                     </article>
                 )}

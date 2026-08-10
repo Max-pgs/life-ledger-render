@@ -166,3 +166,14 @@ export async function getHighPriorityCommitments() {
 
   return parseResponse(response);
 }
+
+export async function getReviewSoonCommitments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/review-soon/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}

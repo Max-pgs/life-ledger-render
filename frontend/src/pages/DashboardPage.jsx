@@ -4,10 +4,16 @@ import {
   getCommitments,
   getHighPriorityCommitments,
   getOverdueCommitments,
+  getReviewSoonCommitments,
   getUpcomingCommitments,
 } from "../services/commitmentService";
 
 import LoginSuccessTransition from "../components/LoginSuccessTransition";
+
+import upcomingIcon from "../assets/icons/dashboard/upcoming.svg";
+import overdueIcon from "../assets/icons/dashboard/overdue.svg";
+import highPriorityIcon from "../assets/icons/dashboard/high-priority.svg";
+import reviewNeededIcon from "../assets/icons/dashboard/review-needed.svg";
 
 import "./DashboardPage.css";
 
@@ -52,6 +58,10 @@ function DashboardPage() {
   const [highPriorityCommitments, setHighPriorityCommitments] = useState([]);
   const [highPriorityLoading, setHighPriorityLoading] = useState(true);
   const [highPriorityError, setHighPriorityError] = useState("");
+
+  const [reviewSoonCommitments, setReviewSoonCommitments] = useState([]);
+  const [reviewSoonLoading, setReviewSoonLoading] = useState(true);
+  const [reviewSoonError, setReviewSoonError] = useState("");
 
   const [paymentCommitments, setPaymentCommitments] = useState([]);
   const [paymentLoading, setPaymentLoading] = useState(true);
@@ -119,6 +129,21 @@ function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    async function loadReviewSoonCommitments() {
+      try {
+        const data = await getReviewSoonCommitments();
+        setReviewSoonCommitments(data);
+      } catch {
+        setReviewSoonError("Unable to load commitments needing review.");
+      } finally {
+        setReviewSoonLoading(false);
+      }
+    }
+
+    loadReviewSoonCommitments();
+  }, []);
+
+  useEffect(() => {
     async function loadPaymentCommitments() {
       try {
         const data = await getCommitments();
@@ -176,6 +201,13 @@ function DashboardPage() {
     paymentStatusSummary.overdue.amount,
   );
 
+  const scrollToSection = (sectionId) => {
+    document.getElementById(sectionId)?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  };
+
   return (
     <>
       <div className="dashboard-page">
@@ -198,57 +230,130 @@ function DashboardPage() {
         </div>
 
         <section className="dashboard-page__summary">
-          <article className="dashboard-summary-card">
-            <span className="dashboard-summary-card__label">
-              Upcoming
-            </span>
+          <button
+            type="button"
+            className="dashboard-summary-card dashboard-summary-card--upcoming"
+            onClick={() => scrollToSection("upcoming-commitments")}
+          >
+            <div className="dashboard-summary-card__content">
+              <img
+                src={upcomingIcon}
+                alt=""
+                className="dashboard-summary-card__icon"
+              />
 
-            <strong className="dashboard-summary-card__value">
-              {upcomingLoading
-                ? "—"
-                : upcomingError
-                  ? "—"
-                  : upcomingCommitments.length}
-            </strong>
+              <div className="dashboard-summary-card__text">
+                <strong className="dashboard-summary-card__value">
+                  {upcomingLoading
+                    ? "—"
+                    : upcomingError
+                      ? "—"
+                      : upcomingCommitments.length}
+                </strong>
 
-            <span className="dashboard-summary-card__hint">
-              Due in the next 30 days
-            </span>
-          </article>
-          <article className="dashboard-summary-card">
-            <span className="dashboard-summary-card__label">
-              Overdue
-            </span>
+                <span className="dashboard-summary-card__label">
+                  Upcoming
+                </span>
 
-            <strong className="dashboard-summary-card__value">
-              {overdueLoading
-                ? "—"
-                : overdueError
-                  ? "—"
-                  : overdueCommitments.length}
-            </strong>
+                <span className="dashboard-summary-card__hint">
+                  Due in the next 30 days
+                </span>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className="dashboard-summary-card dashboard-summary-card--overdue"
+            onClick={() => scrollToSection("overdue-commitments")}
+          >
+            <div className="dashboard-summary-card__content">
+              <img
+                src={overdueIcon}
+                alt=""
+                className="dashboard-summary-card__icon"
+              />
 
-            <span className="dashboard-summary-card__hint">
-              Needs your attention
-            </span>
-          </article>
-          <article className="dashboard-summary-card">
-            <span className="dashboard-summary-card__label">
-              High priority
-            </span>
+              <div className="dashboard-summary-card__text">
+                <strong className="dashboard-summary-card__value">
+                  {overdueLoading
+                    ? "—"
+                    : overdueError
+                      ? "—"
+                      : overdueCommitments.length}
+                </strong>
 
-            <strong className="dashboard-summary-card__value">
-              {highPriorityLoading
-                ? "—"
-                : highPriorityError
-                  ? "—"
-                  : highPriorityCommitments.length}
-            </strong>
+                <span className="dashboard-summary-card__label">
+                  Overdue
+                </span>
 
-            <span className="dashboard-summary-card__hint">
-              Important commitments
-            </span>
-          </article>
+                <span className="dashboard-summary-card__hint">
+                  Needs your attention
+                </span>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className="dashboard-summary-card dashboard-summary-card--high-priority"
+            onClick={() => scrollToSection("high-priority-commitments")}
+          >
+            <div className="dashboard-summary-card__content">
+              <img
+                src={highPriorityIcon}
+                alt=""
+                className="dashboard-summary-card__icon"
+              />
+
+              <div className="dashboard-summary-card__text">
+                <strong className="dashboard-summary-card__value">
+                  {highPriorityLoading
+                    ? "—"
+                    : highPriorityError
+                      ? "—"
+                      : highPriorityCommitments.length}
+                </strong>
+
+                <span className="dashboard-summary-card__label">
+                  High priority
+                </span>
+
+                <span className="dashboard-summary-card__hint">
+                  Important commitments
+                </span>
+              </div>
+            </div>
+          </button>
+          <button
+            type="button"
+            className="dashboard-summary-card dashboard-summary-card--review-needed"
+            onClick={() => scrollToSection("review-needed")}
+          >
+            <div className="dashboard-summary-card__content">
+              <img
+                src={reviewNeededIcon}
+                alt=""
+                className="dashboard-summary-card__icon"
+              />
+
+              <div className="dashboard-summary-card__text">
+                <strong className="dashboard-summary-card__value">
+                  {reviewSoonLoading
+                    ? "—"
+                    : reviewSoonError
+                      ? "—"
+                      : reviewSoonCommitments.length}
+                </strong>
+
+                <span className="dashboard-summary-card__label">
+                  Review needed
+                </span>
+
+                <span className="dashboard-summary-card__hint">
+                  Review within 30 days
+                </span>
+              </div>
+            </div>
+          </button>
         </section>
         <div className="dashboard-overview-grid">
           <section className="dashboard-payment-status">
@@ -343,7 +448,7 @@ function DashboardPage() {
               </div>
             )}
           </section>
-          <section className="dashboard-upcoming">
+          <section id="upcoming-commitments" className="dashboard-upcoming">
             <div className="dashboard-upcoming__header">
               <div>
                 <p className="dashboard-upcoming__eyebrow">
@@ -412,7 +517,7 @@ function DashboardPage() {
               )}
           </section>
         </div>
-        <section className="dashboard-overdue">
+        <section id="overdue-commitments" className="dashboard-overdue">
           <div className="dashboard-overdue__header">
             <div>
               <p className="dashboard-overdue__eyebrow">
@@ -480,7 +585,7 @@ function DashboardPage() {
               </div>
             )}
         </section>
-        <section className="dashboard-high-priority">
+        <section id="high-priority-commitments" className="dashboard-high-priority">
           <div className="dashboard-high-priority__header">
             <div>
               <p className="dashboard-high-priority__eyebrow">
@@ -542,6 +647,75 @@ function DashboardPage() {
                     <div className="dashboard-high-priority-item__meta">
                       <span>Priority</span>
                       <strong>High</strong>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+        </section>
+        <section id="review-needed" className="dashboard-review-needed">
+          <div className="dashboard-review-needed__header">
+            <div>
+              <p className="dashboard-review-needed__eyebrow">
+                Review soon
+              </p>
+              <h2>Review needed</h2>
+            </div>
+
+            <button
+              type="button"
+              className="dashboard-review-needed__view-all"
+              onClick={() => navigate("/commitments")}
+            >
+              View all
+            </button>
+          </div>
+
+          {reviewSoonLoading && (
+            <p className="dashboard-review-needed__message">
+              Loading commitments needing review...
+            </p>
+          )}
+
+          {!reviewSoonLoading && reviewSoonError && (
+            <p className="dashboard-review-needed__message dashboard-review-needed__message--error">
+              {reviewSoonError}
+            </p>
+          )}
+
+          {!reviewSoonLoading &&
+            !reviewSoonError &&
+            reviewSoonCommitments.length === 0 && (
+              <p className="dashboard-review-needed__message">
+                You have no commitments requiring review in the next 30 days.
+              </p>
+            )}
+
+          {!reviewSoonLoading &&
+            !reviewSoonError &&
+            reviewSoonCommitments.length > 0 && (
+              <div className="dashboard-review-needed__list">
+                {reviewSoonCommitments.map((commitment) => (
+                  <button
+                    key={commitment.id}
+                    type="button"
+                    className="dashboard-review-needed-item"
+                    onClick={() =>
+                      navigate(`/commitments/${commitment.id}`)
+                    }
+                  >
+                    <div className="dashboard-review-needed-item__main">
+                      <strong>{commitment.title}</strong>
+                      <span>
+                        {commitment.group?.name || "No commitment group"}
+                      </span>
+                    </div>
+
+                    <div className="dashboard-review-needed-item__meta">
+                      <span>Review by</span>
+                      <strong>
+                        {formatDate(commitment.cancellation_deadline)}
+                      </strong>
                     </div>
                   </button>
                 ))}
