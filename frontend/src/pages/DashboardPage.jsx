@@ -14,6 +14,9 @@ import upcomingIcon from "../assets/icons/dashboard/upcoming.svg";
 import overdueIcon from "../assets/icons/dashboard/overdue.svg";
 import highPriorityIcon from "../assets/icons/dashboard/high-priority.svg";
 import reviewNeededIcon from "../assets/icons/dashboard/review-needed.svg";
+import guidedSetupIcon from "../assets/icons/dashboard/guide-setup.svg";
+import ukGuidesIcon from "../assets/icons/dashboard/uk-guides.svg";
+import achievementsIcon from "../assets/icons/dashboard/achievements.svg";
 
 import "./DashboardPage.css";
 
@@ -212,6 +215,61 @@ function DashboardPage() {
       block: "start",
     });
   };
+
+  const totalCommitments = paymentCommitments.length;
+
+  const trackedGroups = new Set(
+    paymentCommitments
+      .map((commitment) => commitment.group?.id)
+      .filter(Boolean),
+  ).size;
+
+  const achievements = [
+    {
+      id: "first-step",
+      title: "First Step",
+      description: "Add your first commitment.",
+      unlocked: totalCommitments >= 1,
+      progress: `${Math.min(totalCommitments, 1)} / 1`,
+    },
+    {
+      id: "getting-organised",
+      title: "Getting Organised",
+      description: "Track at least 5 commitments.",
+      unlocked: totalCommitments >= 5,
+      progress: `${Math.min(totalCommitments, 5)} / 5`,
+    },
+    {
+      id: "life-admin-pro",
+      title: "Well organised",
+      description: "Track at least 10 commitments.",
+      unlocked: totalCommitments >= 10,
+      progress: `${Math.min(totalCommitments, 10)} / 10`,
+    },
+    {
+      id: "well-covered",
+      title: "Well Covered",
+      description: "Track commitments across 4 different groups.",
+      unlocked: trackedGroups >= 4,
+      progress: `${Math.min(trackedGroups, 4)} / 4 groups`,
+    },
+    {
+      id: "on-track",
+      title: "On Track",
+      description: "Track at least 3 commitments with none overdue.",
+      unlocked:
+        totalCommitments >= 3 &&
+        overdueCommitments.length === 0,
+      progress:
+        totalCommitments < 3
+          ? `${Math.min(totalCommitments, 3)} / 3 commitments`
+          : `${overdueCommitments.length} overdue`,
+    },
+  ];
+
+  const unlockedAchievements = achievements.filter(
+    (achievement) => achievement.unlocked,
+  );
 
   return (
     <>
@@ -522,6 +580,114 @@ function DashboardPage() {
               )}
           </section>
         </div>
+        <section className="dashboard-support-grid">
+          <button
+            type="button"
+            className="dashboard-support-card dashboard-support-card--guided"
+            onClick={() => navigate("/guided-setup")}
+          >
+            <img
+              src={guidedSetupIcon}
+              alt=""
+              className="dashboard-support-card__icon"
+            />
+
+            <div className="dashboard-support-card__content">
+              <p className="dashboard-support-card__eyebrow">
+                Get started
+              </p>
+
+              <h2>Guided setup</h2>
+
+              <p>
+                Find common UK commitments that may be relevant to you.
+              </p>
+            </div>
+          </button>
+
+          <button
+            type="button"
+            className="dashboard-support-card dashboard-support-card--guides"
+            onClick={() => navigate("/guides")}
+          >
+            <img
+              src={ukGuidesIcon}
+              alt=""
+              className="dashboard-support-card__icon"
+            />
+
+            <div className="dashboard-support-card__content">
+              <p className="dashboard-support-card__eyebrow">
+                UK information
+              </p>
+
+              <h2>UK guides</h2>
+
+              <p>
+                Practical guidance and trusted links for UK life admin.
+              </p>
+            </div>
+          </button>
+
+          <article className="dashboard-support-card dashboard-support-card--achievements">
+            <div className="dashboard-achievements__header">
+              <div className="dashboard-achievements__heading">
+                <img
+                  src={achievementsIcon}
+                  alt=""
+                  className="dashboard-achievements__icon"
+                />
+
+                <div>
+                  <p className="dashboard-support-card__eyebrow">
+                    Your progress
+                  </p>
+
+                  <h2>Achievements</h2>
+                </div>
+              </div>
+
+              <div className="dashboard-achievements__summary">
+                <strong>
+                  {unlockedAchievements.length} / {achievements.length}
+                </strong>
+                <span>unlocked</span>
+              </div>
+            </div>
+
+            <div className="dashboard-achievements__list">
+              {achievements.map((achievement) => (
+                <div
+                  key={achievement.id}
+                  className={
+                    achievement.unlocked
+                      ? "dashboard-achievement dashboard-achievement--unlocked"
+                      : "dashboard-achievement"
+                  }
+                >
+                  <span
+                    className="dashboard-achievement__status"
+                    aria-hidden="true"
+                  >
+                    {achievement.unlocked ? "✓" : "○"}
+                  </span>
+
+                  <div className="dashboard-achievement__content">
+                    <strong>{achievement.title}</strong>
+
+                    <span>{achievement.description}</span>
+
+                    {!achievement.unlocked && (
+                      <span className="dashboard-achievement__progress">
+                        {achievement.progress}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
         <section id="overdue-commitments" className="dashboard-overdue">
           <div className="dashboard-overdue__header">
             <div>
