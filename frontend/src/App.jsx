@@ -10,6 +10,7 @@ import CommitmentDetailPage from "./pages/CommitmentDetailPage";
 import DashboardLayout from "./layouts/DashboardLayout";
 import EditCommitmentPage from "./pages/EditCommitmentPage";
 import GuidesPage from "./pages/GuidesPage";
+import GuidedSetupPage from "./pages/GuidedSetupPage";
 
 function App() {
   return (
@@ -50,6 +51,11 @@ function App() {
           <Route
             path="/guides"
             element={<GuidesPage />}
+          />
+
+          <Route
+            path="/guided-setup"
+            element={<GuidedSetupPage />}
           />
         </Route>
 

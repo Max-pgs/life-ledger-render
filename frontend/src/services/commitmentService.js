@@ -54,6 +54,10 @@ export function getCommitmentTemplates() {
   return apiRequest("/commitments/templates/");
 }
 
+export function getGuidedSetup() {
+  return apiRequest("/commitments/guided_setup/");
+}
+
 export function createCommitment(commitmentData) {
   return apiRequest("/commitments/", {
     method: "POST",

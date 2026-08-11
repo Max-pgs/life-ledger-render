@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 
 import CommitmentForm from "../components/CommitmentForm";
 
@@ -13,15 +13,25 @@ import {
 import "./AddCommitmentPage.css";
 
 function AddCommitmentPage() {
-  const navigate = useNavigate();
-
   const [groups, setGroups] = useState([]);
   const [statuses, setStatuses] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [loadError, setLoadError] = useState("");
-  const [selectedTemplateId, setSelectedTemplateId] = useState("");
   const [openTemplateGroupId, setOpenTemplateGroupId] = useState("");
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const guidedSetupTemplateIds = location.state?.guidedSetupTemplateIds || [];
+
+  const guidedSetupIndex = location.state?.guidedSetupIndex || 0;
+
+  const isGuidedSetup = guidedSetupTemplateIds.length > 0;
+
+  const [selectedTemplateId, setSelectedTemplateId] = useState(
+    guidedSetupTemplateIds[guidedSetupIndex] || "",
+  );
 
   const selectedTemplate = templates.find(
     (template) => template.id === selectedTemplateId,
@@ -81,6 +91,57 @@ function AddCommitmentPage() {
 
   async function handleCreateCommitment(payload) {
     await createCommitment(payload);
+
+    if (isGuidedSetup) {
+      const nextIndex = guidedSetupIndex + 1;
+
+      if (nextIndex < guidedSetupTemplateIds.length) {
+        const nextTemplateId = guidedSetupTemplateIds[nextIndex];
+
+        setSelectedTemplateId(nextTemplateId);
+
+        navigate("/commitments/new", {
+          replace: true,
+          state: {
+            guidedSetupTemplateIds,
+            guidedSetupIndex: nextIndex,
+          },
+        });
+
+        return;
+      }
+
+      navigate("/guided-setup", {
+        state: {
+          guidedSetupComplete: true,
+        },
+      });
+
+      return;
+    }
+
+    navigate("/commitments");
+  }
+
+  function handleSkipGuidedTemplate() {
+    const nextIndex = guidedSetupIndex + 1;
+
+    if (nextIndex < guidedSetupTemplateIds.length) {
+      const nextTemplateId = guidedSetupTemplateIds[nextIndex];
+
+      setSelectedTemplateId(nextTemplateId);
+
+      navigate("/commitments/new", {
+        replace: true,
+        state: {
+          guidedSetupTemplateIds,
+          guidedSetupIndex: nextIndex,
+        },
+      });
+
+      return;
+    }
+
     navigate("/commitments");
   }
 
@@ -127,81 +188,115 @@ function AddCommitmentPage() {
           {loadError}
         </div>
       )}
-      <section className="commitment-templates">
-        <div className="commitment-templates__header">
+
+      {isGuidedSetup && (
+        <div className="guided-setup-add-progress">
           <div>
-            <p className="commitment-templates__eyebrow">
-              Quick start
+            <p className="guided-setup-add-progress__eyebrow">
+              Guided setup
             </p>
 
-            <h2>Start from a template</h2>
+            <h2>
+              Adding {guidedSetupIndex + 1} of{" "}
+              {guidedSetupTemplateIds.length}
+            </h2>
           </div>
 
-          {selectedTemplateId && (
+          <div className="guided-setup-add-progress__actions">
             <button
               type="button"
-              className="commitment-templates__clear"
-              onClick={() => setSelectedTemplateId("")}
+              onClick={handleSkipGuidedTemplate}
             >
-              Clear template
+              Skip
             </button>
-          )}
+
+            <button
+              type="button"
+              className="guided-setup-add-progress__exit"
+              onClick={() => navigate("/dashboard")}
+            >
+              Exit setup
+            </button>
+          </div>
         </div>
+      )}
+      {!isGuidedSetup && (
+        <section className="commitment-templates">
+          <div className="commitment-templates__header">
+            <div>
+              <p className="commitment-templates__eyebrow">
+                Quick start
+              </p>
 
-        <div className="commitment-template-groups">
-          {templateGroups.map((group) => {
-            const isOpen = openTemplateGroupId === group.id;
+              <h2>Start from a template</h2>
+            </div>
 
-            return (
-              <div
-                key={group.id}
-                className="commitment-template-group"
+            {selectedTemplateId && (
+              <button
+                type="button"
+                className="commitment-templates__clear"
+                onClick={() => setSelectedTemplateId("")}
               >
-                <button
-                  type="button"
-                  className="commitment-template-group__toggle"
-                  onClick={() =>
-                    setOpenTemplateGroupId(
-                      isOpen ? "" : group.id,
-                    )
-                  }
-                  aria-expanded={isOpen}
+                Clear template
+              </button>
+            )}
+          </div>
+
+          <div className="commitment-template-groups">
+            {templateGroups.map((group) => {
+              const isOpen = openTemplateGroupId === group.id;
+
+              return (
+                <div
+                  key={group.id}
+                  className="commitment-template-group"
                 >
-                  <span>{group.name}</span>
-
-                  <span
-                    className="commitment-template-group__icon"
-                    aria-hidden="true"
+                  <button
+                    type="button"
+                    className="commitment-template-group__toggle"
+                    onClick={() =>
+                      setOpenTemplateGroupId(
+                        isOpen ? "" : group.id,
+                      )
+                    }
+                    aria-expanded={isOpen}
                   >
-                    {isOpen ? "−" : "+"}
-                  </span>
-                </button>
+                    <span>{group.name}</span>
 
-                {isOpen && (
-                  <div className="commitment-templates__grid">
-                    {group.templates.map((template) => (
-                      <button
-                        key={template.id}
-                        type="button"
-                        className={`commitment-template-card ${selectedTemplateId === template.id
+                    <span
+                      className="commitment-template-group__icon"
+                      aria-hidden="true"
+                    >
+                      {isOpen ? "−" : "+"}
+                    </span>
+                  </button>
+
+                  {isOpen && (
+                    <div className="commitment-templates__grid">
+                      {group.templates.map((template) => (
+                        <button
+                          key={template.id}
+                          type="button"
+                          className={`commitment-template-card ${selectedTemplateId === template.id
                             ? "commitment-template-card--selected"
                             : ""
-                          }`}
-                        onClick={() =>
-                          setSelectedTemplateId(template.id)
-                        }
-                      >
-                        <strong>{template.name}</strong>
-                        <p>{template.description}</p>
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </section>
+                            }`}
+                          onClick={() =>
+                            setSelectedTemplateId(template.id)
+                          }
+                        >
+                          <strong>{template.name}</strong>
+                          <p>{template.description}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
       {selectedTemplate && (
         <div className="commitment-template-guidance">
           <span className="commitment-template-guidance__label">

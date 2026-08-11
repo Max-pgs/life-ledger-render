@@ -90,19 +90,22 @@ function DashboardLayout() {
               Commitments
             </Link>
 
-            <button
-              type="button"
-              className="dashboard-layout__nav-link"
-              disabled
+            <Link
+              to="/guided-setup"
+              className={`dashboard-layout__nav-link ${location.pathname === "/guided-setup"
+                  ? "dashboard-layout__nav-link--active"
+                  : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Guided setup
-            </button>
+            </Link>
 
             <Link
               to="/guides"
               className={`dashboard-layout__nav-link ${location.pathname.startsWith("/guides")
-                  ? "dashboard-layout__nav-link--active"
-                  : ""
+                ? "dashboard-layout__nav-link--active"
+                : ""
                 }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
