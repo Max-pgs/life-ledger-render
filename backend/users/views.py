@@ -4,7 +4,9 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import RegisterSerializer, LoginSerializer
+from .models import UserProfile
+
+from .serializers import AccountSerializer, RegisterSerializer, LoginSerializer
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
@@ -50,3 +52,23 @@ class LogoutView(APIView):
             },
             status = status.HTTP_200_OK,
         )
+        
+class AccountView(generics.RetrieveAPIView):
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = self.request.user
+
+        UserProfile.objects.get_or_create(user=user)
+
+        return user
+    
+class DeleteAccountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        user = request.user
+        user.delete()
+
+        return Response(status = status.HTTP_204_NO_CONTENT)

@@ -1,0 +1,368 @@
+.settings-page {
+  display: flex;
+  width: 100%;
+  max-width: 980px;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.settings-page__header {
+  display: flex;
+  max-width: 720px;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.settings-page__header > p:first-child {
+  margin: 0;
+  color: #86b99d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.settings-page__header h1 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: clamp(2rem, 4vw, 2.75rem);
+  line-height: 1.05;
+}
+
+.settings-page__header > p:last-child {
+  margin: 4px 0 0;
+  color: #aab4af;
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.settings-page__error {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid #684444;
+  border-radius: 10px;
+  background: #241919;
+  color: #d9aaaa;
+}
+
+.settings-card {
+  padding: 22px;
+  border: 1px solid #2b3630;
+  border-radius: 16px;
+  background: #111613;
+}
+
+.settings-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.settings-card__header > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.settings-card__header p {
+  margin: 0;
+  color: #7ead94;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-card__header h2 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: 1.15rem;
+}
+
+.settings-card__description {
+  max-width: 680px;
+  margin: 14px 0 18px;
+  color: #929e98;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.settings-details {
+  display: grid;
+  margin: 20px 0 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.settings-details > div {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #28322d;
+  border-radius: 10px;
+  background: #141a17;
+}
+
+.settings-details dt {
+  margin-bottom: 6px;
+  color: #7f8b85;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.settings-details dd {
+  overflow-wrap: anywhere;
+  margin: 0;
+  color: #eef3f0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.settings-plan-badge {
+  flex-shrink: 0;
+  padding: 7px 12px;
+  border: 1px solid #527661;
+  border-radius: 999px;
+  background: #19261f;
+  color: #abd5bc;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.settings-card--plan {
+  border-color: #34483d;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(118, 189, 153, 0.05),
+      transparent 45%
+    ),
+    #111613;
+}
+
+.settings-plan-features {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 18px 0;
+}
+
+.settings-plan-feature {
+  padding: 16px;
+  border: 1px solid #2c3932;
+  border-radius: 12px;
+  background: #141b17;
+}
+
+.settings-plan-feature > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.settings-plan-feature__label {
+  color: #7ead94;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.settings-plan-feature h3 {
+  margin: 0;
+  color: #f1f5f2;
+  font-size: 0.96rem;
+}
+
+.settings-plan-feature p {
+  margin: 10px 0 0;
+  color: #8f9b95;
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.settings-button {
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid #35413b;
+  border-radius: 8px;
+  background: #151b18;
+  color: #c9d2cd;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.settings-button:hover:not(:disabled) {
+  border-color: #5a7b68;
+  background: #1a241f;
+  color: #f4f7f5;
+}
+
+.settings-button:focus-visible {
+  outline: 2px solid #76bd99;
+  outline-offset: 3px;
+}
+
+.settings-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.settings-button--primary {
+  border-color: #527661;
+  background: #1a2821;
+  color: #bce0ca;
+}
+
+.settings-button--primary:hover:not(:disabled) {
+  border-color: #76bd99;
+  background: #21342a;
+}
+
+.settings-card--danger {
+  border-color: #5b3838;
+  background: #171313;
+}
+
+.settings-card--danger .settings-card__header p {
+  color: #c48686;
+}
+
+.settings-button--danger {
+  border-color: #754747;
+  background: #271919;
+  color: #d9aaaa;
+}
+
+.settings-button--danger:hover:not(:disabled) {
+  border-color: #a56363;
+  background: #321e1e;
+  color: #f0caca;
+}
+
+.settings-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(6, 9, 7, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.settings-modal {
+  width: min(100%, 460px);
+  padding: 24px;
+  border: 1px solid #344039;
+  border-radius: 14px;
+  background: #111613;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.settings-modal h2 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: 1.25rem;
+}
+
+.settings-modal p {
+  margin: 12px 0 20px;
+  color: #98a39e;
+  line-height: 1.55;
+}
+
+.settings-modal--danger {
+  border-color: #684444;
+}
+
+.settings-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.settings-premium-modal__features {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.settings-premium-modal__features > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid #2d3933;
+  border-radius: 10px;
+  background: #141a17;
+}
+
+.settings-premium-modal__features strong {
+  color: #edf3ef;
+  font-size: 0.88rem;
+}
+
+.settings-premium-modal__features span {
+  color: #8f9b95;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.settings-modal .settings-premium-modal__note {
+  margin: 14px 0 18px;
+  color: #78857e;
+  font-size: 0.78rem;
+}
+
+@media (max-width: 760px) {
+  .settings-page {
+    gap: 18px;
+  }
+
+  .settings-details {
+    grid-template-columns: 1fr;
+  }
+
+  .settings-plan-features {
+    grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+  .settings-page__header h1 {
+    font-size: 2rem;
+  }
+
+  .settings-card {
+    padding: 18px;
+  }
+
+  .settings-card__header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .settings-plan-badge {
+    align-self: flex-start;
+  }
+
+  .settings-button {
+    width: 100%;
+  }
+
+  .settings-modal {
+    padding: 20px;
+  }
+
+  .settings-modal__actions {
+    flex-direction: column-reverse;
+  }
+}

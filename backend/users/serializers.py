@@ -3,6 +3,8 @@ from django.contrib.auth.password_validation import validate_password as django_
 from rest_framework import serializers
 import re
 
+from .models import UserProfile
+
 User = get_user_model()
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -63,10 +65,14 @@ class RegisterSerializer(serializers.ModelSerializer):
         validated_data.pop("password_confirm")
         password = validated_data.pop("password")
         
-        return User.objects.create_user(
-            password=password,
-            **validated_data,
+        user = User.objects.create_user(
+        password = password,
+        **validated_data,
         )
+
+        UserProfile.objects.create(user = user)
+
+        return user
         
     def validate_password(self, value):
         if not re.search(r"[A-Z]", value):
@@ -112,4 +118,24 @@ class LoginSerializer(serializers.Serializer):
         attrs["user"] = user
         return attrs
     
-    
+class AccountSerializer(serializers.ModelSerializer):
+    plan = serializers.CharField(
+        source = "profile.plan",
+        read_only = True,
+    )
+
+    member_since = serializers.DateTimeField(
+        source = "date_joined",
+        read_only = True,
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "member_since",
+            "plan",
+        )
+        read_only_fields = fields

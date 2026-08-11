@@ -12,6 +12,7 @@ import EditCommitmentPage from "./pages/EditCommitmentPage";
 import GuidesPage from "./pages/GuidesPage";
 import GuidedSetupPage from "./pages/GuidedSetupPage";
 import ForgottenChecklistPage from "./pages/ForgottenChecklistPage";
+import SettingsPage from "./pages/SettingsPage";
 
 function App() {
   return (
@@ -62,6 +63,11 @@ function App() {
           <Route
             path="/checklist"
             element={<ForgottenChecklistPage />}
+          />
+
+          <Route
+            path="/settings"
+            element={<SettingsPage />}
           />
         </Route>
 
