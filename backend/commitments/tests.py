@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from datetime import timedelta
 
 
-from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, Status
 from guides.models import GroupInformationLink
 
 User = get_user_model()
@@ -2629,6 +2629,209 @@ class CommitmentTemplateListAPITests(AuthenticatedAPITestCase):
             ],
         )
         
+class ForgottenChecklistAPITests(AuthenticatedAPITestCase):
+    def setUp(self):
+        super().setUp()
+
+        self.user = User.objects.create_user(
+            username = "checklistuser",
+            email = "checklist@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.other_user = User.objects.create_user(
+            username = "otherchecklistuser",
+            email = "otherchecklist@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.active_group = CommitmentGroup.objects.create(
+            name = "Household",
+            description = "Common household commitments.",
+            is_active = True,
+        )
+
+        self.active_template = CommitmentTemplate.objects.create(
+            name = "Council Tax",
+            description = "Local authority tax commitment.",
+            group = self.active_group,
+            default_title = "Council Tax",
+            is_active = True,
+        )
+
+        self.url = reverse(
+            "commitments:commitment-forgotten-checklist"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_template_without_commitment_is_missing(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        template = next(
+            item
+            for item in response.data
+            if item["id"] == self.active_template.id
+        )
+
+        self.assertEqual(
+            template["checklist_status"],
+            "missing",
+        )
+
+    def test_template_used_by_commitment_is_tracked(self):
+        Commitment.objects.create(
+            user = self.user,
+            title = "My Council Tax",
+            group = self.active_group,
+            template = self.active_template,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        template = next(
+            item
+            for item in response.data
+            if item["id"] == self.active_template.id
+        )
+
+        self.assertEqual(
+            template["checklist_status"],
+            "tracked",
+        )
+
+    def test_user_can_mark_template_as_not_relevant(self):
+        self.authenticate()
+
+        exclusion_url = reverse(
+            "commitments:commitment-forgotten-checklist-exclusion",
+            kwargs = {"template_id": self.active_template.id},
+        )
+
+        response = self.client.post(
+            exclusion_url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertTrue(
+            CommitmentTemplateExclusion.objects.filter(
+                user = self.user,
+                template = self.active_template,
+            ).exists()
+        )
+
+        checklist_response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        template = next(
+            item
+            for item in checklist_response.data
+            if item["id"] == self.active_template.id
+        )
+
+        self.assertEqual(
+            template["checklist_status"],
+            "not_relevant",
+        )
+
+    def test_user_can_restore_not_relevant_template(self):
+        CommitmentTemplateExclusion.objects.create(
+            user = self.user,
+            template = self.active_template,
+        )
+
+        self.authenticate()
+
+        exclusion_url = reverse(
+            "commitments:commitment-forgotten-checklist-exclusion",
+            kwargs = {"template_id": self.active_template.id},
+        )
+
+        response = self.client.delete(
+            exclusion_url,
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT,
+        )
+
+        self.assertFalse(
+            CommitmentTemplateExclusion.objects.filter(
+                user = self.user,
+                template = self.active_template,
+            ).exists()
+        )
+
+        checklist_response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        template = next(
+            item
+            for item in checklist_response.data
+            if item["id"] == self.active_template.id
+        )
+
+        self.assertEqual(
+            template["checklist_status"],
+            "missing",
+        )
+
+    def test_other_users_commitment_does_not_mark_template_as_tracked(self):
+        Commitment.objects.create(
+            user = self.other_user,
+            title = "Other user's Council Tax",
+            group = self.active_group,
+            template = self.active_template,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        template = next(
+            item
+            for item in response.data
+            if item["id"] == self.active_template.id
+        )
+
+        self.assertEqual(
+            template["checklist_status"],
+            "missing",
+        )
+        
 class GuidedSetupAPITests(AuthenticatedAPITestCase):
     def setUp(self):
         super().setUp()
@@ -2845,4 +3048,6 @@ class GuidedSetupAPITests(AuthenticatedAPITestCase):
             returned_names,
             sorted(returned_names),
         )
+        
+
         

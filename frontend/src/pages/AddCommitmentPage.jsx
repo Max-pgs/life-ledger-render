@@ -24,13 +24,15 @@ function AddCommitmentPage() {
   const location = useLocation();
 
   const guidedSetupTemplateIds = location.state?.guidedSetupTemplateIds || [];
-
   const guidedSetupIndex = location.state?.guidedSetupIndex || 0;
+  const checklistTemplateId = location.state?.checklistTemplateId || "";
 
   const isGuidedSetup = guidedSetupTemplateIds.length > 0;
 
   const [selectedTemplateId, setSelectedTemplateId] = useState(
-    guidedSetupTemplateIds[guidedSetupIndex] || "",
+    guidedSetupTemplateIds[guidedSetupIndex] ||
+    checklistTemplateId ||
+    "",
   );
 
   const selectedTemplate = templates.find(
@@ -90,7 +92,10 @@ function AddCommitmentPage() {
   }, []);
 
   async function handleCreateCommitment(payload) {
-    await createCommitment(payload);
+    await createCommitment({
+      ...payload,
+      template_id: selectedTemplateId || null,
+    });
 
     if (isGuidedSetup) {
       const nextIndex = guidedSetupIndex + 1;

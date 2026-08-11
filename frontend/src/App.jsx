@@ -11,6 +11,7 @@ import DashboardLayout from "./layouts/DashboardLayout";
 import EditCommitmentPage from "./pages/EditCommitmentPage";
 import GuidesPage from "./pages/GuidesPage";
 import GuidedSetupPage from "./pages/GuidedSetupPage";
+import ForgottenChecklistPage from "./pages/ForgottenChecklistPage";
 
 function App() {
   return (
@@ -56,6 +57,11 @@ function App() {
           <Route
             path="/guided-setup"
             element={<GuidedSetupPage />}
+          />
+
+          <Route
+            path="/checklist"
+            element={<ForgottenChecklistPage />}
           />
         </Route>
 

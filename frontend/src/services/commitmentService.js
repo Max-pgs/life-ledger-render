@@ -58,6 +58,28 @@ export function getGuidedSetup() {
   return apiRequest("/commitments/guided_setup/");
 }
 
+export function getForgottenChecklist() {
+  return apiRequest("/commitments/checklist/");
+}
+
+export function markChecklistTemplateNotRelevant(templateId) {
+  return apiRequest(
+    `/commitments/checklist/${templateId}/not-relevant/`,
+    {
+      method: "POST",
+    },
+  );
+}
+
+export function restoreChecklistTemplate(templateId) {
+  return apiRequest(
+    `/commitments/checklist/${templateId}/not-relevant/`,
+    {
+      method: "DELETE",
+    },
+  );
+}
+
 export function createCommitment(commitmentData) {
   return apiRequest("/commitments/", {
     method: "POST",
