@@ -53,6 +53,14 @@ class CommitmentSerializer(serializers.ModelSerializer):
         allow_null = True,
     )
     
+    template_id = serializers.PrimaryKeyRelatedField(
+        source = "template",
+        queryset = CommitmentTemplate.objects.filter(is_active=True),
+        write_only = True,
+        required = False,
+        allow_null = True,
+    )
+        
     status = StatusSerializer(
         read_only = True,
     )
@@ -72,6 +80,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "title",
             "group",
             "group_id",
+            "template_id",
             "provider_name",
             "amount",
             "payment_frequency",
@@ -205,3 +214,33 @@ class GuidedSetupGroupSerializer(serializers.ModelSerializer):
             templates,
             many = True,
         ).data
+        
+class ForgottenChecklistTemplateSerializer(serializers.ModelSerializer):
+    group_name = serializers.CharField(
+        source = "group.name",
+        read_only = True,
+    )
+
+    checklist_status = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CommitmentTemplate
+        fields = (
+            "id",
+            "name",
+            "description",
+            "group",
+            "group_name",
+            "checklist_status",
+        )
+
+    def get_checklist_status(self, obj):
+        user = self.context["request"].user
+
+        if obj.commitments.filter(user = user).exists():
+            return "tracked"
+
+        if obj.excluded_by_users.filter(user = user).exists():
+            return "not_relevant"
+
+        return "missing"

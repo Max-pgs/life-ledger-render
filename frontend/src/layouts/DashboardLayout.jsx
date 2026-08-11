@@ -93,12 +93,23 @@ function DashboardLayout() {
             <Link
               to="/guided-setup"
               className={`dashboard-layout__nav-link ${location.pathname === "/guided-setup"
+                ? "dashboard-layout__nav-link--active"
+                : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Guided setup
+            </Link>
+
+            <Link
+              to="/checklist"
+              className={`dashboard-layout__nav-link ${location.pathname === "/checklist"
                   ? "dashboard-layout__nav-link--active"
                   : ""
                 }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              Guided setup
+              What have I forgotten?
             </Link>
 
             <Link

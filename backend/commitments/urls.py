@@ -12,6 +12,8 @@ from .views import (
     ReviewSoonCommitmentListView,
     ArchivedCommitmentListView,
     CommitmentRestoreView,
+    ForgottenChecklistView,
+    ForgottenChecklistExclusionView,
     GuidedSetupView,
     StatusListView,
 )
@@ -58,6 +60,16 @@ urlpatterns = [
         "templates/",
         CommitmentTemplateListView.as_view(),
         name = "commitment-template-list",
+    ),
+    path(
+        "checklist/",
+        ForgottenChecklistView.as_view(),
+        name = "commitment-forgotten-checklist",
+    ),
+    path(
+        "checklist/<int:template_id>/not-relevant/",
+        ForgottenChecklistExclusionView.as_view(),
+        name = "commitment-forgotten-checklist-exclusion",
     ),
     path(
         "guided_setup/",

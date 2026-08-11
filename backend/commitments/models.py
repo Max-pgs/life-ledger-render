@@ -85,6 +85,14 @@ class Commitment(models.Model):
         related_name = "commitments",
     )
     
+    template = models.ForeignKey(
+        "CommitmentTemplate",
+        on_delete = models.SET_NULL,
+        null = True,
+        blank = True,
+        related_name = "commitments",
+    )
+    
     status = models.ForeignKey(
         Status,
         on_delete = models.SET_NULL,
@@ -257,3 +265,27 @@ class CommitmentTemplate(models.Model):
 
     def __str__(self):
         return f"{self.group.name}: {self.name}"
+    
+class CommitmentTemplateExclusion(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete = models.CASCADE,
+        related_name = "excluded_commitment_templates",
+    )
+    template = models.ForeignKey(
+        CommitmentTemplate,
+        on_delete = models.CASCADE,
+        related_name = "excluded_by_users",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields = ("user", "template"),
+                name = "unique_user_template_exclusion",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.user} - {self.template}"

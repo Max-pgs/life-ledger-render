@@ -1,16 +1,18 @@
 from django.utils import timezone
 from django.db.models import DateField, ExpressionWrapper, F, Prefetch
+from django.shortcuts import get_object_or_404
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 
-from .models import Commitment, CommitmentGroup, CommitmentTemplate, Status
+from .models import Commitment, CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Status
 from .serializers import (
     CommitmentGroupSerializer,
     CommitmentSerializer,
     CommitmentTemplateSerializer,
+    ForgottenChecklistTemplateSerializer,
     GuidedSetupGroupSerializer,
     StatusSerializer,
 )
@@ -275,6 +277,50 @@ class CommitmentTemplateListView(generics.ListAPIView):
             .select_related("group", "default_status")
             .order_by("group__name", "display_order", "name")
         )
+        
+class ForgottenChecklistView(generics.ListAPIView):
+    serializer_class = ForgottenChecklistTemplateSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            CommitmentTemplate.objects
+            .filter(
+                is_active = True,
+                group__is_active=True,
+            )
+            .select_related("group")
+            .order_by("group__name", "display_order", "name")
+        )
+        
+class ForgottenChecklistExclusionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, template_id):
+        template = get_object_or_404(
+            CommitmentTemplate,
+            id = template_id,
+            is_active = True,
+            group__is_active = True,
+        )
+
+        CommitmentTemplateExclusion.objects.get_or_create(
+            user = request.user,
+            template = template,
+        )
+
+        return Response(
+            {"checklist_status": "not_relevant"},
+            status = status.HTTP_200_OK,
+        )
+
+    def delete(self, request, template_id):
+        CommitmentTemplateExclusion.objects.filter(
+            user = request.user,
+            template_id = template_id,
+        ).delete()
+
+        return Response(status = status.HTTP_204_NO_CONTENT)
         
 class GuidedSetupView(generics.ListAPIView):
     # Return active groups with their available commitment templates.
