@@ -352,7 +352,168 @@
   overflow: hidden;
 }
 
+.commitment-templates {
+  margin-bottom: 28px;
+  padding: 22px;
+  border: 1px solid #28312d;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.commitment-templates__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.commitment-templates__eyebrow {
+  margin: 0 0 6px;
+  color: #8aa899;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.commitment-templates__header h2 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: 1.3rem;
+}
+
+.commitment-templates__clear {
+  border: 0;
+  padding: 6px 0;
+  background: transparent;
+  color: #76bd99;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.commitment-templates__clear:hover {
+  text-decoration: underline;
+}
+
+.commitment-template-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.commitment-template-group {
+  overflow: hidden;
+  border: 1px solid #2d3732;
+  border-radius: 12px;
+  background: #111714;
+}
+
+.commitment-template-group__toggle {
+  display: flex;
+  width: 100%;
+  min-height: 54px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 16px;
+  border: 0;
+  background: transparent;
+  color: #f4f7f5;
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.commitment-template-group__toggle:hover {
+  background: #151d19;
+}
+
+.commitment-template-group__icon {
+  flex-shrink: 0;
+  color: #76bd99;
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.commitment-templates__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 10px 14px 14px;
+}
+
+.commitment-template-card {
+  min-height: 112px;
+  padding: 15px;
+  border: 1px solid #2d3732;
+  border-radius: 10px;
+  background: #151b18;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.commitment-template-card:hover {
+  border-color: #76bd99;
+  transform: translateY(-2px);
+}
+
+.commitment-template-card--selected {
+  border-color: #76bd99;
+  background: #16211b;
+}
+
+.commitment-template-card strong {
+  display: block;
+  margin-bottom: 7px;
+  color: #f4f7f5;
+  font-size: 0.95rem;
+}
+
+.commitment-template-card p {
+  margin: 0;
+  color: #8c9992;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.commitment-template-guidance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -10px 0 24px;
+  padding: 12px 14px;
+  border-left: 3px solid #76bd99;
+  border-radius: 8px;
+  background: #131a16;
+}
+
+.commitment-template-guidance__label {
+  color: #f4f7f5;
+  font-weight: 700;
+}
+
+.commitment-template-guidance__fields {
+  color: #9eaaa4;
+}
+
 /* Stacks the form into a single column on smaller screens. */
+@media (max-width: 1000px) {
+  .commitment-templates__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 760px) {
   .add-commitment-page {
     padding: 22px 18px;
@@ -387,5 +548,46 @@
   .commitment-form__group-description,
   .commitment-form__group-guide-link {
     font-size: 0.95rem;
+  }
+
+  .commitment-templates {
+    margin-bottom: 22px;
+    padding: 16px 14px;
+  }
+
+  .commitment-templates__header {
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  .commitment-templates__header h2 {
+    font-size: 1.15rem;
+  }
+
+  .commitment-templates__clear {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+  }
+
+  .commitment-template-group__toggle {
+    min-height: 50px;
+    padding: 0 12px;
+  }
+
+  .commitment-templates__grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 0 10px 10px;
+  }
+
+  .commitment-template-card {
+    min-height: 0;
+    padding: 14px;
+  }
+
+  .commitment-template-guidance {
+    margin: -6px 0 20px;
+    padding: 11px 12px;
   }
 }

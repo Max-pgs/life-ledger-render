@@ -79,6 +79,16 @@ function CommitmentsPage() {
         return new Date(`${dateValue}T00:00:00`).toLocaleDateString("en-GB");
     }
 
+    function formatPaymentStatus(status) {
+        if (!status) {
+            return "—";
+        }
+
+        return status
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, (letter) => letter.toUpperCase());
+    }
+
     async function handleArchive() {
         if (!commitmentToArchive) {
             return;
@@ -425,8 +435,10 @@ function CommitmentsPage() {
                                         </td>
 
                                         <td>
-                                            {commitment.payment_status
-                                                ?.replaceAll("_", " ") || "—"}
+                                            {formatPaymentStatus(
+                                                commitment.effective_payment_status
+                                                || commitment.payment_status
+                                            )}
                                         </td>
 
                                         <td>
@@ -519,8 +531,10 @@ function CommitmentsPage() {
                                     <div>
                                         <dt>Payment</dt>
                                         <dd>
-                                            {commitment.payment_status
-                                                ?.replaceAll("_", " ") || "—"}
+                                            {formatPaymentStatus(
+                                                commitment.effective_payment_status
+                                                || commitment.payment_status
+                                            )}
                                         </dd>
                                     </div>
                                 </dl>

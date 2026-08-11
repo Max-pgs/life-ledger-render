@@ -1,6 +1,6 @@
 from django.utils import timezone
 from django.db.models import DateField, ExpressionWrapper, F, Prefetch
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
@@ -52,7 +52,6 @@ class CommitmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
         
     def get_queryset(self):
-        # Restrict access to active commitments owned by the current user.
         return Commitment.objects.filter(
             user=self.request.user,
         )
@@ -262,18 +261,19 @@ class ReviewSoonCommitmentListView(generics.ListAPIView):
         
 class CommitmentTemplateListView(generics.ListAPIView):
     # Return active templates assigned to active commitment groups.
-
+    
     serializer_class = CommitmentTemplateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         return (
-            CommitmentTemplate.objects.filter(
-                is_active = True,
-                group__is_active = True,
+            CommitmentTemplate.objects
+            .filter(
+                is_active=True,
+                group__is_active=True,
             )
-            .select_related("group")
-            .order_by("group__name", "name")
+            .select_related("group", "default_status")
+            .order_by("group__name", "display_order", "name")
         )
         
 class GuidedSetupView(generics.ListAPIView):
@@ -291,6 +291,7 @@ class GuidedSetupView(generics.ListAPIView):
             CommitmentGroup.objects.filter(
                 is_active = True,
             ).prefetch_related(
+                # Store filtered templates on a separate attribute used by the guided-setup serializer.
                 Prefetch(
                     "templates",
                     queryset = active_templates,

@@ -180,12 +180,33 @@
   }
 }
 
-@media (max-width: 720px) {
-  .guides-page__layout {
-    grid-template-columns: 1fr;
-    gap: 16px;
+@media (max-width: 760px) {
+  .guides-page {
+    gap: 18px;
   }
 
+  .guides-page__header h1 {
+    font-size: 1.65rem;
+  }
+
+  .guides-page__content {
+    padding: 20px;
+  }
+
+  .guides-page__content-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .guides-page__description {
+    line-height: 1.6;
+  }
+
+  .guides-page__external-link {
+    padding: 13px 14px;
+  }
+}
+
+@media (max-width: 720px) {
   .guides-page__sidebar {
     padding: 0;
     border: 0;
@@ -208,8 +229,16 @@
     border: 1px solid rgba(243, 240, 232, 0.18);
     border-radius: 10px;
     color: #f3f0e8;
-    background: #111714;
+    background-color: #111714;
     font-size: 16px;
+
+    -webkit-appearance: none;
+    appearance: none;
+
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2376bd99' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 16px;
   }
 
   .guides-page__content {
@@ -247,35 +276,5 @@
 
   .guides-page__review-date {
     margin-top: 20px;
-  }
-
-  .guides-page__disclaimer {
-    margin-top: 20px;
-  }
-}
-
-@media (max-width: 760px) {
-  .guides-page {
-    gap: 18px;
-  }
-
-  .guides-page__header h1 {
-    font-size: 1.65rem;
-  }
-
-  .guides-page__content {
-    padding: 20px;
-  }
-
-  .guides-page__content-header h2 {
-    font-size: 1.35rem;
-  }
-
-  .guides-page__description {
-    line-height: 1.6;
-  }
-
-  .guides-page__external-link {
-    padding: 13px 14px;
   }
 }

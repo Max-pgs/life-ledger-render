@@ -581,11 +581,6 @@
   }
 
   .commitment-modal__cancel,
-  .commitment-modal__confirm {
-    width: 100%;
-  }
-
-  .commitment-modal__cancel,
   .commitment-modal__confirm,
   .commitment-modal__delete {
     width: 100%;

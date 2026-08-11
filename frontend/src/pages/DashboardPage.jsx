@@ -67,6 +67,8 @@ function DashboardPage() {
   const [paymentLoading, setPaymentLoading] = useState(true);
   const [paymentError, setPaymentError] = useState("");
 
+  const visibleUpcomingCommitments = upcomingCommitments.slice(0, 5);
+
   /* Marks the intro as completed and removes the temporary route state. */
   function handleTransitionComplete() {
     setShowLoginTransition(false);
@@ -160,7 +162,10 @@ function DashboardPage() {
 
   const paymentStatusSummary = paymentCommitments.reduce(
     (summary, commitment) => {
-      const status = commitment.payment_status || "not_applicable";
+      const status =
+        commitment.effective_payment_status
+        || commitment.payment_status
+        || "not_applicable";
       const amount = Number.parseFloat(commitment.amount) || 0;
 
       summary[status].count += 1;
@@ -490,7 +495,7 @@ function DashboardPage() {
               !upcomingError &&
               upcomingCommitments.length > 0 && (
                 <div className="dashboard-upcoming__list">
-                  {upcomingCommitments.map((commitment) => (
+                  {visibleUpcomingCommitments.map((commitment) => (
                     <button
                       key={commitment.id}
                       type="button"

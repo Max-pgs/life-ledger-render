@@ -141,9 +141,12 @@
 }
 
 .dashboard-summary-card__label {
+  margin: 0 0 10px;
   margin-bottom: 10px;
-  font-size: 0.95rem;
+  line-height: 1.2;
+  font-size: 0.85rem;
   font-weight: 700;
+  color: #aeb9b3;
 }
 
 .dashboard-summary-card--upcoming .dashboard-summary-card__label,
@@ -189,19 +192,10 @@
   color: #e2d171;
 }
 
-.dashboard-summary-card__label {
-  margin: 0 0 10px;
-  line-height: 1.2;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #aeb9b3;
-}
-
 .dashboard-summary-card__value {
   margin: 0 0 8px;
   line-height: 1;
   font-size: 2rem;
-  line-height: 1;
   color: #f4f7f5;
 }
 
@@ -818,7 +812,7 @@
   grid-template-columns: 190px minmax(190px, 1fr);
   align-items: center;
   gap: 24px;
-  margin-top: auto;
+  margin-block: auto;
 }
 
 .dashboard-payment-status__chart {
@@ -1111,14 +1105,6 @@
 
   .dashboard-payment-status__chart {
     width: min(160px, 100%);
-  }
-
-  .dashboard-summary-card--overdue .dashboard-summary-card__text {
-    transform: translateY(0px);
-  }
-
-  .dashboard-summary-card--overdue .dashboard-summary-card__icon {
-    transform: translateY(0px);
   }
 }
 

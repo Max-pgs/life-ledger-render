@@ -22,6 +22,7 @@ function GuidesPage() {
                 setGroups(data);
 
                 if (data.length > 0) {
+                    /* Uses the requested guide when valid, otherwise falls back to the first available group. */
                     const requestedGroupId = Number(searchParams.get("group"));
 
                     const requestedGroupExists = data.some(

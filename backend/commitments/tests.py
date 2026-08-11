@@ -12,10 +12,16 @@ from guides.models import GroupInformationLink
 
 User = get_user_model()
 
-class CommitmentCreateAPITests(APITestCase):
-    # Test creation of personal commitment records.
-    
+class AuthenticatedAPITestCase(APITestCase):
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Token {self.token.key}"
+        )
+
+class CommitmentCreateAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
+        
         self.url = reverse("commitments:commitment-list-create")
 
         self.user = User.objects.create_user(
@@ -37,13 +43,6 @@ class CommitmentCreateAPITests(APITestCase):
             name = "Bills",
             description = "General guidance for bills.",
             is_active = True
-        )
-        
-    def authenticate(self):
-        # Authenticate API requests using the user's DRF token.
-        
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
         
     def test_authenticated_user_can_create_commitment(self):
@@ -168,9 +167,7 @@ class CommitmentCreateAPITests(APITestCase):
             self.active_group.last_reviewed_at,
         )
         
-class CommitmentListAPITests(APITestCase):
-    # Test retrieval of user-specific commitment records.
-
+class CommitmentListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
         self.url = reverse(
             "commitments:commitment-list-create"
@@ -208,13 +205,6 @@ class CommitmentListAPITests(APITestCase):
             user = self.other_user,
             title = "Private commitment",
             notes = "This must not be visible.",
-        )
-
-    def authenticate(self):
-        # Authenticate requests using the current user's token.
-        
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authenticated_user_can_view_own_commitments(self):
@@ -278,6 +268,91 @@ class CommitmentListAPITests(APITestCase):
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
         )
+        
+    def test_past_pending_commitment_has_effective_overdue_status(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Electricity bill",
+            due_date = timezone.localdate() - timedelta(days = 1),
+            payment_status = "pending",
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_commitment = next(
+            item
+            for item in response.data
+            if item["id"] == commitment.id
+        )
+
+        self.assertEqual(
+            returned_commitment["payment_status"],
+            "pending",
+        )
+
+        self.assertEqual(
+            returned_commitment["effective_payment_status"],
+            "overdue",
+        )
+
+
+    def test_future_pending_commitment_remains_effectively_pending(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Council Tax payment",
+            due_date = timezone.localdate() + timedelta(days = 1),
+            payment_status = "pending",
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_commitment = next(
+            item
+            for item in response.data
+            if item["id"] == commitment.id
+        )
+
+        self.assertEqual(
+            returned_commitment["effective_payment_status"],
+            "pending",
+        )
+
+
+    def test_paid_commitment_does_not_become_effectively_overdue(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Broadband payment",
+            due_date = timezone.localdate() - timedelta(days = 1),
+            payment_status = "paid",
+        )
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        returned_commitment = next(
+            item
+            for item in response.data
+            if item["id"] == commitment.id
+        )
+
+        self.assertEqual(
+            returned_commitment["effective_payment_status"],
+            "paid",
+        )
 
     def test_commitments_are_returned_in_newest_first_order(self):
         self.authenticate()
@@ -297,10 +372,9 @@ class CommitmentListAPITests(APITestCase):
             self.user_commitment_one.id,
         )
         
-class CommitmentUpdateAPITests(APITestCase):
-    # Test retrieval and updating of individual commitments.
-
+class CommitmentUpdateAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "testuser",
             email = "test@example.com",
@@ -332,13 +406,6 @@ class CommitmentUpdateAPITests(APITestCase):
         self.url = reverse(
             "commitments:commitment-detail",
             kwargs = {"pk": self.commitment.pk},
-        )
-
-    def authenticate(self):
-        # Authenticate API requests with the current user's token.
-        
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authenticated_user_can_view_own_commitment(self):
@@ -478,10 +545,9 @@ class CommitmentUpdateAPITests(APITestCase):
             "Old Council Tax",
         )
         
-class CommitmentArchiveAPITests(APITestCase):
-    # Test safe archival of commitment records.
-
+class CommitmentArchiveAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "testuser",
             email = "test@example.com",
@@ -517,13 +583,6 @@ class CommitmentArchiveAPITests(APITestCase):
 
         self.list_url = reverse(
             "commitments:commitment-list-create"
-        )
-
-    def authenticate(self):
-        # Authenticate requests using the current user's token.
-    
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authenticated_user_can_archive_own_commitment(self):
@@ -673,10 +732,9 @@ class CommitmentArchiveAPITests(APITestCase):
             status.HTTP_404_NOT_FOUND,
         )
         
-class CommitmentStructuredDetailsAPITests(APITestCase):
-    # Test structured commitment fields.
-
+class CommitmentStructuredDetailsAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "testuser",
             email = "test@example.com",
@@ -722,13 +780,6 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             "status_id": self.status.id,
             "notes": "Monthly council tax commitment.",
         }
-
-    def authenticate(self):
-        # Authenticate requests using the current user's token.
-        
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
-        )
 
     def test_user_can_create_commitment_with_structured_details(self):
         self.authenticate()
@@ -1018,10 +1069,9 @@ class CommitmentStructuredDetailsAPITests(APITestCase):
             "Household guidance",
         )
         
-class CommitmentGroupListAPITests(APITestCase):
-    # Test read-only access to active commitment groups.
-
+class CommitmentGroupListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "testuser",
             email = "test@example.com",
@@ -1053,12 +1103,7 @@ class CommitmentGroupListAPITests(APITestCase):
         self.url = reverse(
             "commitments:commitment-group-list"
         )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
-        )
-
+        
     def test_authenticated_user_can_view_active_groups(self):
         self.authenticate()
 
@@ -1146,10 +1191,9 @@ class CommitmentGroupListAPITests(APITestCase):
             ).exists()
         )
         
-class CommitmentStatusListAPITests(APITestCase):
-    # Test retrieval of admin-managed commitment statuses.
-
+class CommitmentStatusListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.url = reverse(
             "commitments:commitment-status-list"
         )
@@ -1176,13 +1220,6 @@ class CommitmentStatusListAPITests(APITestCase):
             defaults = {
                 "description": "The commitment has been cancelled.",
             },
-        )
-
-    def authenticate(self):
-        # Authenticate requests using the current user's token.
-
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authenticated_user_can_view_statuses(self):
@@ -1217,10 +1254,9 @@ class CommitmentStatusListAPITests(APITestCase):
             status.HTTP_401_UNAUTHORIZED,
         )
         
-class CommitmentBillContractDetailsAPITests(APITestCase):
-    # Test bill and contract detail fields.
-
+class CommitmentBillContractDetailsAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "testuser",
             email = "test@example.com",
@@ -1233,11 +1269,6 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-list-create"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_user_can_create_commitment_with_bill_and_contract_details(self):
@@ -1444,10 +1475,9 @@ class CommitmentBillContractDetailsAPITests(APITestCase):
             response.data,
         )
         
-class UpcomingCommitmentListAPITests(APITestCase):
-    # Test the upcoming commitments endpoint.
-
+class UpcomingCommitmentListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "upcominguser",
             email = "upcoming@example.com",
@@ -1464,11 +1494,6 @@ class UpcomingCommitmentListAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-upcoming"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authentication_is_required(self):
@@ -1611,10 +1636,9 @@ class UpcomingCommitmentListAPITests(APITestCase):
             ],
         )
         
-class OverdueCommitmentListAPITests(APITestCase):
-    # Test the overdue commitments endpoint.
-
+class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "overdueuser",
             email = "overdue@example.com",
@@ -1631,11 +1655,6 @@ class OverdueCommitmentListAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-overdue"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authentication_is_required(self):
@@ -1774,10 +1793,9 @@ class OverdueCommitmentListAPITests(APITestCase):
             ],
         )
         
-class HighPriorityCommitmentListAPITests(APITestCase):
-    # Test the high-priority commitments endpoint.
-
+class HighPriorityCommitmentListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "priorityuser",
             email = "priority@example.com",
@@ -1794,11 +1812,6 @@ class HighPriorityCommitmentListAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-high-priority"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authentication_is_required(self):
@@ -1931,10 +1944,9 @@ class HighPriorityCommitmentListAPITests(APITestCase):
             ],
         )
         
-class CommitmentPaymentStatusAPITests(APITestCase):
-    # Test payment-status creation, updates and validation.
-
+class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "paymentstatususer",
             email = "paymentstatus@example.com",
@@ -1945,11 +1957,6 @@ class CommitmentPaymentStatusAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-list-create"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_default_payment_status_is_not_applicable(self):
@@ -2081,10 +2088,9 @@ class CommitmentPaymentStatusAPITests(APITestCase):
             status.HTTP_404_NOT_FOUND,
         )
         
-class CommitmentCancellationDeadlineAPITests(APITestCase):
-    # Test cancellation-deadline calculation and API behaviour.
-
+class CommitmentCancellationDeadlineAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "cancellationuser",
             email = "cancellation@example.com",
@@ -2095,11 +2101,6 @@ class CommitmentCancellationDeadlineAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-list-create"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_cancellation_deadline_is_calculated(self):
@@ -2219,10 +2220,9 @@ class CommitmentCancellationDeadlineAPITests(APITestCase):
             "2027-05-31",
         )
         
-class ReviewSoonCommitmentListAPITests(APITestCase):
-    # Test commitments approaching their cancellation deadline.
-
+class ReviewSoonCommitmentListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "reviewuser",
             email = "review@example.com",
@@ -2239,11 +2239,6 @@ class ReviewSoonCommitmentListAPITests(APITestCase):
 
         self.url = reverse(
             "commitments:commitment-review-soon"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authentication_is_required(self):
@@ -2408,10 +2403,9 @@ class ReviewSoonCommitmentListAPITests(APITestCase):
             (today + timedelta(days = 20)).isoformat(),
         )
         
-class CommitmentTemplateListAPITests(APITestCase):
-    # Test read-only access to active commitment templates.
-
+class CommitmentTemplateListAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "templateuser",
             email = "template@example.com",
@@ -2438,6 +2432,7 @@ class CommitmentTemplateListAPITests(APITestCase):
             name = "Council Tax",
             description = "A common household commitment.",
             group = self.active_group,
+            default_title = "Council Tax",
             default_provider_name = "Local council",
             default_amount = "150.00",
             default_payment_frequency = "monthly",
@@ -2447,23 +2442,20 @@ class CommitmentTemplateListAPITests(APITestCase):
 
         self.inactive_template = CommitmentTemplate.objects.create(
             name = "Inactive Template",
+            default_title = "Inactive Template",
             group = self.active_group,
             is_active = False,
         )
 
         self.hidden_group_template = CommitmentTemplate.objects.create(
             name = "Hidden Group Template",
+            default_title = "Hidden Group Template",
             group = self.inactive_group,
             is_active = True,
         )
 
         self.url = reverse(
             "commitments:commitment-template-list"
-        )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
 
     def test_authenticated_user_can_view_active_templates(self):
@@ -2478,12 +2470,12 @@ class CommitmentTemplateListAPITests(APITestCase):
             response.status_code,
             status.HTTP_200_OK,
         )
-        self.assertEqual(
-            len(response.data),
-            1,
-        )
 
-        template = response.data[0]
+        template = next(
+            template
+            for template in response.data
+            if template["id"] == self.active_template.id
+        )
 
         self.assertEqual(
             template["name"],
@@ -2494,7 +2486,11 @@ class CommitmentTemplateListAPITests(APITestCase):
             "A common household commitment.",
         )
         self.assertEqual(
-            template["group"]["name"],
+            template["group"],
+            self.active_group.id,
+        )
+        self.assertEqual(
+            template["group_name"],
             "Household",
         )
         self.assertEqual(
@@ -2593,12 +2589,14 @@ class CommitmentTemplateListAPITests(APITestCase):
 
         second_household_template = CommitmentTemplate.objects.create(
             name = "Broadband",
+            default_title = "Broadband",
             group = self.active_group,
             is_active = True,
         )
 
         subscription_template = CommitmentTemplate.objects.create(
             name = "Streaming Service",
+            default_title = "Streaming Service",
             group = second_group,
             is_active = True,
         )
@@ -2610,8 +2608,20 @@ class CommitmentTemplateListAPITests(APITestCase):
             format = "json",
         )
 
+        test_template_ids = {
+            self.active_template.id,
+            second_household_template.id,
+            subscription_template.id,
+        }
+
+        returned_test_template_ids = [
+            template["id"]
+            for template in response.data
+            if template["id"] in test_template_ids
+        ]
+
         self.assertEqual(
-            [template["id"] for template in response.data],
+            returned_test_template_ids,
             [
                 second_household_template.id,
                 self.active_template.id,
@@ -2619,10 +2629,9 @@ class CommitmentTemplateListAPITests(APITestCase):
             ],
         )
         
-class GuidedSetupAPITests(APITestCase):
-    # Test the guided setup endpoint.
-
+class GuidedSetupAPITests(AuthenticatedAPITestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user(
             username = "guidedsetupuser",
             email = "guidedsetup@example.com",
@@ -2670,12 +2679,7 @@ class GuidedSetupAPITests(APITestCase):
         self.url = reverse(
             "commitments:commitment-guided-setup"
         )
-
-    def authenticate(self):
-        self.client.credentials(
-            HTTP_AUTHORIZATION = f"Token {self.token.key}"
-        )
-
+        
     def test_authentication_is_required(self):
         response = self.client.get(self.url)
 
@@ -2841,3 +2845,4 @@ class GuidedSetupAPITests(APITestCase):
             returned_names,
             sorted(returned_names),
         )
+        

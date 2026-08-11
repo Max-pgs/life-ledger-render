@@ -7,14 +7,10 @@ from rest_framework.views import APIView
 from .serializers import RegisterSerializer, LoginSerializer
 
 class RegisterView(generics.CreateAPIView):
-    # Create a new User account
-    
     serializer_class = RegisterSerializer
     permission_classes = [AllowAny]
     
 class LoginView(APIView):
-    # Authenticate a user and return API token
-    
     permission_classes = [AllowAny]
     
     def post(self, request):
@@ -43,13 +39,9 @@ class LoginView(APIView):
         )
         
 class LogoutView(APIView):
-    # Delete the authenticated user's token and the API session.
-    
     permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        # Remove the token used for the current authnticated request.
-        
         request.auth.delete()
         
         return Response(

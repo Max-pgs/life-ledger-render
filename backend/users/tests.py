@@ -7,8 +7,6 @@ from rest_framework.authtoken.models import Token
 User = get_user_model()
 
 class RegisterAPITests(APITestCase):
-    # Test the account registration endpoint.
-    
     def setUp(self):
         self.url = reverse("users:register")
         self.valid_payload = {
@@ -131,8 +129,6 @@ class RegisterAPITests(APITestCase):
         )
         
 class LoginAPITests(APITestCase):
-    # Test the token-based login endpoint.
-    
     def setUp(self):
         self.url = reverse("users:login")
         self.password = "SecureTestPassword1!"
@@ -185,8 +181,6 @@ class LoginAPITests(APITestCase):
         self.assertNotIn("token", response.data)
         
 class LogoutAPITests(APITestCase):
-    # Test the token-based logout endpoint.
-    
     def setUp(self):
         self.url = reverse("users:logout")
 
@@ -199,8 +193,6 @@ class LogoutAPITests(APITestCase):
         self.token = Token.objects.create(user = self.user)
         
     def test_authenticated_user_can_logout(self):
-        # An authenticated logout request should delete the user's token.
-        
         self.client.credentials(
             HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
@@ -220,8 +212,6 @@ class LogoutAPITests(APITestCase):
         )
     
     def test_logged_out_token_can_no_longer_be_used(self):
-        # A deleted token should not authenticate subsequent requests.
-        
         self.client.credentials(
             HTTP_AUTHORIZATION = f"Token {self.token.key}"
         )
@@ -246,8 +236,7 @@ class LogoutAPITests(APITestCase):
         )
         
     def test_logout_rejects_unauthenticated_request(self):
-        # Anonymous users should not be able to access logout.
-        
+
         response = self.client.post(
             self.url,
             format = "json",

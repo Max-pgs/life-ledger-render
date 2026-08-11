@@ -7,7 +7,7 @@ function getAuthHeaders() {
 
   return {
     "Content-Type": "application/json",
-    Authorization: `Token ${token}`,
+    ...(token && { Authorization: `Token ${token}` }),
   };
 }
 
@@ -22,116 +22,76 @@ async function parseResponse(response) {
   return data;
 }
 
-export async function getCommitments() {
-  const response = await fetch(`${API_BASE_URL}/commitments/`, {
-    headers: getAuthHeaders(),
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
   });
-
-  return parseResponse(response);
-}
-
-export async function getCommitmentGroups() {
-  const response = await fetch(`${API_BASE_URL}/commitments/groups/`, {
-    headers: getAuthHeaders(),
-  });
-
-  return parseResponse(response);
-}
-
-export async function getCommitmentStatuses() {
-  const response = await fetch(`${API_BASE_URL}/commitments/statuses/`, {
-    headers: getAuthHeaders(),
-  });
-
-  return parseResponse(response);
-}
-
-export async function createCommitment(commitmentData) {
-  const response = await fetch(`${API_BASE_URL}/commitments/`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify(commitmentData),
-  });
-
-  return parseResponse(response);
-}
-
-export async function getCommitment(commitmentId) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
-}
-
-export async function updateCommitment(
-  commitmentId,
-  commitmentData,
-) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/`,
-    {
-      method: "PUT",
-      headers: getAuthHeaders(),
-      body: JSON.stringify(commitmentData),
-    },
-  );
-
-  return parseResponse(response);
-}
-
-export async function archiveCommitment(commitmentId) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/archive/`,
-    {
-      method: "POST",
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
-}
-
-export async function getArchivedCommitments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/archived/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
-}
-
-export async function restoreCommitment(commitmentId) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/restore/`,
-    {
-      method: "POST",
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
-}
-
-export async function deleteCommitment(commitmentId) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/`,
-    {
-      method: "DELETE",
-      headers: getAuthHeaders(),
-    },
-  );
 
   if (response.status === 204) {
     return null;
   }
 
   return parseResponse(response);
+}
+
+export function getCommitments() {
+  return apiRequest("/commitments/");
+}
+
+export function getCommitmentGroups() {
+  return apiRequest("/commitments/groups/");
+}
+
+export function getCommitmentStatuses() {
+  return apiRequest("/commitments/statuses/");
+}
+
+export function getCommitmentTemplates() {
+  return apiRequest("/commitments/templates/");
+}
+
+export function createCommitment(commitmentData) {
+  return apiRequest("/commitments/", {
+    method: "POST",
+    body: JSON.stringify(commitmentData),
+  });
+}
+
+export function getCommitment(commitmentId) {
+  return apiRequest(`/commitments/${commitmentId}/`);
+}
+
+export function updateCommitment(commitmentId, commitmentData) {
+  return apiRequest(`/commitments/${commitmentId}/`, {
+    method: "PUT",
+    body: JSON.stringify(commitmentData),
+  });
+}
+
+export function archiveCommitment(commitmentId) {
+  return apiRequest(`/commitments/${commitmentId}/archive/`, {
+    method: "POST",
+  });
+}
+
+export function getArchivedCommitments() {
+  return apiRequest("/commitments/archived/");
+}
+
+export function restoreCommitment(commitmentId) {
+  return apiRequest(`/commitments/${commitmentId}/restore/`, {
+    method: "POST",
+  });
+}
+
+export function deleteCommitment(commitmentId) {
+  return apiRequest(`/commitments/${commitmentId}/`, {
+    method: "DELETE",
+  });
 }
 
 export async function getUpcomingCommitments() {
