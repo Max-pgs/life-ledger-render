@@ -104,8 +104,8 @@ function DashboardLayout() {
             <Link
               to="/checklist"
               className={`dashboard-layout__nav-link ${location.pathname === "/checklist"
-                  ? "dashboard-layout__nav-link--active"
-                  : ""
+                ? "dashboard-layout__nav-link--active"
+                : ""
                 }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -123,13 +123,16 @@ function DashboardLayout() {
               UK guidance
             </Link>
 
-            <button
-              type="button"
-              className="dashboard-layout__nav-link"
-              disabled
+            <Link
+              to="/settings"
+              className={`dashboard-layout__nav-link ${location.pathname === "/settings"
+                  ? "dashboard-layout__nav-link--active"
+                  : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
             >
               Settings
-            </button>
+            </Link>
           </nav>
 
           <div className="dashboard-layout__sidebar-footer">

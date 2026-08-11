@@ -1,8 +1,11 @@
+from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
+
+from .models import UserProfile
 
 User = get_user_model()
 
@@ -241,6 +244,105 @@ class LogoutAPITests(APITestCase):
             self.url,
             format = "json",
         )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+class AccountAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "accountuser",
+            email = "account@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.profile = UserProfile.objects.create(
+            user = self.user,
+        )
+
+        self.token = Token.objects.create(
+            user = self.user,
+        )
+
+        self.url = reverse("users:account")
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_authentication_is_required(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+
+    def test_account_returns_current_user_details(self):
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["id"],
+            self.user.id,
+        )
+
+        self.assertEqual(
+            response.data["username"],
+            self.user.username,
+        )
+
+        self.assertEqual(
+            response.data["email"],
+            self.user.email,
+        )
+
+        self.assertEqual(
+            response.data["plan"],
+            "free",
+        )
+
+        self.assertIn(
+            "member_since",
+            response.data,
+        )
+        
+    def test_user_can_delete_own_account(self):
+        self.authenticate()
+
+        delete_url = reverse("users:delete-account")
+
+        response = self.client.delete(delete_url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT,
+        )
+
+        self.assertFalse(
+            User.objects.filter(id = self.user.id).exists()
+        )
+
+        self.assertFalse(
+            UserProfile.objects.filter(user_id = self.user.id).exists()
+        )
+        
+    def test_delete_account_requires_authentication(self):
+        delete_url = reverse("users:delete-account")
+
+        response = self.client.delete(delete_url)
 
         self.assertEqual(
             response.status_code,

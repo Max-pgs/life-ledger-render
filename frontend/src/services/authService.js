@@ -59,3 +59,37 @@ export async function logoutUser() {
     throw data;
   }
 }
+
+export async function getAccount() {
+  const token = localStorage.getItem("authToken");
+
+  const response = await fetch(`${API_BASE_URL}/auth/account/`, {
+    headers: {
+      Authorization: `Token ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
+
+  return parseResponse(response);
+}
+
+export async function deleteAccount() {
+  const token = localStorage.getItem("authToken");
+
+  const response = await fetch(
+    `${API_BASE_URL}/auth/account/delete/`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  return parseResponse(response);
+}
