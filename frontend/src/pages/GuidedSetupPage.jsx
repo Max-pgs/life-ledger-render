@@ -326,6 +326,12 @@ function GuidedSetupPage() {
                                         type="checkbox"
                                         checked={selectedTemplateIds.includes(template.id)}
                                         onChange={() => toggleTemplate(template.id)}
+                                        onKeyDown={(event) => {
+                                            if (event.key === "Enter") {
+                                                event.preventDefault();
+                                                toggleTemplate(template.id);
+                                            }
+                                        }}
                                     />
 
                                     <div>

@@ -823,12 +823,38 @@
   border-radius: 50%;
 }
 
-.dashboard-payment-status__chart::after {
-  content: "";
-  position: absolute;
-  inset: 24%;
-  border-radius: 50%;
-  background: #151b18;
+.dashboard-payment-status__chart-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.dashboard-payment-status__segment {
+  pointer-events: stroke;
+  cursor: pointer;
+  transition:
+    opacity 0.15s ease,
+    stroke-width 0.15s ease;
+}
+
+.dashboard-payment-status__segment--paid {
+  stroke: #76bd99;
+}
+
+.dashboard-payment-status__segment--pending {
+  stroke: #cdb77e;
+}
+
+.dashboard-payment-status__segment--overdue {
+  stroke: #d6a0a0;
+}
+
+.dashboard-payment-status__segment:hover,
+.dashboard-payment-status__segment:focus-visible {
+  stroke-width: 25;
+  opacity: 0.9;
+  outline: none;
 }
 
 .dashboard-payment-status__chart-centre {
@@ -841,6 +867,7 @@
   flex-direction: column;
   gap: 4px;
   text-align: center;
+  pointer-events: none;
 }
 
 .dashboard-payment-status__chart-centre strong {
@@ -854,6 +881,106 @@
   font-size: 0.72rem;
 }
 
+.dashboard-payment-status__chart-wrapper {
+  position: relative;
+  justify-self: center;
+  overflow: visible;
+  z-index: 2;
+}
+
+.dashboard-payment-status__preview {
+  position: absolute;
+  z-index: 20;
+  top: 50%;
+  left: calc(100% + 16px);
+  width: 230px;
+  padding: 12px;
+  border: 1px solid #33413a;
+  border-radius: 10px;
+  background: #101512;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.dashboard-payment-status__preview-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.dashboard-payment-status__preview-header strong {
+  color: #f4f7f5;
+  font-size: 0.86rem;
+}
+
+.dashboard-payment-status__preview-header span {
+  color: #78867f;
+  font-size: 0.72rem;
+}
+
+.dashboard-payment-status__preview-list {
+  display: grid;
+  gap: 8px;
+}
+
+.dashboard-payment-status__preview-item {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.dashboard-payment-status__preview-item strong {
+  overflow: hidden;
+  color: #f4f7f5;
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-payment-status__preview-item span {
+  overflow: hidden;
+  color: #8c9992;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-payment-status__preview-empty,
+.dashboard-payment-status__preview-more {
+  margin: 0;
+  color: #78867f;
+  font-size: 0.72rem;
+}
+
+.dashboard-payment-status__preview-more {
+  display: block;
+  margin-top: 9px;
+  color: #76bd99;
+  font-weight: 700;
+}
+
+.dashboard-payment-status__preview-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.dashboard-payment-status__preview-meta span {
+  color: #78867f;
+  font-size: 0.7rem;
+}
+
+.dashboard-payment-status__preview-meta span:first-child {
+  color: #aeb9b3;
+  font-weight: 600;
+}
+
 .dashboard-payment-status__legend {
   display: flex;
   flex-direction: column;
@@ -861,19 +988,36 @@
 
 .dashboard-payment-status__legend-item {
   display: flex;
+  width: 100%;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
   padding: 13px 0;
+  border: 0;
   border-bottom: 1px solid #28312d;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.dashboard-payment-status__legend-item:first-child {
-  padding-top: 0;
+.dashboard-payment-status__legend-item:hover {
+  background: rgba(118, 189, 153, 0.05);
 }
+
+.dashboard-payment-status__legend-item:focus-visible {
+  outline: 2px solid #a9c98f;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+
 
 .dashboard-payment-status__legend-item:last-child {
-  padding-bottom: 0;
   border-bottom: 0;
 }
 
@@ -1191,6 +1335,10 @@ button.dashboard-support-card:focus-visible {
 
   .dashboard-achievements__list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-payment-status__preview {
+    display: none;
   }
 }
 
