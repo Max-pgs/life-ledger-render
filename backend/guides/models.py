@@ -2,8 +2,7 @@ from django.db import models
 
 from commitments.models import CommitmentGroup
 
-# Stores administrator-managed external information links for commitment groups.
-# Ordinary users can view these links but cannot modify them.
+# Information links are administrator-managed and read-only for ordinary users.
 class GroupInformationLink(models.Model):
     group = models.ForeignKey(
         CommitmentGroup,

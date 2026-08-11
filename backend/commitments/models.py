@@ -14,9 +14,7 @@ class PaymentFrequency(models.TextChoices):
     ONE_OFF = "one_off", "One-off"
 
 class CommitmentGroup(models.Model):
-    # An admin-managed group used to organise related commitments.
-    # The description and external information link are maintained
-    # centrally and cannot be edited by ordinary users.
+    # Group guidance is maintained by administrators and is read-only for users.
     
     name = models.CharField(
         max_length = 100,
@@ -47,8 +45,6 @@ class CommitmentGroup(models.Model):
         return self.name
     
 class Status(models.Model):
-    # A reusable lifecucle status for comitments records.
-    
     name = models.CharField(
         max_length = 100,
         unique = True,
@@ -64,65 +60,8 @@ class Status(models.Model):
         
     def __str__(self):
         return self.name
-    
-class CommitmentTemplate(models.Model):
-    name = models.CharField(
-        max_length = 150
-    )
-    
-    description = models.TextField(
-        blank = True,
-    )
-    
-    group = models.ForeignKey(
-        CommitmentGroup,
-        on_delete = models.PROTECT,
-        related_name = "templates",
-    )
-    
-    default_provider_name = models.CharField(
-        max_length = 200,
-        blank = True,
-    )
-    
-    default_amount = models.DecimalField(
-        max_digits = 10,
-        decimal_places = 2,
-        null = True,
-        blank = True,
-    )
-    
-    default_payment_frequency = models.CharField(
-        max_length = 20,
-        choices = PaymentFrequency.choices,
-        blank = True,
-    )
-    
-    default_priority = models.CharField(
-        max_length = 20,
-        choices = Priority.choices,
-        default = Priority.MEDIUM,
-    )
-    
-    is_active = models.BooleanField(
-        default = True,
-    )
-    
-    class Meta:
-        ordering = ["group__name", "name"]
-        constraints = [
-            models.UniqueConstraint(
-                fields = ["group", "name"],
-                name = "unique_template_name_per_group",
-            ),
-        ]
-        
-    def __str__(self):
-        return f"{self.group.name}: {self.name}"
 
 class Commitment(models.Model):
-    # A personal life-admin commitment owned by one authenticated user.
-    
     PaymentFrequency = PaymentFrequency
     Priority = Priority
         
@@ -222,7 +161,7 @@ class Commitment(models.Model):
     )
     
     created_at = models.DateTimeField(
-        auto_now = True,
+        auto_now_add = True,
     )
     
     updated_at = models.DateTimeField(
@@ -234,4 +173,87 @@ class Commitment(models.Model):
         
     def __str__(self):
         return self.title
-    
+
+class CommitmentTemplate(models.Model):
+    group = models.ForeignKey(
+        CommitmentGroup,
+        on_delete = models.PROTECT,
+        related_name = "templates",
+    )
+
+    name = models.CharField(
+        max_length = 120,
+    )
+
+    description = models.TextField(
+        blank = True,
+    )
+
+    default_title = models.CharField(
+        max_length = 200,
+    )
+
+    default_provider_name = models.CharField(
+        max_length = 200,
+        blank = True,
+    )
+
+    default_amount = models.DecimalField(
+        max_digits = 10,
+        decimal_places = 2,
+        null = True,
+        blank = True,
+    )
+
+    default_payment_frequency = models.CharField(
+        max_length = 20,
+        choices = PaymentFrequency.choices,
+        blank = True,
+    )
+
+    default_priority = models.CharField(
+        max_length = 10,
+        choices = Priority.choices,
+        default = Priority.MEDIUM,
+    )
+
+    default_status = models.ForeignKey(
+        Status,
+        on_delete = models.SET_NULL,
+        null = True,
+        blank = True,
+        related_name = "templates",
+    )
+
+    recommended_fields = models.JSONField(
+        default = list,
+        blank = True,
+    )
+
+    is_active = models.BooleanField(
+        default = True,
+    )
+
+    display_order = models.PositiveIntegerField(
+        default = 0,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add = True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now = True,
+    )
+
+    class Meta:
+        ordering = ["group__name", "display_order", "name"]
+        constraints = [
+            models.UniqueConstraint(
+                fields = ["group", "name"],
+                name = "unique_template_name_per_group",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.group.name}: {self.name}"

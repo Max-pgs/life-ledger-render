@@ -23,8 +23,6 @@ class GroupInformationLinkInline(admin.TabularInline):
 
 @admin.register(CommitmentGroup)
 class CommitmentGroupAdmin(admin.ModelAdmin):
-    # Admin administrators to manage commitment-group guidance.
-    
     list_display = (
         "id",
         "name",
@@ -65,8 +63,6 @@ class CommitmentGroupAdmin(admin.ModelAdmin):
     
 @admin.register(Status)
 class StatusAdmin(admin.ModelAdmin):
-    # Admin configuration for commitment lifecycle statuses.
-    
     list_display = (
         "id",
         "name",
@@ -79,8 +75,6 @@ class StatusAdmin(admin.ModelAdmin):
 
 @admin.register(Commitment)
 class CommitmentAdmin(admin.ModelAdmin):
-    # Admin configuration for commitment records.
-    
     list_display = (
         "id",
         "title",
@@ -129,18 +123,34 @@ class CommitmentTemplateAdmin(admin.ModelAdmin):
         "group",
         "default_payment_frequency",
         "default_priority",
+        "default_status",
         "is_active",
+        "display_order",
+        "updated_at",
     )
-    
+
     list_filter = (
         "group",
         "default_payment_frequency",
         "default_priority",
+        "default_status",
         "is_active",
     )
-    
+
     search_fields = (
         "name",
         "description",
         "default_provider_name",
+        "group__name",
+    )
+
+    ordering = (
+        "group__name",
+        "display_order",
+        "name",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
     )

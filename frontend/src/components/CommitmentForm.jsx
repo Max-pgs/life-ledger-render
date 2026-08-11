@@ -28,7 +28,10 @@ function CommitmentForm({
     submittingLabel,
     loadError = "",
 }) {
-    const [formData, setFormData] = useState(initialData);
+    const [formData, setFormData] = useState(() => ({
+        ...EMPTY_FORM_DATA,
+        ...initialData,
+    }));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
 
