@@ -70,6 +70,8 @@ function DashboardPage() {
   const [paymentLoading, setPaymentLoading] = useState(true);
   const [paymentError, setPaymentError] = useState("");
 
+  const [hoveredPaymentStatus, setHoveredPaymentStatus] = useState(null);
+
   const visibleUpcomingCommitments = upcomingCommitments.slice(0, 5);
 
   /* Marks the intro as completed and removes the temporary route state. */
@@ -208,6 +210,53 @@ function DashboardPage() {
   const overduePercentage = getPaymentPercentage(
     paymentStatusSummary.overdue.amount,
   );
+
+  const paymentStatusCommitments = {
+    paid: paymentCommitments.filter(
+      (commitment) =>
+        (commitment.effective_payment_status ||
+          commitment.payment_status) === "paid",
+    ),
+    pending: paymentCommitments.filter(
+      (commitment) =>
+        (commitment.effective_payment_status ||
+          commitment.payment_status) === "pending",
+    ),
+    overdue: paymentCommitments.filter(
+      (commitment) =>
+        (commitment.effective_payment_status ||
+          commitment.payment_status) === "overdue",
+    ),
+  };
+
+  const paymentSegments = [
+    {
+      status: "paid",
+      label: "Paid",
+      percentage: paidPercentage,
+      offset: 0,
+    },
+    {
+      status: "pending",
+      label: "Pending",
+      percentage: pendingPercentage,
+      offset: paidPercentage,
+    },
+    {
+      status: "overdue",
+      label: "Overdue",
+      percentage: overduePercentage,
+      offset: paidPercentage + pendingPercentage,
+    },
+  ];
+
+  const hoveredCommitments = hoveredPaymentStatus
+    ? paymentStatusCommitments[hoveredPaymentStatus].slice(0, 5)
+    : [];
+
+  function openPaymentStatus(status) {
+    navigate(`/commitments?payment_status=${status}`);
+  }
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({
@@ -450,23 +499,123 @@ function DashboardPage() {
 
             {!paymentLoading && !paymentError && (
               <div className="dashboard-payment-status__content">
-                <div
-                  className="dashboard-payment-status__chart"
-                  style={{
-                    background: `conic-gradient(
-          #76bd99 0% ${paidPercentage}%,
-          #cdb77e ${paidPercentage}% ${paidPercentage + pendingPercentage}%,
-          #d6a0a0 ${paidPercentage + pendingPercentage}% 100%
-        )`,
-                  }}
-                >
-                  <div className="dashboard-payment-status__chart-centre">
-                    <strong>{formatCurrency(trackedPaymentAmount)}</strong>
+                <div className="dashboard-payment-status__chart-wrapper">
+                  <div className="dashboard-payment-status__chart">
+                    <svg
+                      className="dashboard-payment-status__chart-svg"
+                      viewBox="0 0 100 100"
+                      aria-label="Payment status chart"
+                    >
+                      {paymentSegments.map((segment) => (
+                        segment.percentage > 0 && (
+                          <circle
+                            key={segment.status}
+                            className={`dashboard-payment-status__segment dashboard-payment-status__segment--${segment.status}`}
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            pathLength="100"
+                            fill="none"
+                            strokeWidth="22"
+                            strokeDasharray={`${segment.percentage} ${100 - segment.percentage}`}
+                            strokeDashoffset={-segment.offset}
+                            transform="rotate(-90 50 50)"
+                            role="button"
+                            tabIndex="0"
+                            aria-label={`View ${segment.label.toLowerCase()} commitments`}
+                            onPointerEnter={() =>
+                              setHoveredPaymentStatus(segment.status)
+                            }
+                            onPointerLeave={() =>
+                              setHoveredPaymentStatus(null)
+                            }
+                            onClick={() =>
+                              openPaymentStatus(segment.status)
+                            }
+                            onKeyDown={(event) => {
+                              if (
+                                event.key === "Enter" ||
+                                event.key === " "
+                              ) {
+                                event.preventDefault();
+                                openPaymentStatus(segment.status);
+                              }
+                            }}
+                          />
+                        )
+                      ))}
+                    </svg>
+
+                    <div className="dashboard-payment-status__chart-centre">
+                      <strong>{formatCurrency(trackedPaymentAmount)}</strong>
+                    </div>
                   </div>
+
+                  {hoveredPaymentStatus && (
+                    <div className="dashboard-payment-status__preview">
+                      <div className="dashboard-payment-status__preview-header">
+                        <strong>
+                          {paymentSegments.find(
+                            (segment) => segment.status === hoveredPaymentStatus,
+                          )?.label}
+                        </strong>
+
+                        <span>
+                          {paymentStatusCommitments[hoveredPaymentStatus].length} commitments
+                        </span>
+                      </div>
+
+                      {hoveredCommitments.length > 0 ? (
+                        <div className="dashboard-payment-status__preview-list">
+                          {hoveredCommitments.map((commitment) => (
+                            <div
+                              key={commitment.id}
+                              className="dashboard-payment-status__preview-item"
+                            >
+                              <strong>{commitment.title}</strong>
+
+                              <span>
+                                {commitment.group?.name || "No commitment group"}
+                              </span>
+
+                              <div className="dashboard-payment-status__preview-meta">
+                                <span>
+                                  {commitment.amount
+                                    ? formatCurrency(commitment.amount)
+                                    : "No amount"}
+                                </span>
+
+                                <span>
+                                  {commitment.due_date
+                                    ? `Due ${formatDate(commitment.due_date)}`
+                                    : "No due date"}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="dashboard-payment-status__preview-empty">
+                          No commitments in this category.
+                        </p>
+                      )}
+
+                      {paymentStatusCommitments[hoveredPaymentStatus].length > 5 && (
+                        <span className="dashboard-payment-status__preview-more">
+                          +{" "}
+                          {paymentStatusCommitments[hoveredPaymentStatus].length - 5} more
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 <div className="dashboard-payment-status__legend">
-                  <div className="dashboard-payment-status__legend-item">
+                  <button
+                    type="button"
+                    className="dashboard-payment-status__legend-item"
+                    onClick={() => openPaymentStatus("paid")}
+                  >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--paid" />
                       Paid
@@ -478,9 +627,13 @@ function DashboardPage() {
                       </strong>
                       <span>{paidPercentage}%</span>
                     </span>
-                  </div>
+                  </button>
 
-                  <div className="dashboard-payment-status__legend-item">
+                  <button
+                    type="button"
+                    className="dashboard-payment-status__legend-item"
+                    onClick={() => openPaymentStatus("pending")}
+                  >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--pending" />
                       Pending
@@ -492,9 +645,13 @@ function DashboardPage() {
                       </strong>
                       <span>{pendingPercentage}%</span>
                     </span>
-                  </div>
+                  </button>
 
-                  <div className="dashboard-payment-status__legend-item">
+                  <button
+                    type="button"
+                    className="dashboard-payment-status__legend-item"
+                    onClick={() => openPaymentStatus("overdue")}
+                  >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--overdue" />
                       Overdue
@@ -506,7 +663,7 @@ function DashboardPage() {
                       </strong>
                       <span>{overduePercentage}%</span>
                     </span>
-                  </div>
+                  </button>
                 </div>
               </div>
             )}

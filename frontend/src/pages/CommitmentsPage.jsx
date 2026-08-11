@@ -20,17 +20,24 @@ function CommitmentsPage() {
 
     const [groups, setGroups] = useState([]);
     const [statuses, setStatuses] = useState([]);
+    const [searchParams, setSearchParams] = useSearchParams();
 
     const [searchQuery, setSearchQuery] = useState("");
     const [groupFilter, setGroupFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
     const [priorityFilter, setPriorityFilter] = useState("");
 
+    const paymentFilter = ["paid", "pending", "overdue"].includes(
+        searchParams.get("payment_status"),
+    )
+        ? searchParams.get("payment_status")
+        : "";
+
     const [actionError, setActionError] = useState("");
     const [commitmentToArchive, setCommitmentToArchive] = useState(null);
     const [commitmentToDelete, setCommitmentToDelete] = useState(null);
 
-    const [searchParams, setSearchParams] = useSearchParams();
+
 
     const listMode = searchParams.get("view") === "archived" ? "archived" : "current";
 
@@ -181,11 +188,20 @@ function CommitmentsPage() {
             !priorityFilter ||
             commitment.priority === priorityFilter;
 
+        const effectivePaymentStatus =
+            commitment.effective_payment_status ||
+            commitment.payment_status;
+
+        const matchesPayment =
+            !paymentFilter ||
+            effectivePaymentStatus === paymentFilter;
+
         return (
             matchesSearch &&
             matchesGroup &&
             matchesStatus &&
-            matchesPriority
+            matchesPriority &&
+            matchesPayment
         );
     });
 
@@ -351,6 +367,34 @@ function CommitmentsPage() {
                             </select>
                         </div>
 
+                        <div className="commitments-toolbar__field">
+                            <label htmlFor="payment-filter">
+                                Payment
+                            </label>
+
+                            <select
+                                id="payment-filter"
+                                value={paymentFilter}
+                                onChange={(event) => {
+                                    const nextParams = new URLSearchParams(searchParams);
+                                    const value = event.target.value;
+
+                                    if (value) {
+                                        nextParams.set("payment_status", value);
+                                    } else {
+                                        nextParams.delete("payment_status");
+                                    }
+
+                                    setSearchParams(nextParams);
+                                }}
+                            >
+                                <option value="">All payments</option>
+                                <option value="paid">Paid</option>
+                                <option value="pending">Pending</option>
+                                <option value="overdue">Overdue</option>
+                            </select>
+                        </div>
+
                         <button
                             type="button"
                             className="commitments-toolbar__clear"
@@ -359,6 +403,10 @@ function CommitmentsPage() {
                                 setGroupFilter("");
                                 setStatusFilter("");
                                 setPriorityFilter("");
+
+                                const nextParams = new URLSearchParams(searchParams);
+                                nextParams.delete("payment_status");
+                                setSearchParams(nextParams);
                             }}
                         >
                             Clear filters
