@@ -121,8 +121,12 @@ class OverdueCommitmentListView(generics.ListAPIView):
             user = self.request.user,
             is_archived = False,
             due_date__lt = today,
+            payment_status__in = [
+                Commitment.PaymentStatus.PENDING,
+                Commitment.PaymentStatus.OVERDUE,
+            ],
         ).order_by("due_date", "created_at")
-        
+                
 class CommitmentArchiveView(APIView):
     # Archive an active commitment owned by the authenticated user.
     
