@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 
 import CommitmentForm from "../components/CommitmentForm";
+import { getAccount } from "../services/authService";
 
 import {
     getCommitment,
@@ -21,6 +22,7 @@ function EditCommitmentPage() {
     const [initialData, setInitialData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
+    const [accountPlan, setAccountPlan] = useState(null);
 
     useEffect(() => {
         async function loadPageData() {
@@ -29,14 +31,17 @@ function EditCommitmentPage() {
                     commitment,
                     groupData,
                     statusData,
+                    accountData,
                 ] = await Promise.all([
                     getCommitment(commitmentId),
                     getCommitmentGroups(),
                     getCommitmentStatuses(),
+                    getAccount(),
                 ]);
 
                 setGroups(groupData);
                 setStatuses(statusData);
+                setAccountPlan(accountData.plan);
 
                 /* Converts API values into the string-based format expected by the form controls. */
                 setInitialData({
@@ -123,6 +128,7 @@ function EditCommitmentPage() {
                 initialData={initialData}
                 groups={groups}
                 statuses={statuses}
+                accountPlan={accountPlan}
                 onSubmit={handleUpdateCommitment}
                 onCancel={() =>
                     navigate(`/commitments/${commitmentId}`)

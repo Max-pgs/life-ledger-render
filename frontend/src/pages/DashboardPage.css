@@ -1272,6 +1272,85 @@ button.dashboard-support-card:focus-visible {
   font-weight: 700;
 }
 
+.dashboard-overview-grid .dashboard-upcoming--premium {
+    grid-column: 1 / -1;
+}
+
+.dashboard-premium-insights {
+  grid-column: 1 / -1;
+  padding: 22px;
+  border: 1px solid #2a342f;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.dashboard-premium-insights__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-premium-insights__eyebrow {
+  margin: 0 0 6px;
+  color: #8aa899;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.dashboard-premium-insights__header h2 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: 1.3rem;
+}
+
+.dashboard-premium-insights__badge {
+  padding: 5px 9px;
+  border: 1px solid #365247;
+  border-radius: 999px;
+  color: #9fd5b8;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.dashboard-premium-insights__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dashboard-premium-insight {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid #28312d;
+  border-radius: 12px;
+  background: #101613;
+}
+
+.dashboard-premium-insight span {
+  display: block;
+  margin-bottom: 8px;
+  color: #8b9891;
+  font-size: 0.82rem;
+}
+
+.dashboard-premium-insight strong {
+  display: block;
+  color: #f1f6f3;
+  font-size: 1.3rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.dashboard-premium-insight small {
+  display: block;
+  margin-top: 6px;
+  color: #78867f;
+}
+
 @media (max-width: 1430px) {
   .dashboard-overview-grid {
     grid-template-columns: minmax(380px, 0.9fr) minmax(460px, 1.1fr);
@@ -1519,6 +1598,18 @@ button.dashboard-support-card:focus-visible {
 
   .dashboard-achievement__content span {
     font-size: 0.74rem;
+  }
+
+  .dashboard-premium-insights {
+    padding: 16px 14px;
+  }
+
+  .dashboard-premium-insights__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-premium-insights__header {
+    align-items: center;
   }
 }
 

@@ -514,6 +514,154 @@
   color: #9eaaa4;
 }
 
+.commitment-form__field--premium-preview {
+  padding: 14px;
+  border: 1px solid #365247;
+  border-radius: 12px;
+  background: #121a16;
+}
+
+.commitment-form__premium-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.commitment-form__premium-badge {
+  flex-shrink: 0;
+  padding: 4px 8px;
+  border: 1px solid #365247;
+  border-radius: 999px;
+  color: #9fd5b8;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.commitment-form__premium-note {
+  margin: 8px 0 0;
+  color: #9fd5b8;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.ai-quick-add-preview {
+  margin-bottom: 28px;
+  padding: 22px;
+  border: 1px solid #28312d;
+  border-radius: 14px;
+  background: #151b18;
+}
+
+.ai-quick-add-preview__header {
+  margin-bottom: 16px;
+}
+
+.ai-quick-add-preview__eyebrow {
+  margin: 0 0 6px;
+  color: #8aa899;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.ai-quick-add-preview__header h2 {
+  margin: 0;
+  color: #f4f7f5;
+  font-size: 1.3rem;
+}
+
+.ai-quick-add-preview__header p {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: #9eaaa4;
+  line-height: 1.55;
+}
+
+.ai-quick-add-preview textarea {
+  width: 100%;
+  min-height: 90px;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid #303b36;
+  border-radius: 10px;
+  background: #0f1412;
+  color: #f4f7f5;
+  font: inherit;
+  resize: vertical;
+}
+
+.ai-quick-add-preview textarea:focus {
+  outline: none;
+  border-color: #74b996;
+  box-shadow: 0 0 0 3px rgba(116, 185, 150, 0.12);
+}
+
+.ai-quick-add-preview > button {
+  min-height: 42px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid #76bd99;
+  border-radius: 10px;
+  background: #76bd99;
+  color: #0c1510;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-quick-add-preview > button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ai-quick-add-preview__suggestions {
+  margin-top: 18px;
+  padding: 16px;
+  border: 1px solid #2d3732;
+  border-radius: 12px;
+  background: #111714;
+}
+
+.ai-quick-add-preview__suggestions-label {
+  margin: 0 0 12px;
+  color: #f4f7f5;
+  font-weight: 700;
+}
+
+.ai-quick-add-preview__suggestions dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 18px;
+  margin: 0;
+}
+
+.ai-quick-add-preview__suggestions dl div {
+  padding: 10px 0;
+  border-bottom: 1px solid #28312d;
+}
+
+.ai-quick-add-preview__suggestions dt {
+  color: #78867f;
+  font-size: 0.8rem;
+}
+
+.ai-quick-add-preview__suggestions dd {
+  margin: 4px 0 0;
+  color: #dce4df;
+  font-weight: 600;
+}
+
+.ai-quick-add-preview__note {
+  margin: 14px 0 0;
+  color: #78867f;
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
 /* Stacks the form into a single column on smaller screens. */
 @media (max-width: 1000px) {
   .commitment-templates__grid {
@@ -596,5 +744,22 @@
   .commitment-template-guidance {
     margin: -6px 0 20px;
     padding: 11px 12px;
+  }
+
+  .ai-quick-add-preview {
+    margin-bottom: 22px;
+    padding: 16px 14px;
+  }
+
+  .ai-quick-add-preview textarea {
+    font-size: 16px;
+  }
+
+  .ai-quick-add-preview > button {
+    width: 100%;
+  }
+
+  .ai-quick-add-preview__suggestions dl {
+    grid-template-columns: 1fr;
   }
 }

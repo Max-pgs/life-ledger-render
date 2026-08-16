@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from rest_framework.authtoken.models import Token
 
-from .models import UserProfile
+from .models import AccountPlan, UserProfile
 
 User = get_user_model()
 
@@ -380,6 +380,122 @@ class AccountAPITests(APITestCase):
         delete_url = reverse("users:delete-account")
 
         response = self.client.delete(delete_url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        
+class UpgradeToPremiumAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "premiumuser",
+            email = "premium@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.profile = UserProfile.objects.create(
+            user = self.user,
+            plan = AccountPlan.FREE,
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse("users:upgrade-account")
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_user_can_upgrade_to_premium(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.profile.plan,
+            AccountPlan.PREMIUM,
+        )
+
+        self.assertEqual(
+            response.data["plan"],
+            AccountPlan.PREMIUM,
+        )
+
+    def test_upgrade_requires_authentication(self):
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_401_UNAUTHORIZED,
+        )
+        
+class CancelPremiumAPITests(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username = "cancelpremiumuser",
+            email = "cancelpremium@example.com",
+            password = "SecureTestPassword123!",
+        )
+
+        self.profile = UserProfile.objects.create(
+            user = self.user,
+            plan = AccountPlan.PREMIUM,
+        )
+
+        self.token = Token.objects.create(user = self.user)
+
+        self.url = reverse("users:cancel-premium")
+
+    def authenticate(self):
+        self.client.credentials(
+            HTTP_AUTHORIZATION = f"Token {self.token.key}"
+        )
+
+    def test_user_can_cancel_premium(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.profile.refresh_from_db()
+
+        self.assertEqual(
+            self.profile.plan,
+            AccountPlan.FREE,
+        )
+
+        self.assertEqual(
+            response.data["plan"],
+            AccountPlan.FREE,
+        )
+
+    def test_cancel_premium_requires_authentication(self):
+        response = self.client.post(
+            self.url,
+            format = "json",
+        )
 
         self.assertEqual(
             response.status_code,

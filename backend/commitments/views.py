@@ -17,6 +17,8 @@ from .serializers import (
     StatusSerializer,
 )
 
+from users.permissions import IsPremiumUser
+
 class CommitmentListCreateView(generics.ListCreateAPIView):
     # Allow authenticated users to create and view their commitments.
     
@@ -280,7 +282,7 @@ class CommitmentTemplateListView(generics.ListAPIView):
         
 class ForgottenChecklistView(generics.ListAPIView):
     serializer_class = ForgottenChecklistTemplateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPremiumUser]
 
     def get_queryset(self):
         return (
@@ -294,7 +296,7 @@ class ForgottenChecklistView(generics.ListAPIView):
         )
         
 class ForgottenChecklistExclusionView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsPremiumUser]
 
     def post(self, request, template_id):
         template = get_object_or_404(

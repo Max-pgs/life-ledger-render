@@ -13,6 +13,7 @@ import GuidesPage from "./pages/GuidesPage";
 import GuidedSetupPage from "./pages/GuidedSetupPage";
 import ForgottenChecklistPage from "./pages/ForgottenChecklistPage";
 import SettingsPage from "./pages/SettingsPage";
+import PremiumRoute from "./routes/PremiumRoute";
 
 function App() {
   return (
@@ -62,7 +63,11 @@ function App() {
 
           <Route
             path="/checklist"
-            element={<ForgottenChecklistPage />}
+            element={
+              <PremiumRoute>
+                <ForgottenChecklistPage />
+              </PremiumRoute>
+            }
           />
 
           <Route
