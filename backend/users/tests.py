@@ -319,12 +319,18 @@ class AccountAPITests(APITestCase):
             response.data,
         )
         
-    def test_user_can_delete_own_account(self):
+    def test_user_can_delete_own_account_with_confirmation(self):
         self.authenticate()
 
         delete_url = reverse("users:delete-account")
 
-        response = self.client.delete(delete_url)
+        response = self.client.delete(
+            delete_url,
+            {
+                "confirmation": f"delete_{self.user.username}",
+            },
+            format = "json",
+        )
 
         self.assertEqual(
             response.status_code,
@@ -336,6 +342,37 @@ class AccountAPITests(APITestCase):
         )
 
         self.assertFalse(
+            UserProfile.objects.filter(user_id = self.user.id).exists()
+        )
+        
+    def test_delete_account_rejects_incorrect_confirmation(self):
+        self.authenticate()
+
+        delete_url = reverse("users:delete-account")
+
+        response = self.client.delete(
+            delete_url,
+            {
+                "confirmation": "delete_wronguser",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+        self.assertIn(
+            "confirmation",
+            response.data,
+        )
+
+        self.assertTrue(
+            User.objects.filter(id = self.user.id).exists()
+        )
+
+        self.assertTrue(
             UserProfile.objects.filter(user_id = self.user.id).exists()
         )
         

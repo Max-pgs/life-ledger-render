@@ -16,6 +16,7 @@ function SettingsPage() {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [deleteConfirmation, setDeleteConfirmation] = useState("");
 
     const navigate = useNavigate();
 
@@ -49,9 +50,14 @@ function SettingsPage() {
         setIsDeleting(true);
 
         try {
-            await deleteAccount();
+            await deleteAccount(deleteConfirmation);
             localStorage.removeItem("authToken");
-            navigate("/register");
+
+            navigate("/register", {
+                state: {
+                    accountDeleted: true,
+                },
+            });
         } catch {
             setLoadError(
                 "Your account could not be deleted. Please try again.",
@@ -240,7 +246,10 @@ function SettingsPage() {
                 <button
                     type="button"
                     className="settings-button settings-button--danger"
-                    onClick={() => setShowDeleteModal(true)}
+                    onClick={() => {
+                        setShowDeleteModal(true);
+                        setDeleteConfirmation("");
+                    }}
                 >
                     Delete account
                 </button>
@@ -323,6 +332,24 @@ function SettingsPage() {
                             permanently deleted. This cannot be undone.
                         </p>
 
+                        <p>
+                            To confirm, type <strong>delete_{account.username}</strong> below.
+                        </p>
+
+                        <label
+                            className="settings-modal__confirmation"
+                            htmlFor="delete-account-confirmation"
+                        >
+                            Confirmation
+                            <input
+                                id="delete-account-confirmation"
+                                type="text"
+                                value={deleteConfirmation}
+                                onChange={(event) => setDeleteConfirmation(event.target.value)}
+                                autoComplete="off"
+                            />
+                        </label>
+
                         <div className="settings-modal__actions">
                             <button
                                 type="button"
@@ -337,7 +364,10 @@ function SettingsPage() {
                                 type="button"
                                 className="settings-button settings-button--danger"
                                 onClick={handleDeleteAccount}
-                                disabled={isDeleting}
+                                disabled={
+                                    isDeleting ||
+                                    deleteConfirmation !== `delete_${account.username}`
+                                }
                             >
                                 {isDeleting ? "Deleting..." : "Delete account"}
                             </button>
