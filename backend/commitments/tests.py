@@ -1672,12 +1672,14 @@ class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
             user = self.user,
             title = "Oldest overdue",
             due_date = today - timedelta(days = 20),
+            payment_status = Commitment.PaymentStatus.PENDING,
         )
 
         recent = Commitment.objects.create(
             user = self.user,
             title = "Recently overdue",
             due_date = today - timedelta(days = 1),
+            payment_status = Commitment.PaymentStatus.PENDING,
         )
 
         Commitment.objects.create(
@@ -1714,6 +1716,44 @@ class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
                 recent.id,
             ],
         )
+        
+    def test_paid_and_not_applicable_commitments_are_not_overdue(self):
+        today = timezone.localdate()
+
+        pending = Commitment.objects.create(
+            user = self.user,
+            title = "Pending overdue commitment",
+            due_date = today - timedelta(days = 3),
+            payment_status = Commitment.PaymentStatus.PENDING,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Paid past commitment",
+            due_date = today - timedelta(days = 5),
+            payment_status = Commitment.PaymentStatus.PAID,
+        )
+
+        Commitment.objects.create(
+            user = self.user,
+            title = "Not applicable past commitment",
+            due_date = today - timedelta(days = 7),
+            payment_status = Commitment.PaymentStatus.NOT_APPLICABLE,
+        )
+
+        self.authenticate()
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            [item["id"] for item in response.data],
+            [pending.id],
+        )
 
     def test_archived_commitments_are_excluded(self):
         today = timezone.localdate()
@@ -1722,6 +1762,7 @@ class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
             user = self.user,
             title = "Archived overdue commitment",
             due_date = today - timedelta(days = 5),
+            payment_status = Commitment.PaymentStatus.PENDING,
             is_archived = True,
             archived_at = timezone.now(),
         )
@@ -1746,6 +1787,7 @@ class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
             user = self.other_user,
             title = "Other user's overdue commitment",
             due_date = today - timedelta(days = 5),
+            payment_status = Commitment.PaymentStatus.PENDING,
         )
 
         self.authenticate()
@@ -1768,12 +1810,14 @@ class OverdueCommitmentListAPITests(AuthenticatedAPITestCase):
             user = self.user,
             title = "Recent overdue",
             due_date = today - timedelta(days = 2),
+            payment_status = Commitment.PaymentStatus.PENDING,
         )
 
         oldest = Commitment.objects.create(
             user = self.user,
             title = "Oldest overdue",
             due_date = today - timedelta(days = 10),
+            payment_status = Commitment.PaymentStatus.PENDING,
         )
 
         self.authenticate()
