@@ -7,9 +7,18 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from datetime import timedelta
 
-from .models import Commitment, CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Status
+from .models import (
+    Commitment,
+    CommitmentGroup,
+    CommitmentPayment,
+    CommitmentTemplate,
+    CommitmentTemplateExclusion,
+    Status,
+)
+
 from .serializers import (
     CommitmentGroupSerializer,
+    CommitmentPaymentSerializer,
     CommitmentSerializer,
     CommitmentTemplateSerializer,
     ForgottenChecklistTemplateSerializer,
@@ -126,6 +135,63 @@ class OverdueCommitmentListView(generics.ListAPIView):
                 Commitment.PaymentStatus.OVERDUE,
             ],
         ).order_by("due_date", "created_at")
+        
+class CurrentMonthCommitmentPaymentListView(generics.ListAPIView):
+    serializer_class = CommitmentPaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        today = timezone.localdate()
+
+        return CommitmentPayment.objects.filter(
+            commitment__user = self.request.user,
+            commitment__is_archived = False,
+            due_date__year = today.year,
+            due_date__month = today.month,
+        ).select_related(
+            "commitment",
+            "commitment__group",
+        ).order_by(
+            "due_date",
+            "created_at",
+        )
+        
+class CommitmentPaymentHistoryListView(generics.ListAPIView):
+    serializer_class = CommitmentPaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return CommitmentPayment.objects.filter(
+            commitment_id = self.kwargs["pk"],
+            commitment__user = self.request.user,
+        ).select_related(
+            "commitment",
+            "commitment__group",
+        ).order_by(
+            "-due_date",
+            "-created_at",
+        )
+        
+class CommitmentPaymentHistoryOverviewView(generics.ListAPIView):
+    serializer_class = CommitmentPaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return (
+            CommitmentPayment.objects
+            .filter(
+                commitment__user = self.request.user,
+                commitment__is_archived = False,
+            )
+            .select_related(
+                "commitment",
+                "commitment__group",
+            )
+            .order_by(
+                "-due_date",
+                "-created_at",
+            )
+        )
                 
 class CommitmentArchiveView(APIView):
     # Archive an active commitment owned by the authenticated user.

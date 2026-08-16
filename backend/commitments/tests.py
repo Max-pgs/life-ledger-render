@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from datetime import timedelta, date
 from users.models import AccountPlan, UserProfile
 
-from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, CommitmentPayment, Status
 from guides.models import GroupInformationLink
 
 User = get_user_model()
@@ -2117,8 +2117,29 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
             commitment.payment_status,
             Commitment.PaymentStatus.PENDING,
         )
+        
+        paid_payment = CommitmentPayment.objects.get(
+            commitment = commitment,
+            due_date = date(2026, 8, 15),
+        )
+
+        self.assertEqual(
+            paid_payment.status,
+            CommitmentPayment.PaymentStatus.PAID,
+        )
+
         self.assertIsNotNone(
-            commitment.last_paid_at,
+            paid_payment.paid_at,
+        )
+
+        next_payment = CommitmentPayment.objects.get(
+            commitment = commitment,
+            due_date = date(2026, 9, 15),
+        )
+
+        self.assertEqual(
+            next_payment.status,
+            CommitmentPayment.PaymentStatus.PENDING,
         )
         
     def test_monthly_payment_handles_end_of_month_date(self):
@@ -2217,8 +2238,30 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
                     commitment.payment_status,
                     Commitment.PaymentStatus.PENDING,
                 )
+                
+                paid_payment = CommitmentPayment.objects.get(
+                    commitment = commitment,
+                    due_date = due_date,
+                )
 
-                self.assertIsNotNone(commitment.last_paid_at)
+                self.assertEqual(
+                    paid_payment.status,
+                    CommitmentPayment.PaymentStatus.PAID,
+                )
+
+                self.assertIsNotNone(
+                    paid_payment.paid_at,
+                )
+
+                next_payment = CommitmentPayment.objects.get(
+                    commitment = commitment,
+                    due_date = expected_due_date,
+                )
+
+                self.assertEqual(
+                    next_payment.status,
+                    CommitmentPayment.PaymentStatus.PENDING,
+                )
                 
     def test_one_off_payment_does_not_move_due_date(self):
         commitment = Commitment.objects.create(
@@ -2260,8 +2303,31 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
             commitment.payment_status,
             Commitment.PaymentStatus.PAID,
         )
+        
+        payment = CommitmentPayment.objects.get(
+            commitment = commitment,
+        )
 
-        self.assertIsNone(commitment.last_paid_at)
+        self.assertEqual(
+            payment.due_date,
+            date(2026, 8, 15),
+        )
+
+        self.assertEqual(
+            payment.status,
+            CommitmentPayment.PaymentStatus.PAID,
+        )
+
+        self.assertIsNotNone(
+            payment.paid_at,
+        )
+
+        self.assertEqual(
+            CommitmentPayment.objects.filter(
+                commitment = commitment,
+            ).count(),
+            1,
+        )
         
     def test_editing_paid_recurring_commitment_does_not_advance_due_date_again(self):
         commitment = Commitment.objects.create(
@@ -2324,53 +2390,47 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
             "Updated note",
         )
         
-    def test_recurring_payment_effective_status_changes_across_cycle(self):
-        self.authenticate()
-
+    def test_payment_cycle_effective_status_changes_with_due_date(self):
         commitment = Commitment.objects.create(
             user = self.user,
             title = "Monthly bill",
             payment_frequency = Commitment.PaymentFrequency.MONTHLY,
             payment_status = Commitment.PaymentStatus.PENDING,
-            due_date = timezone.localdate() + timedelta(days=10),
-            last_paid_at = timezone.now(),
+            due_date = timezone.localdate() + timedelta(days = 10),
         )
 
-        detail_url = reverse(
-            "commitments:commitment-detail",
-            kwargs = {"pk": commitment.pk},
-        )
-
-        response = self.client.get(detail_url)
-
-        self.assertEqual(
-            response.status_code,
-            status.HTTP_200_OK,
+        payment = CommitmentPayment.objects.create(
+            commitment = commitment,
+            due_date = timezone.localdate() + timedelta(days = 10),
+            amount = 50,
+            status = CommitmentPayment.PaymentStatus.PENDING,
         )
 
         self.assertEqual(
-            response.data["effective_payment_status"],
-            Commitment.PaymentStatus.PAID,
+            payment.effective_status,
+            CommitmentPayment.PaymentStatus.PENDING,
         )
 
-        commitment.due_date = timezone.localdate()
-        commitment.save(update_fields = ["due_date"])
-
-        response = self.client.get(detail_url)
+        payment.due_date = timezone.localdate() - timedelta(days = 1)
+        payment.save(update_fields = ["due_date"])
 
         self.assertEqual(
-            response.data["effective_payment_status"],
-            Commitment.PaymentStatus.PENDING,
+            payment.effective_status,
+            CommitmentPayment.PaymentStatus.OVERDUE,
         )
 
-        commitment.due_date = timezone.localdate() - timedelta(days=1)
-        commitment.save(update_fields = ["due_date"])
-
-        response = self.client.get(detail_url)
+        payment.status = CommitmentPayment.PaymentStatus.PAID
+        payment.paid_at = timezone.now()
+        payment.save(
+            update_fields = [
+                "status",
+                "paid_at",
+            ]
+        )
 
         self.assertEqual(
-            response.data["effective_payment_status"],
-            Commitment.PaymentStatus.OVERDUE,
+            payment.effective_status,
+            CommitmentPayment.PaymentStatus.PAID,
         )
 
     def test_invalid_payment_status_is_rejected(self):
@@ -2425,13 +2485,33 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
             Commitment.PaymentStatus.PENDING,
         )
 
-        self.assertIsNotNone(
-            commitment.last_paid_at,
+        self.assertEqual(
+            response.data["effective_payment_status"],
+            Commitment.PaymentStatus.PENDING,
+        )
+        
+        paid_payment = CommitmentPayment.objects.get(
+            commitment = commitment,
+            due_date = date(2026, 8, 15),
         )
 
         self.assertEqual(
-            response.data["effective_payment_status"],
-            Commitment.PaymentStatus.PAID,
+            paid_payment.status,
+            CommitmentPayment.PaymentStatus.PAID,
+        )
+
+        self.assertIsNotNone(
+            paid_payment.paid_at,
+        )
+
+        next_payment = CommitmentPayment.objects.get(
+            commitment = commitment,
+            due_date = date(2026, 9, 15),
+        )
+
+        self.assertEqual(
+            next_payment.status,
+            CommitmentPayment.PaymentStatus.PENDING,
         )
 
     def test_user_cannot_update_another_users_payment_status(self):

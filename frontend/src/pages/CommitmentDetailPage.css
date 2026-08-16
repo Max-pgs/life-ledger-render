@@ -157,6 +157,63 @@
   white-space: pre-wrap;
 }
 
+.commitment-payment-history {
+  display: grid;
+  gap: 10px;
+}
+
+.commitment-payment-history__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 14px 0;
+  border-top: 1px solid #28312d;
+}
+
+.commitment-payment-history__main,
+.commitment-payment-history__status {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.commitment-payment-history__main strong {
+  color: #f4f7f5;
+}
+
+.commitment-payment-history__main span,
+.commitment-payment-history__status small {
+  color: #8c9992;
+  font-size: 0.85rem;
+}
+
+.commitment-payment-history__status {
+  align-items: flex-end;
+}
+
+.commitment-payment-history__badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.commitment-payment-history__badge--paid {
+  color: #9fd5b8;
+  background: rgba(118, 189, 153, 0.12);
+}
+
+.commitment-payment-history__badge--pending {
+  color: #d9c58c;
+  background: rgba(205, 183, 126, 0.12);
+}
+
+.commitment-payment-history__badge--overdue {
+  color: #e2a1a1;
+  background: rgba(214, 160, 160, 0.12);
+}
+
 @media (max-width: 760px) {
   .commitment-detail-page {
     padding: 22px 18px;
@@ -183,6 +240,15 @@
 
   .commitment-detail__grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .commitment-payment-history__item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .commitment-payment-history__status {
+    align-items: flex-start;
   }
 }
 

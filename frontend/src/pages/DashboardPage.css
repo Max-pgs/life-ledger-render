@@ -803,6 +803,13 @@
   color: #f4f7f5;
 }
 
+.dashboard-payment-status__subtitle {
+  margin: 6px 0 0;
+  color: #8f9b95;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
 .dashboard-payment-status__tracked {
   flex-shrink: 0;
   padding: 6px 10px;
@@ -946,6 +953,14 @@
   min-width: 0;
   flex-direction: column;
   gap: 2px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
 }
 
 .dashboard-payment-status__preview-item strong {

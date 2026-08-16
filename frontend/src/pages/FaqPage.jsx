@@ -115,13 +115,21 @@ function FaqPage() {
                             </div>
 
                             <div className="faq-item">
-                                <h3>What does the payment status chart mean?</h3>
+                                <h3>What does the Payment status chart show?</h3>
 
                                 <p>
-                                    The chart groups commitments by their effective payment status,
-                                    such as Paid, Pending and Overdue. Selecting a chart section or
-                                    legend item opens the Commitments page filtered to that payment
-                                    status.
+                                    The chart shows payments due in the current calendar month. 
+                                    It groups them as Paid, Pending or Overdue and calculates the 
+                                    totals using the amount recorded for each payment cycle.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
+                                <h3>What happens when I select Paid, Pending or Overdue on the chart?</h3>
+                                <p>
+                                    Life Ledger opens the Commitments page filtered to payment 
+                                     cycles with that status in the current month. The displayed 
+                                      due date and payment status refer to that month's payment cycle.
                                 </p>
                             </div>
 
@@ -184,14 +192,31 @@ function FaqPage() {
                             </div>
 
                             <div className="faq-item">
-                                <h3>What happens when I mark a recurring commitment as Paid?</h3>
+                                <h3>What happens when I mark a recurring payment as Paid?</h3>
 
                                 <p>
-                                    For recurring commitments, Life Ledger uses the payment
-                                    frequency to move the next due date forward to the next
-                                    payment cycle. The completed payment remains represented in
-                                    the current payment summary before the commitment returns to
-                                    its next pending cycle.
+                                    Life Ledger records the completed payment in the commitment's
+                                    payment history and automatically moves the next due date forward
+                                    based on the payment frequency. Weekly payments move forward by
+                                    one week, monthly by one month, quarterly by three months and
+                                    annual payments by one year. The next payment cycle then starts as Pending.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
+                                <h3>What happens to one-off payments?</h3>
+                                <p>
+                                    One-off payments are recorded as Paid but do not create another
+                                    payment cycle or move the due date forward.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
+                                <h3>Where can I see previous payments?</h3>
+                                <p>
+                                    The Commitments page shows a short list of recent past payments 
+                                    for each commitment. Select View to see the full Payment history, 
+                                    including the due date, amount and payment status for each recorded cycle.
                                 </p>
                             </div>
 
@@ -257,11 +282,11 @@ function FaqPage() {
                                 <h3>What happens when I mark a recurring commitment as Paid?</h3>
 
                                 <p>
-                                    For weekly, monthly, quarterly and annual commitments, Life 
-                                    Ledger automatically moves the next due date to the next payment cycle. 
-                                    The payment is shown as Paid for the completed cycle, then returns 
-                                    to Pending when the next due date arrives. If the next due date passes 
-                                    without being paid, it becomes Overdue. One-off commitments do not move 
+                                    For weekly, monthly, quarterly and annual commitments, Life
+                                    Ledger automatically moves the next due date to the next payment cycle.
+                                    The payment is shown as Paid for the completed cycle, then returns
+                                    to Pending when the next due date arrives. If the next due date passes
+                                    without being paid, it becomes Overdue. One-off commitments do not move
                                     to a new payment cycle.
                                 </p>
                             </div>
@@ -293,6 +318,23 @@ function FaqPage() {
                                     Payment status records whether a commitment is Pending, Paid,
                                     Overdue or Not applicable. A pending commitment with a past
                                     due date may be treated as overdue automatically.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
+                                <h3>What does Payment frequency do?</h3>
+                                <p>
+                                    If a payment frequency is set, Life Ledger uses it to calculate 
+                                    the next due date after a recurring payment is marked Paid. Payment 
+                                    frequency is optional because some commitments do not involve payments.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
+                                <h3>What does Payment status mean when editing a commitment?</h3>
+                                <p>
+                                    Payment status applies to the current payment cycle. Marking a recurring 
+                                    cycle as Paid adds that payment to the history and prepares the next cycle automatically.
                                 </p>
                             </div>
 

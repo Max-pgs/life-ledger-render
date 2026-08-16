@@ -26,8 +26,9 @@ function PrivacyPolicyPage() {
 
                     <p>
                         Commitment information may include titles, providers, amounts,
-                        payment frequencies, payment statuses, priorities, notes and
-                        dates such as due dates, renewal dates and contract deadlines.
+                        payment frequencies, payment statuses, priorities, notes, payment-cycle
+                        history and dates such as due dates, renewal dates, contract deadlines
+                        and the date a payment was marked as paid.
                     </p>
                 </section>
 

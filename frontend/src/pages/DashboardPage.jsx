@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router";
 import {
   getCommitments,
+  getCurrentMonthPayments,
   getHighPriorityCommitments,
   getOverdueCommitments,
   getReviewSoonCommitments,
@@ -67,6 +68,7 @@ function DashboardPage() {
   const [reviewSoonError, setReviewSoonError] = useState("");
 
   const [paymentCommitments, setPaymentCommitments] = useState([]);
+  const [currentMonthPayments, setCurrentMonthPayments] = useState([]);
   const [paymentLoading, setPaymentLoading] = useState(true);
   const [paymentError, setPaymentError] = useState("");
 
@@ -160,22 +162,40 @@ function DashboardPage() {
         const data = await getCommitments();
         setPaymentCommitments(data);
       } catch {
-        setPaymentError("Unable to load payment status summary.");
-      } finally {
-        setPaymentLoading(false);
+        // Keep dashboard insights available independently from payment-cycle data.
       }
     }
 
     loadPaymentCommitments();
   }, []);
 
-  const paymentStatusSummary = paymentCommitments.reduce(
-    (summary, commitment) => {
+  useEffect(() => {
+    async function loadCurrentMonthPayments() {
+      try {
+        const data = await getCurrentMonthPayments();
+        setCurrentMonthPayments(data);
+      } catch {
+        setPaymentError("Unable to load payment status summary.");
+      } finally {
+        setPaymentLoading(false);
+      }
+    }
+
+    loadCurrentMonthPayments();
+  }, []);
+
+  function openMonthlyPaymentStatus(status) {
+    navigate(`/commitments?payment_cycle_status=${status}`);
+  }
+
+  const paymentStatusSummary = currentMonthPayments.reduce(
+    (summary, payment) => {
       const status =
-        commitment.effective_payment_status
-        || commitment.payment_status
-        || "not_applicable";
-      const amount = Number.parseFloat(commitment.amount) || 0;
+        payment.effective_status ||
+        payment.status ||
+        "pending";
+
+      const amount = Number.parseFloat(payment.amount) || 0;
 
       summary[status].count += 1;
       summary[status].amount += amount;
@@ -186,7 +206,6 @@ function DashboardPage() {
       paid: { count: 0, amount: 0 },
       pending: { count: 0, amount: 0 },
       overdue: { count: 0, amount: 0 },
-      not_applicable: { count: 0, amount: 0 },
     },
   );
 
@@ -215,21 +234,18 @@ function DashboardPage() {
     paymentStatusSummary.overdue.amount,
   );
 
-  const paymentStatusCommitments = {
-    paid: paymentCommitments.filter(
-      (commitment) =>
-        (commitment.effective_payment_status ||
-          commitment.payment_status) === "paid",
+  const paymentStatusPayments = {
+    paid: currentMonthPayments.filter(
+      (payment) =>
+        (payment.effective_status || payment.status) === "paid",
     ),
-    pending: paymentCommitments.filter(
-      (commitment) =>
-        (commitment.effective_payment_status ||
-          commitment.payment_status) === "pending",
+    pending: currentMonthPayments.filter(
+      (payment) =>
+        (payment.effective_status || payment.status) === "pending",
     ),
-    overdue: paymentCommitments.filter(
-      (commitment) =>
-        (commitment.effective_payment_status ||
-          commitment.payment_status) === "overdue",
+    overdue: currentMonthPayments.filter(
+      (payment) =>
+        (payment.effective_status || payment.status) === "overdue",
     ),
   };
 
@@ -254,13 +270,9 @@ function DashboardPage() {
     },
   ];
 
-  const hoveredCommitments = hoveredPaymentStatus
-    ? paymentStatusCommitments[hoveredPaymentStatus].slice(0, 5)
+  const hoveredPayments = hoveredPaymentStatus
+    ? paymentStatusPayments[hoveredPaymentStatus].slice(0, 5)
     : [];
-
-  function openPaymentStatus(status) {
-    navigate(`/commitments?payment_status=${status}`);
-  }
 
   const scrollToSection = (sectionId) => {
     document.getElementById(sectionId)?.scrollIntoView({
@@ -586,9 +598,12 @@ function DashboardPage() {
             <div className="dashboard-payment-status__header">
               <div>
                 <p className="dashboard-payment-status__eyebrow">
-                  Payment overview
+                  Current month
                 </p>
                 <h2>Payment status</h2>
+                <p className="dashboard-payment-status__subtitle">
+                  Paid, pending and overdue payments due this month.
+                </p>
               </div>
 
               <span className="dashboard-payment-status__tracked">
@@ -644,7 +659,7 @@ function DashboardPage() {
                               setHoveredPaymentStatus(null)
                             }
                             onClick={() =>
-                              openPaymentStatus(segment.status)
+                              openMonthlyPaymentStatus(segment.status)
                             }
                             onKeyDown={(event) => {
                               if (
@@ -652,7 +667,7 @@ function DashboardPage() {
                                 event.key === " "
                               ) {
                                 event.preventDefault();
-                                openPaymentStatus(segment.status);
+                                openMonthlyPaymentStatus(segment.status);
                               }
                             }}
                           />
@@ -675,37 +690,41 @@ function DashboardPage() {
                         </strong>
 
                         <span>
-                          {paymentStatusCommitments[hoveredPaymentStatus].length} commitments
+                          {paymentStatusPayments[hoveredPaymentStatus].length} payments
                         </span>
                       </div>
 
-                      {hoveredCommitments.length > 0 ? (
+                      {hoveredPayments.length > 0 ? (
                         <div className="dashboard-payment-status__preview-list">
-                          {hoveredCommitments.map((commitment) => (
-                            <div
-                              key={commitment.id}
+                          {hoveredPayments.map((payment) => (
+                            <button
+                              key={payment.id}
+                              type="button"
                               className="dashboard-payment-status__preview-item"
+                              onClick={() =>
+                                navigate(`/commitments/${payment.commitment_id}`)
+                              }
                             >
-                              <strong>{commitment.title}</strong>
+                              <strong>{payment.commitment_title}</strong>
 
                               <span>
-                                {commitment.group?.name || "No commitment group"}
+                                {payment.group_name || "No commitment group"}
                               </span>
 
                               <div className="dashboard-payment-status__preview-meta">
                                 <span>
-                                  {commitment.amount
-                                    ? formatCurrency(commitment.amount)
+                                  {payment.amount
+                                    ? formatCurrency(payment.amount)
                                     : "No amount"}
                                 </span>
 
                                 <span>
-                                  {commitment.due_date
-                                    ? `Due ${formatDate(commitment.due_date)}`
+                                  {payment.due_date
+                                    ? `Due ${formatDate(payment.due_date)}`
                                     : "No due date"}
                                 </span>
                               </div>
-                            </div>
+                            </button>
                           ))}
                         </div>
                       ) : (
@@ -714,10 +733,10 @@ function DashboardPage() {
                         </p>
                       )}
 
-                      {paymentStatusCommitments[hoveredPaymentStatus].length > 5 && (
+                      {paymentStatusPayments[hoveredPaymentStatus].length > 5 && (
                         <span className="dashboard-payment-status__preview-more">
                           +{" "}
-                          {paymentStatusCommitments[hoveredPaymentStatus].length - 5} more
+                          {paymentStatusPayments[hoveredPaymentStatus].length - 5} more
                         </span>
                       )}
                     </div>
@@ -728,7 +747,7 @@ function DashboardPage() {
                   <button
                     type="button"
                     className="dashboard-payment-status__legend-item"
-                    onClick={() => openPaymentStatus("paid")}
+                    onClick={() => openMonthlyPaymentStatus("paid")}
                   >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--paid" />
@@ -746,7 +765,7 @@ function DashboardPage() {
                   <button
                     type="button"
                     className="dashboard-payment-status__legend-item"
-                    onClick={() => openPaymentStatus("pending")}
+                    onClick={() => openMonthlyPaymentStatus("pending")}
                   >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--pending" />
@@ -764,7 +783,7 @@ function DashboardPage() {
                   <button
                     type="button"
                     className="dashboard-payment-status__legend-item"
-                    onClick={() => openPaymentStatus("overdue")}
+                    onClick={() => openMonthlyPaymentStatus("overdue")}
                   >
                     <span className="dashboard-payment-status__legend-label">
                       <span className="dashboard-payment-status__dot dashboard-payment-status__dot--overdue" />
@@ -910,7 +929,7 @@ function DashboardPage() {
 
               <div className="dashboard-premium-insights__grid">
                 <article className="dashboard-premium-insight">
-                  <span>Estimated monthly recurring cost</span>
+                  <span>Estimated average monthly recurring cost</span>
 
                   <strong>
                     £{monthlyRecurringCost.toFixed(2)}

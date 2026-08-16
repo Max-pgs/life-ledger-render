@@ -2,6 +2,7 @@ from django.conf import settings
 from django.db import models
 
 from dateutil.relativedelta import relativedelta
+from django.utils import timezone
 
 class Priority(models.TextChoices):
         LOW = "low", "Low"
@@ -131,11 +132,6 @@ class Commitment(models.Model):
         default = PaymentStatus.NOT_APPLICABLE,
     )
     
-    last_paid_at = models.DateTimeField(
-        null = True,
-        blank = True,
-    )
-    
     contract_end_date = models.DateField(
         null = True,
         blank = True,
@@ -206,6 +202,62 @@ class Commitment(models.Model):
         
     def __str__(self):
         return self.title
+    
+class CommitmentPayment(models.Model):
+    class PaymentStatus(models.TextChoices):
+        PENDING = "pending", "Pending"
+        PAID = "paid", "Paid"
+        OVERDUE = "overdue", "Overdue"
+
+    commitment = models.ForeignKey(
+        Commitment,
+        on_delete=models.CASCADE,
+        related_name="payments",
+    )
+
+    due_date = models.DateField()
+
+    amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=PaymentStatus.choices,
+        default=PaymentStatus.PENDING,
+    )
+
+    paid_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+    )
+
+    class Meta:
+        ordering = ["due_date", "created_at"]
+        
+    @property
+    def effective_status(self):
+        if (
+            self.status == self.PaymentStatus.PENDING
+            and self.due_date < timezone.localdate()
+        ):
+            return self.PaymentStatus.OVERDUE
+
+        return self.status
+
+    def __str__(self):
+        return f"{self.commitment.title} - {self.due_date}"
 
 class CommitmentTemplate(models.Model):
     group = models.ForeignKey(
