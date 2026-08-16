@@ -16,6 +16,9 @@ from .views import (
     ForgottenChecklistExclusionView,
     GuidedSetupView,
     StatusListView,
+    CurrentMonthCommitmentPaymentListView,
+    CommitmentPaymentHistoryListView,
+    CommitmentPaymentHistoryOverviewView,
 )
 
 app_name = "commitments"
@@ -32,6 +35,11 @@ urlpatterns = [
         name = "commitment-group-list",
     ),
     path(
+        "<int:pk>/payments/",
+        CommitmentPaymentHistoryListView.as_view(),
+        name = "commitment-payment-history",
+    ),
+    path(
         "statuses/",
         StatusListView.as_view(),
         name = "commitment-status-list",
@@ -45,6 +53,16 @@ urlpatterns = [
         "overdue/",
         OverdueCommitmentListView.as_view(),
         name = "commitment-overdue",
+    ),
+    path(
+        "payments/current-month/",
+        CurrentMonthCommitmentPaymentListView.as_view(),
+        name="commitment-payment-current-month",
+    ),
+    path(
+        "payments/history/",
+        CommitmentPaymentHistoryOverviewView.as_view(),
+        name = "commitment-payment-history-overview",
     ),
     path(
         "high-priority/",

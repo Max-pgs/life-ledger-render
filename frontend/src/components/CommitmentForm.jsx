@@ -439,6 +439,11 @@ function CommitmentForm({
                                 Overdue
                             </option>
                         </select>
+                        <p className="commitment-form__hint">
+                            This status applies to the current payment cycle. Marking a recurring
+                            payment as Paid records it in payment history and moves the commitment
+                            to its next due date.
+                        </p>
                     </div>
                 </div>
             </fieldset>
@@ -461,7 +466,8 @@ function CommitmentForm({
                         />
 
                         <p className="commitment-form__hint">
-                            Next date when payment or action is required.
+                            Next date when payment or action is required. For recurring payments,
+                            this moves forward automatically after the current cycle is marked Paid.
                         </p>
                     </div>
 

@@ -2,7 +2,7 @@ from rest_framework import serializers
 from datetime import timedelta
 from django.utils import timezone
 
-from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status
+from .models import CommitmentGroup, CommitmentTemplate, Commitment, CommitmentPayment, Status
 
 from guides.serializers import GroupInformationLinkSerializer
 
@@ -34,6 +34,44 @@ class StatusSerializer(serializers.ModelSerializer):
             "id",
             "name",
             "description",
+        )
+        read_only_fields = fields
+        
+class CommitmentPaymentSerializer(serializers.ModelSerializer):
+    effective_status = serializers.CharField(
+        read_only = True,
+    )
+
+    commitment_id = serializers.IntegerField(
+        source = "commitment.id",
+        read_only = True,
+    )
+
+    commitment_title = serializers.CharField(
+        source = "commitment.title",
+        read_only = True,
+    )
+
+    group_name = serializers.SerializerMethodField()
+    
+    def get_group_name(self, obj):
+        if obj.commitment.group:
+            return obj.commitment.group.name
+
+        return None
+
+    class Meta:
+        model = CommitmentPayment
+        fields = (
+            "id",
+            "commitment_id",
+            "commitment_title",
+            "group_name",
+            "due_date",
+            "amount",
+            "status",
+            "effective_status",
+            "paid_at",
         )
         read_only_fields = fields
 
@@ -107,44 +145,136 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-        
-    def _apply_paid_cycle(self, commitment):
-        if (
-            commitment.payment_status != Commitment.PaymentStatus.PAID
-            or not commitment.due_date
-            or commitment.payment_frequency
-            not in {
-                Commitment.PaymentFrequency.WEEKLY,
-                Commitment.PaymentFrequency.MONTHLY,
-                Commitment.PaymentFrequency.QUARTERLY,
-                Commitment.PaymentFrequency.ANNUALLY,
-            }
-        ):
-            return commitment
-
-        commitment.last_paid_at = timezone.now()
-        commitment.due_date = commitment.get_next_due_date()
-        commitment.payment_status = Commitment.PaymentStatus.PENDING
-
-        return commitment
     
     def create(self, validated_data):
-        commitment = Commitment(**validated_data)
+        commitment = Commitment.objects.create(**validated_data)
 
-        self._apply_paid_cycle(commitment)
+        if (
+            commitment.due_date
+            and commitment.payment_frequency
+            and commitment.payment_status
+            != Commitment.PaymentStatus.NOT_APPLICABLE
+        ):
+            CommitmentPayment.objects.create(
+                commitment = commitment,
+                due_date = commitment.due_date,
+                amount = commitment.amount,
+                status = commitment.payment_status,
+                paid_at = (
+                    timezone.now()
+                    if commitment.payment_status
+                    == Commitment.PaymentStatus.PAID
+                    else None
+                ),
+            )
+            
+            if (
+                commitment.payment_status == Commitment.PaymentStatus.PAID
+                and commitment.payment_frequency
+                in {
+                    Commitment.PaymentFrequency.WEEKLY,
+                    Commitment.PaymentFrequency.MONTHLY,
+                    Commitment.PaymentFrequency.QUARTERLY,
+                    Commitment.PaymentFrequency.ANNUALLY,
+                }
+            ):
+                commitment.due_date = commitment.get_next_due_date()
+                commitment.payment_status = Commitment.PaymentStatus.PENDING
 
-        commitment.save()
+                commitment.save(
+                    update_fields = [
+                        "due_date",
+                        "payment_status",
+                    ]
+                )
+
+                CommitmentPayment.objects.create(
+                    commitment = commitment,
+                    due_date = commitment.due_date,
+                    amount = commitment.amount,
+                    status = CommitmentPayment.PaymentStatus.PENDING,
+                )
 
         return commitment
     
     def update(self, instance, validated_data):
+        previous_due_date = instance.due_date
         payment_status = validated_data.get("payment_status")
 
         for field, value in validated_data.items():
             setattr(instance, field, value)
+            
+        current_pending_payment = (
+            instance.payments
+            .filter(
+                due_date=previous_due_date,
+                status=CommitmentPayment.PaymentStatus.PENDING,
+            )
+            .order_by("-created_at")
+            .first()
+        )
+
+        if current_pending_payment:
+            current_pending_payment.due_date = instance.due_date
+            current_pending_payment.amount = instance.amount
+
+            current_pending_payment.save(
+                update_fields=[
+                    "due_date",
+                    "amount",
+                    "updated_at",
+                ]
+            )
 
         if payment_status == Commitment.PaymentStatus.PAID:
-            self._apply_paid_cycle(instance)
+            paid_at = timezone.now()
+
+            if current_pending_payment:
+                current_pending_payment.status = CommitmentPayment.PaymentStatus.PAID
+                current_pending_payment.paid_at = paid_at
+
+                current_pending_payment.save(
+                    update_fields=[
+                        "status",
+                        "paid_at",
+                        "updated_at",
+                    ]
+                )
+            elif (
+                instance.due_date
+                and instance.payment_frequency
+                and instance.payment_status
+                != Commitment.PaymentStatus.NOT_APPLICABLE
+            ):
+                CommitmentPayment.objects.create(
+                    commitment=instance,
+                    due_date=instance.due_date,
+                    amount=instance.amount,
+                    status=CommitmentPayment.PaymentStatus.PAID,
+                    paid_at=paid_at,
+                )
+
+            if (
+                instance.due_date
+                and instance.payment_frequency
+                in {
+                    Commitment.PaymentFrequency.WEEKLY,
+                    Commitment.PaymentFrequency.MONTHLY,
+                    Commitment.PaymentFrequency.QUARTERLY,
+                    Commitment.PaymentFrequency.ANNUALLY,
+                }
+            ):
+                instance.due_date = instance.get_next_due_date()
+                instance.payment_status = Commitment.PaymentStatus.PENDING
+
+                CommitmentPayment.objects.get_or_create(
+                    commitment = instance,
+                    due_date = instance.due_date,
+                    defaults = {
+                        "amount": instance.amount,
+                        "status": CommitmentPayment.PaymentStatus.PENDING,
+                    },
+                )
 
         instance.save()
 
@@ -191,21 +321,10 @@ class CommitmentSerializer(serializers.ModelSerializer):
         return deadline.isoformat()
     
     def get_effective_payment_status(self, obj):
-        today = timezone.localdate()
-
-        # A recurring payment remains visibly paid until its next payment cycle begins.
-        if (
-            obj.payment_status == Commitment.PaymentStatus.PENDING
-            and obj.last_paid_at is not None
-            and obj.due_date is not None
-            and obj.due_date > today
-        ):
-            return Commitment.PaymentStatus.PAID
-
         if (
             obj.payment_status == Commitment.PaymentStatus.PENDING
             and obj.due_date is not None
-            and obj.due_date < today
+            and obj.due_date < timezone.localdate()
         ):
             return Commitment.PaymentStatus.OVERDUE
 

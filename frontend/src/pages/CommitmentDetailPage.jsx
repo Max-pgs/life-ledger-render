@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import { getCommitment } from "../services/commitmentService";
+import { getCommitment, getCommitmentPayments } from "../services/commitmentService";
 
 import "./CommitmentDetailPage.css";
 
@@ -15,14 +15,23 @@ function CommitmentDetailPage() {
       : "/commitments";
 
   const [commitment, setCommitment] = useState(null);
+  const [payments, setPayments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
 
   useEffect(() => {
     async function loadCommitment() {
       try {
-        const data = await getCommitment(commitmentId);
-        setCommitment(data);
+        const [
+          commitmentData,
+          paymentData,
+        ] = await Promise.all([
+          getCommitment(commitmentId),
+          getCommitmentPayments(commitmentId),
+        ]);
+
+        setCommitment(commitmentData);
+        setPayments(paymentData);
       } catch {
         setLoadError(
           "Commitment could not be loaded. Please try again.",
@@ -50,6 +59,16 @@ function CommitmentDetailPage() {
         <p>Loading commitment...</p>
       </section>
     );
+  }
+
+  function formatPaymentStatus(status) {
+    if (!status) {
+      return "—";
+    }
+
+    return status
+      .replaceAll("_", " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase());
   }
 
   if (loadError || !commitment) {
@@ -202,6 +221,65 @@ function CommitmentDetailPage() {
               </dd>
             </div>
           </dl>
+        </section>
+
+        <section className="commitment-detail__section">
+          <div className="commitment-detail__section-header">
+            <div>
+              <p className="commitment-detail__eyebrow">
+                Payment history
+              </p>
+
+              <h2>Payment cycles</h2>
+            </div>
+          </div>
+
+          {payments.length === 0 ? (
+            <p className="commitment-detail__empty">
+              No payment history is available for this commitment.
+            </p>
+          ) : (
+            <div className="commitment-payment-history">
+              {payments.map((payment) => (
+                <div
+                  key={payment.id}
+                  className="commitment-payment-history__item"
+                >
+                  <div className="commitment-payment-history__main">
+                    <strong>
+                      {formatDate(payment.due_date)}
+                    </strong>
+
+                    <span>
+                      {payment.amount
+                        ? `£${Number.parseFloat(payment.amount).toFixed(2)}`
+                        : "No amount"}
+                    </span>
+                  </div>
+
+                  <div className="commitment-payment-history__status">
+                    <span
+                      className={`commitment-payment-history__badge commitment-payment-history__badge--${payment.effective_status || payment.status
+                        }`}
+                    >
+                      {formatPaymentStatus(
+                        payment.effective_status || payment.status,
+                      )}
+                    </span>
+
+                    {payment.paid_at && (
+                      <small>
+                        Paid{" "}
+                        {new Date(payment.paid_at).toLocaleDateString(
+                          "en-GB",
+                        )}
+                      </small>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <section className="commitment-detail__section">

@@ -7,6 +7,8 @@ import {
     getCommitmentGroups,
     getCommitmentStatuses,
     getArchivedCommitments,
+    getCurrentMonthPayments,
+    getPaymentHistory,
     restoreCommitment,
     deleteCommitment,
 } from "../services/commitmentService";
@@ -15,6 +17,8 @@ import "./CommitmentsPage.css";
 
 function CommitmentsPage() {
     const [commitments, setCommitments] = useState([]);
+    const [currentMonthPayments, setCurrentMonthPayments] = useState([]);
+    const [paymentHistory, setPaymentHistory] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [loadError, setLoadError] = useState("");
 
@@ -32,10 +36,10 @@ function CommitmentsPage() {
         ? searchParams.get("priority")
         : "";
 
-    const paymentFilter = ["paid", "pending", "overdue"].includes(
-        searchParams.get("payment_status"),
+    const paymentCycleFilter = ["paid", "pending", "overdue"].includes(
+        searchParams.get("payment_cycle_status"),
     )
-        ? searchParams.get("payment_status")
+        ? searchParams.get("payment_cycle_status")
         : "";
 
     const reviewFilter =
@@ -64,15 +68,21 @@ function CommitmentsPage() {
                     commitmentData,
                     groupData,
                     statusData,
+                    currentMonthPaymentData,
+                    paymentHistoryData,
                 ] = await Promise.all([
                     loadCommitmentsForMode(listMode),
                     getCommitmentGroups(),
                     getCommitmentStatuses(),
+                    getCurrentMonthPayments(),
+                    getPaymentHistory(),
                 ]);
 
                 setCommitments(commitmentData);
                 setGroups(groupData);
                 setStatuses(statusData);
+                setCurrentMonthPayments(currentMonthPaymentData);
+                setPaymentHistory(paymentHistoryData);
             } catch {
                 setLoadError(
                     "Commitments could not be loaded. Please try again.",
@@ -176,6 +186,54 @@ function CommitmentsPage() {
         );
     }
 
+    const paymentCycleCommitmentIds = new Set(
+        currentMonthPayments
+            .filter(
+                (payment) =>
+                    !paymentCycleFilter ||
+                    (payment.effective_status || payment.status) === paymentCycleFilter,
+            )
+            .map((payment) => payment.commitment_id),
+    );
+
+    function getMonthlyPaymentCount(commitmentId, status) {
+        return currentMonthPayments.filter(
+            (payment) =>
+                payment.commitment_id === commitmentId &&
+                (payment.effective_status || payment.status) === status,
+        ).length;
+    }
+
+    function getMonthlyPaymentsForCommitment(commitmentId, status) {
+        return currentMonthPayments.filter(
+            (payment) =>
+                payment.commitment_id === commitmentId &&
+                (payment.effective_status || payment.status) === status,
+        );
+    }
+
+    const currentMonthStart = new Date();
+    currentMonthStart.setDate(1);
+    currentMonthStart.setHours(0, 0, 0, 0);
+
+    function getPastPaidPayments(commitmentId) {
+        return paymentHistory
+            .filter((payment) => {
+                if (
+                    payment.commitment_id !== commitmentId ||
+                    (payment.effective_status || payment.status) !== "paid"
+                ) {
+                    return false;
+                }
+
+                const paymentDueDate = new Date(
+                    `${payment.due_date}T00:00:00`,
+                );
+
+                return paymentDueDate < currentMonthStart;
+            })
+    }
+
     const filteredCommitments = commitments.filter((commitment) => {
         const searchValue = searchQuery.trim().toLowerCase();
 
@@ -196,13 +254,9 @@ function CommitmentsPage() {
             !priorityFilter ||
             commitment.priority === priorityFilter;
 
-        const effectivePaymentStatus =
-            commitment.effective_payment_status ||
-            commitment.payment_status;
-
-        const matchesPayment =
-            !paymentFilter ||
-            effectivePaymentStatus === paymentFilter;
+        const matchesPaymentCycle =
+            !paymentCycleFilter ||
+            paymentCycleCommitmentIds.has(commitment.id);
 
         const matchesReview =
             reviewFilter !== "needed" ||
@@ -213,7 +267,7 @@ function CommitmentsPage() {
             matchesGroup &&
             matchesStatus &&
             matchesPriority &&
-            matchesPayment &&
+            matchesPaymentCycle &&
             matchesReview
         );
     });
@@ -398,15 +452,17 @@ function CommitmentsPage() {
 
                             <select
                                 id="payment-filter"
-                                value={paymentFilter}
+                                value={paymentCycleFilter}
                                 onChange={(event) => {
                                     const nextParams = new URLSearchParams(searchParams);
                                     const value = event.target.value;
 
+                                    nextParams.delete("payment_status");
+
                                     if (value) {
-                                        nextParams.set("payment_status", value);
+                                        nextParams.set("payment_cycle_status", value);
                                     } else {
-                                        nextParams.delete("payment_status");
+                                        nextParams.delete("payment_cycle_status");
                                     }
 
                                     setSearchParams(nextParams);
@@ -428,8 +484,12 @@ function CommitmentsPage() {
                                 setStatusFilter("");
 
                                 const nextParams = new URLSearchParams(searchParams);
+
                                 nextParams.delete("payment_status");
+                                nextParams.delete("payment_cycle_status");
                                 nextParams.delete("priority");
+                                nextParams.delete("review");
+
                                 setSearchParams(nextParams);
                             }}
                         >
@@ -467,10 +527,20 @@ function CommitmentsPage() {
                                     <th>Title</th>
                                     <th>Group</th>
                                     <th>Provider</th>
-                                    <th>Next due</th>
+                                    <th>Amount</th>
+                                    <th>
+                                        {paymentCycleFilter
+                                            ? "Current month due"
+                                            : "Next due"}
+                                    </th>
                                     <th>Priority</th>
                                     <th>Status</th>
-                                    <th>Payment status</th>
+                                    <th>
+                                        {paymentCycleFilter
+                                            ? "Current month payment"
+                                            : "Payment status"}
+                                    </th>
+                                    <th>Past payments</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -491,7 +561,20 @@ function CommitmentsPage() {
                                         </td>
 
                                         <td>
-                                            {formatDate(commitment.due_date)}
+                                            {commitment.amount
+                                                ? `£${Number.parseFloat(commitment.amount).toFixed(2)}`
+                                                : "—"}
+                                        </td>
+
+                                        <td>
+                                            {paymentCycleFilter
+                                                ? getMonthlyPaymentsForCommitment(
+                                                    commitment.id,
+                                                    paymentCycleFilter,
+                                                )
+                                                    .map((payment) => formatDate(payment.due_date))
+                                                    .join(", ")
+                                                : formatDate(commitment.due_date)}
                                         </td>
 
                                         <td>
@@ -507,10 +590,61 @@ function CommitmentsPage() {
                                         </td>
 
                                         <td>
-                                            {formatPaymentStatus(
-                                                commitment.effective_payment_status
-                                                || commitment.payment_status
-                                            )}
+                                            {paymentCycleFilter
+                                                ? `${formatPaymentStatus(paymentCycleFilter)}${getMonthlyPaymentCount(
+                                                    commitment.id,
+                                                    paymentCycleFilter,
+                                                ) > 1
+                                                    ? ` (${getMonthlyPaymentCount(
+                                                        commitment.id,
+                                                        paymentCycleFilter,
+                                                    )})`
+                                                    : ""
+                                                }`
+                                                : formatPaymentStatus(
+                                                    commitment.effective_payment_status
+                                                    || commitment.payment_status
+                                                )}
+                                        </td>
+
+                                        <td>
+                                            {(() => {
+                                                const pastPayments = getPastPaidPayments(commitment.id);
+
+                                                if (pastPayments.length === 0) {
+                                                    return "—";
+                                                }
+
+                                                return (
+                                                    <div className="commitments-table__past-payments">
+                                                        {pastPayments.slice(0, 5).map((payment) => (
+                                                            <div
+                                                                key={payment.id}
+                                                                className="commitments-table__past-payment"
+                                                            >
+                                                                <span>
+                                                                    {formatDate(payment.due_date)}
+                                                                </span>
+
+                                                                <strong>
+                                                                    {payment.amount
+                                                                        ? `£${Number.parseFloat(payment.amount).toFixed(2)}`
+                                                                        : "—"}
+                                                                </strong>
+                                                            </div>
+                                                        ))}
+
+                                                        {pastPayments.length > 5 && (
+                                                            <Link
+                                                                to={`/commitments/${commitment.id}`}
+                                                                className="commitments-table__past-more"
+                                                            >
+                                                                + {pastPayments.length - 5} more
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </td>
 
                                         <td>
@@ -591,8 +725,30 @@ function CommitmentsPage() {
                                     </div>
 
                                     <div>
-                                        <dt>Next due</dt>
-                                        <dd>{formatDate(commitment.due_date)}</dd>
+                                        <dt>Amount</dt>
+                                        <dd>
+                                            {commitment.amount
+                                                ? `£${Number.parseFloat(commitment.amount).toFixed(2)}`
+                                                : "—"}
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>
+                                            {paymentCycleFilter
+                                                ? "Current month due"
+                                                : "Next due"}
+                                        </dt>
+                                        <dd>
+                                            {paymentCycleFilter
+                                                ? getMonthlyPaymentsForCommitment(
+                                                    commitment.id,
+                                                    paymentCycleFilter,
+                                                )
+                                                    .map((payment) => formatDate(payment.due_date))
+                                                    .join(", ")
+                                                : formatDate(commitment.due_date)}
+                                        </dd>
                                     </div>
 
                                     <div>
@@ -601,12 +757,71 @@ function CommitmentsPage() {
                                     </div>
 
                                     <div>
-                                        <dt>Payment</dt>
+                                        <dt>
+                                            {paymentCycleFilter
+                                                ? "Current month payment"
+                                                : "Payment"}
+                                        </dt>
+
                                         <dd>
-                                            {formatPaymentStatus(
-                                                commitment.effective_payment_status
-                                                || commitment.payment_status
-                                            )}
+                                            {paymentCycleFilter
+                                                ? `${formatPaymentStatus(paymentCycleFilter)}${getMonthlyPaymentCount(
+                                                    commitment.id,
+                                                    paymentCycleFilter,
+                                                ) > 1
+                                                    ? ` (${getMonthlyPaymentCount(
+                                                        commitment.id,
+                                                        paymentCycleFilter,
+                                                    )})`
+                                                    : ""
+                                                }`
+                                                : formatPaymentStatus(
+                                                    commitment.effective_payment_status
+                                                    || commitment.payment_status
+                                                )}
+                                        </dd>
+                                    </div>
+                                    <div>
+                                        <dt>Past payments</dt>
+
+                                        <dd>
+                                            {(() => {
+                                                const pastPayments = getPastPaidPayments(commitment.id);
+
+                                                if (pastPayments.length === 0) {
+                                                    return "—";
+                                                }
+
+                                                return (
+                                                    <div className="commitments-mobile-card__past-payments">
+                                                        {pastPayments.slice(0, 3).map((payment) => (
+                                                            <div
+                                                                key={payment.id}
+                                                                className="commitments-mobile-card__past-payment"
+                                                            >
+                                                                <span>
+                                                                    {formatDate(payment.due_date)}
+                                                                </span>
+
+                                                                <strong>
+                                                                    {payment.amount
+                                                                        ? `£${Number.parseFloat(payment.amount).toFixed(2)}`
+                                                                        : "—"}
+                                                                </strong>
+                                                            </div>
+                                                        ))}
+
+                                                        {pastPayments.length > 3 && (
+                                                            <Link
+                                                                to={`/commitments/${commitment.id}`}
+                                                                className="commitments-mobile-card__past-more"
+                                                            >
+                                                                + {pastPayments.length - 3} more
+                                                            </Link>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })()}
                                         </dd>
                                     </div>
                                 </dl>

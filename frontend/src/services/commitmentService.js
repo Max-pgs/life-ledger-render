@@ -163,3 +163,36 @@ export async function getReviewSoonCommitments() {
 
   return parseResponse(response);
 }
+
+export async function getCurrentMonthPayments() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/payments/current-month/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function getCommitmentPayments(commitmentId) {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/${commitmentId}/payments/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function getPaymentHistory() {
+  const response = await fetch(
+    `${API_BASE_URL}/commitments/payments/history/`,
+    {
+      headers: getAuthHeaders(),
+    },
+  );
+
+  return parseResponse(response);
+}

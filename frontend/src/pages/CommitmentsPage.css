@@ -219,6 +219,26 @@
   border: 1px solid #28312d;
   border-radius: 14px;
   background: #151b18;
+  scrollbar-width: thin;
+  scrollbar-color: #4f5d56 #151b18;
+}
+
+.commitments-table-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+
+.commitments-table-wrapper::-webkit-scrollbar-track {
+  background: #151b18;
+  border-radius: 999px;
+}
+
+.commitments-table-wrapper::-webkit-scrollbar-thumb {
+  background: #4f5d56;
+  border-radius: 999px;
+}
+
+.commitments-table-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #65756c;
 }
 
 .commitments-table__summary {
@@ -418,6 +438,49 @@
   border-color: rgba(244, 112, 112, 0.65);
 }
 
+.commitments-table__past-payments {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 150px;
+}
+
+.commitments-table__past-payment {
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.commitments-table__past-payment span,
+.commitments-table__past-payment strong {
+  font-size: 0.75rem;
+}
+
+.commitments-table__past-payment span {
+  color: #8c9992;
+  font-size: 0.78rem;
+}
+
+.commitments-table__past-payment strong {
+  color: #aeb9b3;
+  font-size: 0.78rem;
+}
+
+.commitments-table__past-more {
+  width: fit-content;
+  color: #76bd99;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.commitments-table__past-more:hover {
+  color: #88c9a8;
+  text-decoration: underline;
+}
+
 @media (max-width: 900px) {
   .commitments-toolbar {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -540,6 +603,34 @@
     color: #dce4df;
     text-transform: capitalize;
     overflow-wrap: anywhere;
+  }
+
+  .commitments-mobile-card__past-payments {
+    display: grid;
+    gap: 4px;
+  }
+
+  .commitments-mobile-card__past-payment {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .commitments-mobile-card__past-payment span {
+    color: #8c9992;
+    font-size: 0.82rem;
+  }
+
+  .commitments-mobile-card__past-payment strong {
+    color: #aeb9b3;
+    font-size: 0.82rem;
+  }
+
+  .commitments-mobile-card__past-more {
+    margin-top: 2px;
+    color: #76bd99;
+    font-size: 0.8rem;
+    font-weight: 700;
   }
 
   .commitments-mobile-card__actions {
