@@ -4,7 +4,7 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
-from datetime import timedelta
+from datetime import timedelta, date
 from users.models import AccountPlan, UserProfile
 
 from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, Status
@@ -2077,6 +2077,301 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
             commitment.payment_status,
             Commitment.PaymentStatus.PAID,
         )
+        
+    def test_marking_monthly_commitment_paid_moves_due_date_forward(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Monthly bill",
+            payment_frequency = Commitment.PaymentFrequency.MONTHLY,
+            payment_status = Commitment.PaymentStatus.PENDING,
+            due_date = date(2026, 8, 15),
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 9, 15),
+        )
+        self.assertEqual(
+            commitment.payment_status,
+            Commitment.PaymentStatus.PENDING,
+        )
+        self.assertIsNotNone(
+            commitment.last_paid_at,
+        )
+        
+    def test_monthly_payment_handles_end_of_month_date(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Monthly subscription",
+            payment_frequency = Commitment.PaymentFrequency.MONTHLY,
+            payment_status = Commitment.PaymentStatus.PENDING,
+            due_date = date(2026, 1, 31),
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 2, 28),
+        )
+        
+    def test_recurring_payment_frequencies_move_due_date_forward(self):
+        cases = [
+            (
+                Commitment.PaymentFrequency.WEEKLY,
+                date(2026, 8, 15),
+                date(2026, 8, 22),
+            ),
+            (
+                Commitment.PaymentFrequency.QUARTERLY,
+                date(2026, 8, 15),
+                date(2026, 11, 15),
+            ),
+            (
+                Commitment.PaymentFrequency.ANNUALLY,
+                date(2026, 8, 15),
+                date(2027, 8, 15),
+            ),
+        ]
+
+        self.authenticate()
+
+        for frequency, due_date, expected_due_date in cases:
+            with self.subTest(frequency = frequency):
+                commitment = Commitment.objects.create(
+                    user = self.user,
+                    title = f"{frequency} commitment",
+                    payment_frequency = frequency,
+                    payment_status = Commitment.PaymentStatus.PENDING,
+                    due_date = due_date,
+                )
+
+                detail_url = reverse(
+                    "commitments:commitment-detail",
+                    kwargs = {"pk": commitment.pk},
+                )
+
+                response = self.client.patch(
+                    detail_url,
+                    {
+                        "payment_status": "paid",
+                    },
+                    format = "json",
+                )
+
+                self.assertEqual(
+                    response.status_code,
+                    status.HTTP_200_OK,
+                )
+
+                commitment.refresh_from_db()
+
+                self.assertEqual(
+                    commitment.due_date,
+                    expected_due_date,
+                )
+
+                self.assertEqual(
+                    commitment.payment_status,
+                    Commitment.PaymentStatus.PENDING,
+                )
+
+                self.assertIsNotNone(commitment.last_paid_at)
+                
+    def test_one_off_payment_does_not_move_due_date(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "One-off payment",
+            payment_frequency = Commitment.PaymentFrequency.ONE_OFF,
+            payment_status = Commitment.PaymentStatus.PENDING,
+            due_date = date(2026, 8, 15),
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 8, 15),
+        )
+
+        self.assertEqual(
+            commitment.payment_status,
+            Commitment.PaymentStatus.PAID,
+        )
+
+        self.assertIsNone(commitment.last_paid_at)
+        
+    def test_editing_paid_recurring_commitment_does_not_advance_due_date_again(self):
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Monthly bill",
+            payment_frequency = Commitment.PaymentFrequency.MONTHLY,
+            payment_status = Commitment.PaymentStatus.PENDING,
+            due_date = date(2026, 8, 15),
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        self.authenticate()
+
+        first_response = self.client.patch(
+            detail_url,
+            {
+                "payment_status": "paid",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            first_response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 9, 15),
+        )
+
+        second_response = self.client.patch(
+            detail_url,
+            {
+                "notes": "Updated note",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            second_response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        commitment.refresh_from_db()
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 9, 15),
+        )
+
+        self.assertEqual(
+            commitment.notes,
+            "Updated note",
+        )
+        
+    def test_recurring_payment_effective_status_changes_across_cycle(self):
+        self.authenticate()
+
+        commitment = Commitment.objects.create(
+            user = self.user,
+            title = "Monthly bill",
+            payment_frequency = Commitment.PaymentFrequency.MONTHLY,
+            payment_status = Commitment.PaymentStatus.PENDING,
+            due_date = timezone.localdate() + timedelta(days=10),
+            last_paid_at = timezone.now(),
+        )
+
+        detail_url = reverse(
+            "commitments:commitment-detail",
+            kwargs = {"pk": commitment.pk},
+        )
+
+        response = self.client.get(detail_url)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+        self.assertEqual(
+            response.data["effective_payment_status"],
+            Commitment.PaymentStatus.PAID,
+        )
+
+        commitment.due_date = timezone.localdate()
+        commitment.save(update_fields = ["due_date"])
+
+        response = self.client.get(detail_url)
+
+        self.assertEqual(
+            response.data["effective_payment_status"],
+            Commitment.PaymentStatus.PENDING,
+        )
+
+        commitment.due_date = timezone.localdate() - timedelta(days=1)
+        commitment.save(update_fields = ["due_date"])
+
+        response = self.client.get(detail_url)
+
+        self.assertEqual(
+            response.data["effective_payment_status"],
+            Commitment.PaymentStatus.OVERDUE,
+        )
 
     def test_invalid_payment_status_is_rejected(self):
         self.authenticate()
@@ -2097,6 +2392,46 @@ class CommitmentPaymentStatusAPITests(AuthenticatedAPITestCase):
         self.assertIn(
             "payment_status",
             response.data,
+        )
+        
+    def test_creating_recurring_commitment_as_paid_starts_next_cycle(self):
+        self.authenticate()
+
+        response = self.client.post(
+            self.url,
+            {
+                "title": "Monthly subscription",
+                "payment_frequency": Commitment.PaymentFrequency.MONTHLY,
+                "payment_status": Commitment.PaymentStatus.PAID,
+                "due_date": "2026-08-15",
+            },
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+        commitment = Commitment.objects.get(pk = response.data["id"])
+
+        self.assertEqual(
+            commitment.due_date,
+            date(2026, 9, 15),
+        )
+
+        self.assertEqual(
+            commitment.payment_status,
+            Commitment.PaymentStatus.PENDING,
+        )
+
+        self.assertIsNotNone(
+            commitment.last_paid_at,
+        )
+
+        self.assertEqual(
+            response.data["effective_payment_status"],
+            Commitment.PaymentStatus.PAID,
         )
 
     def test_user_cannot_update_another_users_payment_status(self):

@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.db import models
 
+from dateutil.relativedelta import relativedelta
+
 class Priority(models.TextChoices):
         LOW = "low", "Low"
         MEDIUM = "medium", "Medium"
@@ -129,6 +131,11 @@ class Commitment(models.Model):
         default = PaymentStatus.NOT_APPLICABLE,
     )
     
+    last_paid_at = models.DateTimeField(
+        null = True,
+        blank = True,
+    )
+    
     contract_end_date = models.DateField(
         null = True,
         blank = True,
@@ -178,6 +185,24 @@ class Commitment(models.Model):
     
     class Meta:
         ordering = ["-created_at"]
+        
+    def get_next_due_date(self):
+        if not self.due_date:
+            return None
+
+        if self.payment_frequency == self.PaymentFrequency.WEEKLY:
+            return self.due_date + relativedelta(weeks=1)
+
+        if self.payment_frequency == self.PaymentFrequency.MONTHLY:
+            return self.due_date + relativedelta(months=1)
+
+        if self.payment_frequency == self.PaymentFrequency.QUARTERLY:
+            return self.due_date + relativedelta(months=3)
+
+        if self.payment_frequency == self.PaymentFrequency.ANNUALLY:
+            return self.due_date + relativedelta(years=1)
+
+        return self.due_date
         
     def __str__(self):
         return self.title
