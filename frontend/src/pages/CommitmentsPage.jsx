@@ -212,26 +212,12 @@ function CommitmentsPage() {
         );
     }
 
-    const currentMonthStart = new Date();
-    currentMonthStart.setDate(1);
-    currentMonthStart.setHours(0, 0, 0, 0);
-
     function getPastPaidPayments(commitmentId) {
-        return paymentHistory
-            .filter((payment) => {
-                if (
-                    payment.commitment_id !== commitmentId ||
-                    (payment.effective_status || payment.status) !== "paid"
-                ) {
-                    return false;
-                }
-
-                const paymentDueDate = new Date(
-                    `${payment.due_date}T00:00:00`,
-                );
-
-                return paymentDueDate < currentMonthStart;
-            })
+        return paymentHistory.filter(
+            (payment) =>
+                payment.commitment_id === commitmentId &&
+                (payment.effective_status || payment.status) === "paid"
+        );
     }
 
     const filteredCommitments = commitments.filter((commitment) => {
