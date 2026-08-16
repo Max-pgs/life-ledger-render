@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 import { registerUser } from "../services/authService";
 
 function RegisterPage() {
+  const location = useLocation();
+
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -12,7 +14,11 @@ function RegisterPage() {
   });
 
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState(
+    location.state?.accountDeleted
+      ? "Your account has been permanently deleted."
+      : "",
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   function handleChange(event) {

@@ -73,7 +73,7 @@ export async function getAccount() {
   return parseResponse(response);
 }
 
-export async function deleteAccount() {
+export async function deleteAccount(confirmation) {
   const token = localStorage.getItem("authToken");
 
   const response = await fetch(
@@ -84,6 +84,9 @@ export async function deleteAccount() {
         Authorization: `Token ${token}`,
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        confirmation,
+      }),
     },
   );
 

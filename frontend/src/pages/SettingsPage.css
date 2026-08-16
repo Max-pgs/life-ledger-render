@@ -322,6 +322,45 @@
   font-size: 0.78rem;
 }
 
+.settings-modal__confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.settings-modal__confirmation input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px 12px;
+  border: 1px solid #3a4540;
+  border-radius: 8px;
+  background: #101713;
+  color: #f4f7f5;
+  font: inherit;
+}
+
+.settings-modal__confirmation input:focus {
+  outline: none;
+  border-color: #76bd99;
+}
+
+.settings-modal__actions {
+  margin-top: 10px;
+}
+
+.settings-modal__confirmation input:focus-visible {
+  outline: 2px solid #76bd99;
+  outline-offset: 2px;
+}
+
+.settings-modal__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 760px) {
   .settings-page {
     gap: 18px;

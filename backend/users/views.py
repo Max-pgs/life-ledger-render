@@ -69,6 +69,19 @@ class DeleteAccountView(APIView):
 
     def delete(self, request):
         user = request.user
+        confirmation = request.data.get("confirmation", "")
+        expected_confirmation = f"delete_{user.username}"
+
+        if confirmation != expected_confirmation:
+            return Response(
+                {
+                    "confirmation": (
+                        f'Type "{expected_confirmation}" to confirm account deletion.'
+                    )
+                },
+                status = status.HTTP_400_BAD_REQUEST,
+            )
+
         user.delete()
 
         return Response(status = status.HTTP_204_NO_CONTENT)
