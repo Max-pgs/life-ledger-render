@@ -61,11 +61,11 @@ function CommitmentForm({
         }
 
         const deadline = new Date(
-            `${formData.contract_end_date}T00:00:00`,
+            `${formData.contract_end_date}T00:00:00Z`,
         );
 
-        deadline.setDate(
-            deadline.getDate() - Number(formData.notice_period_days),
+        deadline.setUTCDate(
+            deadline.getUTCDate() - Number(formData.notice_period_days),
         );
 
         return deadline.toISOString().split("T")[0];
