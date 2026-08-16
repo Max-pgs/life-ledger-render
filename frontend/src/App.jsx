@@ -15,6 +15,7 @@ import ForgottenChecklistPage from "./pages/ForgottenChecklistPage";
 import SettingsPage from "./pages/SettingsPage";
 import PremiumRoute from "./routes/PremiumRoute";
 import FaqPage from "./pages/FaqPage";
+import PrivacyPolicyPage from "./pages/PrivacyPolicyPage";
 
 function App() {
   return (
@@ -74,6 +75,11 @@ function App() {
           <Route
             path="/faq"
             element={<FaqPage />}
+          />
+
+          <Route
+            path="/privacy"
+            element={<PrivacyPolicyPage />}
           />
 
           <Route
