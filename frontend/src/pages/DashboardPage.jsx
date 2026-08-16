@@ -73,6 +73,10 @@ function DashboardPage() {
   const [hoveredPaymentStatus, setHoveredPaymentStatus] = useState(null);
 
   const visibleUpcomingCommitments = upcomingCommitments.slice(0, 5);
+  const visibleOverdueCommitments = overdueCommitments.slice(0, 5);
+  const visibleHighPriorityCommitments = highPriorityCommitments.slice(0, 5);
+  const visibleReviewSoonCommitments = reviewSoonCommitments.slice(0, 5);
+
 
   /* Marks the intro as completed and removes the temporary route state. */
   function handleTransitionComplete() {
@@ -953,14 +957,19 @@ function DashboardPage() {
                 </p>
                 <h2>Upcoming commitments</h2>
               </div>
+              <div className="dashboard-section-actions">
+                <span className="dashboard-section-count">
+                  {Math.min(upcomingCommitments.length, 5)}/{upcomingCommitments.length}
+                </span>
 
-              <button
-                type="button"
-                className="dashboard-upcoming__view-all"
-                onClick={() => navigate("/commitments")}
-              >
-                View all
-              </button>
+                <button
+                  type="button"
+                  className="dashboard-upcoming__view-all"
+                  onClick={() => navigate("/commitments")}
+                >
+                  View all
+                </button>
+              </div>
             </div>
 
             {upcomingLoading && (
@@ -1136,14 +1145,19 @@ function DashboardPage() {
               </p>
               <h2>Overdue commitments</h2>
             </div>
+            <div className="dashboard-section-actions">
+              <span className="dashboard-section-count">
+                {Math.min(overdueCommitments.length, 5)}/{overdueCommitments.length}
+              </span>
 
-            <button
-              type="button"
-              className="dashboard-overdue__view-all"
-              onClick={() => navigate("/commitments")}
-            >
-              View all
-            </button>
+              <button
+                type="button"
+                className="dashboard-overdue__view-all"
+                onClick={() => navigate("/commitments?payment_status=overdue")}
+              >
+                View all
+              </button>
+            </div>
           </div>
 
           {overdueLoading && (
@@ -1170,7 +1184,7 @@ function DashboardPage() {
             !overdueError &&
             overdueCommitments.length > 0 && (
               <div className="dashboard-overdue__list">
-                {overdueCommitments.map((commitment) => (
+                {visibleOverdueCommitments.map((commitment) => (
                   <button
                     key={commitment.id}
                     type="button"
@@ -1204,14 +1218,19 @@ function DashboardPage() {
               </p>
               <h2>High priority commitments</h2>
             </div>
+            <div className="dashboard-section-actions">
+              <span className="dashboard-section-count">
+                {Math.min(highPriorityCommitments.length, 5)}/{highPriorityCommitments.length}
+              </span>
 
-            <button
-              type="button"
-              className="dashboard-high-priority__view-all"
-              onClick={() => navigate("/commitments")}
-            >
-              View all
-            </button>
+              <button
+                type="button"
+                className="dashboard-high-priority__view-all"
+                onClick={() => navigate("/commitments")}
+              >
+                View all
+              </button>
+            </div>
           </div>
 
           {highPriorityLoading && (
@@ -1238,7 +1257,7 @@ function DashboardPage() {
             !highPriorityError &&
             highPriorityCommitments.length > 0 && (
               <div className="dashboard-high-priority__list">
-                {highPriorityCommitments.map((commitment) => (
+                {visibleHighPriorityCommitments.map((commitment) => (
                   <button
                     key={commitment.id}
                     type="button"
@@ -1272,14 +1291,19 @@ function DashboardPage() {
               </p>
               <h2>Review needed</h2>
             </div>
+            <div className="dashboard-section-actions">
+              <span className="dashboard-section-count">
+                {Math.min(reviewSoonCommitments.length, 5)}/{reviewSoonCommitments.length}
+              </span>
 
-            <button
-              type="button"
-              className="dashboard-review-needed__view-all"
-              onClick={() => navigate("/commitments")}
-            >
-              View all
-            </button>
+              <button
+                type="button"
+                className="dashboard-review-needed__view-all"
+                onClick={() => navigate("/commitments")}
+              >
+                View all
+              </button>
+            </div>
           </div>
 
           {reviewSoonLoading && (
@@ -1306,7 +1330,7 @@ function DashboardPage() {
             !reviewSoonError &&
             reviewSoonCommitments.length > 0 && (
               <div className="dashboard-review-needed__list">
-                {reviewSoonCommitments.map((commitment) => (
+                {visibleReviewSoonCommitments.map((commitment) => (
                   <button
                     key={commitment.id}
                     type="button"

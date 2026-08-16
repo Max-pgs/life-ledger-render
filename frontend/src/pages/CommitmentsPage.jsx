@@ -25,7 +25,12 @@ function CommitmentsPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [groupFilter, setGroupFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
-    const [priorityFilter, setPriorityFilter] = useState("");
+
+    const priorityFilter = ["high", "medium", "low"].includes(
+        searchParams.get("priority"),
+    )
+        ? searchParams.get("priority")
+        : "";
 
     const paymentFilter = ["paid", "pending", "overdue"].includes(
         searchParams.get("payment_status"),
@@ -33,11 +38,14 @@ function CommitmentsPage() {
         ? searchParams.get("payment_status")
         : "";
 
+    const reviewFilter =
+        searchParams.get("review") === "needed"
+            ? "needed"
+            : "";
+
     const [actionError, setActionError] = useState("");
     const [commitmentToArchive, setCommitmentToArchive] = useState(null);
     const [commitmentToDelete, setCommitmentToDelete] = useState(null);
-
-
 
     const listMode = searchParams.get("view") === "archived" ? "archived" : "current";
 
@@ -196,12 +204,17 @@ function CommitmentsPage() {
             !paymentFilter ||
             effectivePaymentStatus === paymentFilter;
 
+        const matchesReview =
+            reviewFilter !== "needed" ||
+            commitment.review_needed;
+
         return (
             matchesSearch &&
             matchesGroup &&
             matchesStatus &&
             matchesPriority &&
-            matchesPayment
+            matchesPayment &&
+            matchesReview
         );
     });
 
@@ -358,7 +371,18 @@ function CommitmentsPage() {
                             <select
                                 id="priority-filter"
                                 value={priorityFilter}
-                                onChange={(event) => setPriorityFilter(event.target.value)}
+                                onChange={(event) => {
+                                    const value = event.target.value;
+                                    const nextParams = new URLSearchParams(searchParams);
+
+                                    if (value) {
+                                        nextParams.set("priority", value);
+                                    } else {
+                                        nextParams.delete("priority");
+                                    }
+
+                                    setSearchParams(nextParams);
+                                }}
                             >
                                 <option value="">All priorities</option>
                                 <option value="high">High</option>
@@ -402,10 +426,10 @@ function CommitmentsPage() {
                                 setSearchQuery("");
                                 setGroupFilter("");
                                 setStatusFilter("");
-                                setPriorityFilter("");
 
                                 const nextParams = new URLSearchParams(searchParams);
                                 nextParams.delete("payment_status");
+                                nextParams.delete("priority");
                                 setSearchParams(nextParams);
                             }}
                         >

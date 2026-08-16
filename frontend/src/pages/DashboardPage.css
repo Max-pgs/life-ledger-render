@@ -756,6 +756,21 @@
   font-size: 0.9rem;
 }
 
+.dashboard-section-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-left: auto;
+}
+
+.dashboard-section-count {
+  color: #8f9b95;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .dashboard-payment-status {
   display: flex;
   flex-direction: column;
@@ -1672,6 +1687,14 @@ button.dashboard-support-card:focus-visible {
     flex-direction: row;
     align-items: center;
     gap: 8px;
+  }
+
+  .dashboard-section-actions {
+    width: auto;
+    margin-left: 0;
+    align-self: flex-start;
+    justify-content: flex-start;
+    gap: 12px;
   }
 
   .dashboard-payment-status__header {
