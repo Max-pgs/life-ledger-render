@@ -14,6 +14,7 @@ import GuidedSetupPage from "./pages/GuidedSetupPage";
 import ForgottenChecklistPage from "./pages/ForgottenChecklistPage";
 import SettingsPage from "./pages/SettingsPage";
 import PremiumRoute from "./routes/PremiumRoute";
+import FaqPage from "./pages/FaqPage";
 
 function App() {
   return (
@@ -68,6 +69,11 @@ function App() {
                 <ForgottenChecklistPage />
               </PremiumRoute>
             }
+          />
+
+          <Route
+            path="/faq"
+            element={<FaqPage />}
           />
 
           <Route
