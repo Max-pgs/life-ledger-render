@@ -254,6 +254,19 @@ function FaqPage() {
                             </div>
 
                             <div className="faq-item">
+                                <h3>What happens when I mark a recurring commitment as Paid?</h3>
+
+                                <p>
+                                    For weekly, monthly, quarterly and annual commitments, Life 
+                                    Ledger automatically moves the next due date to the next payment cycle. 
+                                    The payment is shown as Paid for the completed cycle, then returns 
+                                    to Pending when the next due date arrives. If the next due date passes 
+                                    without being paid, it becomes Overdue. One-off commitments do not move 
+                                    to a new payment cycle.
+                                </p>
+                            </div>
+
+                            <div className="faq-item">
                                 <h3>What is Next due date used for?</h3>
 
                                 <p>

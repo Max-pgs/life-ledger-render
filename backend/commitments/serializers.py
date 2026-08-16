@@ -108,6 +108,48 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "updated_at",
         )
         
+    def _apply_paid_cycle(self, commitment):
+        if (
+            commitment.payment_status != Commitment.PaymentStatus.PAID
+            or not commitment.due_date
+            or commitment.payment_frequency
+            not in {
+                Commitment.PaymentFrequency.WEEKLY,
+                Commitment.PaymentFrequency.MONTHLY,
+                Commitment.PaymentFrequency.QUARTERLY,
+                Commitment.PaymentFrequency.ANNUALLY,
+            }
+        ):
+            return commitment
+
+        commitment.last_paid_at = timezone.now()
+        commitment.due_date = commitment.get_next_due_date()
+        commitment.payment_status = Commitment.PaymentStatus.PENDING
+
+        return commitment
+    
+    def create(self, validated_data):
+        commitment = Commitment(**validated_data)
+
+        self._apply_paid_cycle(commitment)
+
+        commitment.save()
+
+        return commitment
+    
+    def update(self, instance, validated_data):
+        payment_status = validated_data.get("payment_status")
+
+        for field, value in validated_data.items():
+            setattr(instance, field, value)
+
+        if payment_status == Commitment.PaymentStatus.PAID:
+            self._apply_paid_cycle(instance)
+
+        instance.save()
+
+        return instance
+                
     def validate_title(self, value):
         cleaned_title = value.strip()
         
@@ -149,12 +191,21 @@ class CommitmentSerializer(serializers.ModelSerializer):
         return deadline.isoformat()
     
     def get_effective_payment_status(self, obj):
-        # Treat an unpaid commitment with a past due date as overdue without changing stored data.
+        today = timezone.localdate()
+
+        # A recurring payment remains visibly paid until its next payment cycle begins.
+        if (
+            obj.payment_status == Commitment.PaymentStatus.PENDING
+            and obj.last_paid_at is not None
+            and obj.due_date is not None
+            and obj.due_date > today
+        ):
+            return Commitment.PaymentStatus.PAID
 
         if (
             obj.payment_status == Commitment.PaymentStatus.PENDING
             and obj.due_date is not None
-            and obj.due_date < timezone.localdate()
+            and obj.due_date < today
         ):
             return Commitment.PaymentStatus.OVERDUE
 

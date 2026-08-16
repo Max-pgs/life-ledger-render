@@ -407,6 +407,9 @@ function CommitmentForm({
                                 One-off
                             </option>
                         </select>
+                        <p className="commitment-form__hint">
+                            Recurring payments automatically move to the next due date when marked Paid.
+                        </p>
                     </div>
 
                     <div className="commitment-form__field">
