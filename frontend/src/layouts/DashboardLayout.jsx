@@ -161,12 +161,23 @@ function DashboardLayout() {
             <Link
               to="/faq"
               className={`dashboard-layout__nav-link ${location.pathname === "/faq"
+                ? "dashboard-layout__nav-link--active"
+                : ""
+                }`}
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              FAQ
+            </Link>
+
+            <Link
+              to="/privacy"
+              className={`dashboard-layout__nav-link ${location.pathname === "/privacy"
                   ? "dashboard-layout__nav-link--active"
                   : ""
                 }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
-              FAQ
+              Privacy Policy
             </Link>
 
             <Link
