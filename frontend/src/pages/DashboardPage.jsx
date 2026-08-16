@@ -43,7 +43,7 @@ function formatCurrency(value) {
 function DashboardPage() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { dashboardLogoRef } = useOutletContext();
+  const { dashboardLogoRef, accountPlan } = useOutletContext();
 
   /* Shows the intro after login, or on the first dashboard visit in this session. */
   const [showLoginTransition, setShowLoginTransition] = useState(() => {
@@ -265,6 +265,83 @@ function DashboardPage() {
     });
   };
 
+  const recurringCommitments = paymentCommitments.filter(
+    (commitment) =>
+      commitment.amount &&
+      commitment.payment_frequency &&
+      commitment.payment_frequency !== "one_off",
+  );
+
+  const monthlyRecurringCost = recurringCommitments.reduce(
+    (total, commitment) => {
+      const amount = Number.parseFloat(commitment.amount) || 0;
+
+      switch (commitment.payment_frequency) {
+        case "weekly":
+          return total + (amount * 52) / 12;
+
+        case "monthly":
+          return total + amount;
+
+        case "quarterly":
+          return total + amount / 3;
+
+        case "annually":
+          return total + amount / 12;
+
+        default:
+          return total;
+      }
+    },
+    0,
+  );
+
+  const annualRecurringCost = monthlyRecurringCost * 12;
+
+  const groupCosts = recurringCommitments.reduce(
+    (totals, commitment) => {
+      const groupName =
+        commitment.group?.name || "Uncategorised";
+
+      const amount = Number.parseFloat(commitment.amount) || 0;
+
+      let annualAmount;
+
+      switch (commitment.payment_frequency) {
+        case "weekly":
+          annualAmount = amount * 52;
+          break;
+
+        case "monthly":
+          annualAmount = amount * 12;
+          break;
+
+        case "quarterly":
+          annualAmount = amount * 4;
+          break;
+
+        case "annually":
+          annualAmount = amount;
+          break;
+
+        default:
+          annualAmount = 0;
+      }
+
+      totals[groupName] =
+        (totals[groupName] || 0) + annualAmount;
+
+      return totals;
+    },
+    {},
+  );
+
+  const highestCostGroup =
+    Object.entries(groupCosts).sort(
+      ([, firstAmount], [, secondAmount]) =>
+        secondAmount - firstAmount,
+    )[0] || null;
+
   const totalCommitments = paymentCommitments.length;
 
   const trackedGroups = new Set(
@@ -314,6 +391,39 @@ function DashboardPage() {
           ? `${Math.min(totalCommitments, 3)} / 3 commitments`
           : `${overdueCommitments.length} overdue`,
     },
+    ...(accountPlan === "premium"
+      ? [
+        {
+          id: "review-ready",
+          title: "Review Ready",
+          description: "Keep at least 3 commitments with no reviews currently due.",
+          unlocked:
+            totalCommitments >= 3 &&
+            reviewSoonCommitments.length === 0,
+          progress:
+            totalCommitments < 3
+              ? `${Math.min(totalCommitments, 3)} / 3 commitments`
+              : `${reviewSoonCommitments.length} reviews due`,
+          premium: true,
+        },
+        {
+          id: "priority-planner",
+          title: "Priority Planner",
+          description: "Track at least 3 high-priority commitments.",
+          unlocked: highPriorityCommitments.length >= 3,
+          progress: `${Math.min(highPriorityCommitments.length, 3)} / 3`,
+          premium: true,
+        },
+        {
+          id: "household-organiser",
+          title: "Household Organiser",
+          description: "Organise shared household commitments.",
+          unlocked: false,
+          progress: "Premium preview",
+          premium: true,
+        },
+      ]
+      : []),
   ];
 
   const unlockedAchievements = achievements.filter(
@@ -668,7 +778,174 @@ function DashboardPage() {
               </div>
             )}
           </section>
-          <section id="upcoming-commitments" className="dashboard-upcoming">
+          {accountPlan === "premium" && (
+            <section className="dashboard-payment-status dashboard-payment-status--family">
+              <div className="dashboard-payment-status__header">
+                <div>
+                  <p className="dashboard-payment-status__eyebrow">
+                    Premium preview
+                  </p>
+                  <h2>Family payment status</h2>
+                </div>
+
+                <span className="dashboard-payment-status__tracked">
+                  Group view
+                </span>
+              </div>
+
+              <div className="dashboard-payment-status__content">
+                <div className="dashboard-payment-status__chart">
+                  <svg
+                    className="dashboard-payment-status__chart-svg"
+                    viewBox="0 0 100 100"
+                    aria-label="Family payment status preview chart"
+                  >
+                    <circle
+                      className="dashboard-payment-status__segment dashboard-payment-status__segment--paid"
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      pathLength="100"
+                      fill="none"
+                      strokeWidth="22"
+                      strokeDasharray="50 50"
+                      strokeDashoffset="0"
+                      transform="rotate(-90 50 50)"
+                    />
+
+                    <circle
+                      className="dashboard-payment-status__segment dashboard-payment-status__segment--pending"
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      pathLength="100"
+                      fill="none"
+                      strokeWidth="22"
+                      strokeDasharray="30 70"
+                      strokeDashoffset="-50"
+                      transform="rotate(-90 50 50)"
+                    />
+
+                    <circle
+                      className="dashboard-payment-status__segment dashboard-payment-status__segment--overdue"
+                      cx="50"
+                      cy="50"
+                      r="42"
+                      pathLength="100"
+                      fill="none"
+                      strokeWidth="22"
+                      strokeDasharray="20 80"
+                      strokeDashoffset="-80"
+                      transform="rotate(-90 50 50)"
+                    />
+                  </svg>
+
+                  <div className="dashboard-payment-status__chart-centre">
+                    <strong>5</strong>
+                    <span>shared</span>
+                  </div>
+                </div>
+
+                <div className="dashboard-payment-status__legend">
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--paid" />
+                      Paid
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>50%</strong>
+                    </span>
+                  </div>
+
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--pending" />
+                      Pending
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>30%</strong>
+                    </span>
+                  </div>
+
+                  <div className="dashboard-payment-status__legend-item">
+                    <span className="dashboard-payment-status__legend-label">
+                      <span className="dashboard-payment-status__dot dashboard-payment-status__dot--overdue" />
+                      Overdue
+                    </span>
+
+                    <span className="dashboard-payment-status__legend-value">
+                      <strong>20%</strong>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="dashboard-family-preview__note">
+                Premium preview of shared household commitments. Multi-user access
+                is not enabled in this prototype.
+              </p>
+            </section>
+          )}
+          {accountPlan === "premium" && (
+            <section className="dashboard-premium-insights">
+              <div className="dashboard-premium-insights__header">
+                <div>
+                  <p className="dashboard-premium-insights__eyebrow">
+                    Premium
+                  </p>
+
+                  <h2>Advanced insights</h2>
+                </div>
+
+                <span className="dashboard-premium-insights__badge">
+                  Live data
+                </span>
+              </div>
+
+              <div className="dashboard-premium-insights__grid">
+                <article className="dashboard-premium-insight">
+                  <span>Estimated monthly recurring cost</span>
+
+                  <strong>
+                    £{monthlyRecurringCost.toFixed(2)}
+                  </strong>
+                </article>
+
+                <article className="dashboard-premium-insight">
+                  <span>Estimated annual recurring cost</span>
+
+                  <strong>
+                    £{annualRecurringCost.toFixed(2)}
+                  </strong>
+                </article>
+
+                <article className="dashboard-premium-insight">
+                  <span>Highest-cost group</span>
+
+                  <strong>
+                    {highestCostGroup
+                      ? highestCostGroup[0]
+                      : "Not enough data"}
+                  </strong>
+
+                  {highestCostGroup && (
+                    <small>
+                      £{highestCostGroup[1].toFixed(2)} per year
+                    </small>
+                  )}
+                </article>
+              </div>
+            </section>
+          )}
+          <section
+            id="upcoming-commitments"
+            className={`dashboard-upcoming ${accountPlan === "premium"
+              ? "dashboard-upcoming--premium"
+              : ""
+              }`}
+          >
             <div className="dashboard-upcoming__header">
               <div>
                 <p className="dashboard-upcoming__eyebrow">
@@ -830,6 +1107,12 @@ function DashboardPage() {
                   </span>
 
                   <div className="dashboard-achievement__content">
+                    {achievement.premium && (
+                      <span className="dashboard-achievement__premium-badge">
+                        Premium
+                      </span>
+                    )}
+
                     <strong>{achievement.title}</strong>
 
                     <span>{achievement.description}</span>

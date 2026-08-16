@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from datetime import timedelta
-
+from users.models import AccountPlan, UserProfile
 
 from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, Status
 from guides.models import GroupInformationLink
@@ -2638,6 +2638,11 @@ class ForgottenChecklistAPITests(AuthenticatedAPITestCase):
             email = "checklist@example.com",
             password = "SecureTestPassword123!",
         )
+        
+        UserProfile.objects.create(
+            user = self.user,
+            plan = AccountPlan.PREMIUM,
+        )
 
         self.other_user = User.objects.create_user(
             username = "otherchecklistuser",
@@ -2673,6 +2678,22 @@ class ForgottenChecklistAPITests(AuthenticatedAPITestCase):
         self.assertEqual(
             response.status_code,
             status.HTTP_401_UNAUTHORIZED,
+        )
+        
+    def test_free_user_cannot_access_checklist(self):
+        self.user.profile.plan = AccountPlan.FREE
+        self.user.profile.save(update_fields = ["plan"])
+
+        self.authenticate()
+
+        response = self.client.get(
+            self.url,
+            format = "json",
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_403_FORBIDDEN,
         )
 
     def test_template_without_commitment_is_missing(self):

@@ -22,6 +22,7 @@ function CommitmentForm({
     initialData = EMPTY_FORM_DATA,
     groups,
     statuses,
+    accountPlan,
     onSubmit,
     onCancel,
     submitLabel,
@@ -34,6 +35,7 @@ function CommitmentForm({
     }));
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors] = useState({});
+    const [commitmentType, setCommitmentType] = useState("personal");
 
     function handleChange(event) {
         const { name, value } = event.target;
@@ -191,6 +193,45 @@ function CommitmentForm({
                             >
                                 View full guide
                             </Link>
+                        </div>
+                    )}
+
+                    {accountPlan === "premium" && (
+                        <div className="commitment-form__field commitment-form__field--premium-preview">
+                            <div className="commitment-form__premium-heading">
+                                <label htmlFor="commitment_type">
+                                    Commitment type
+                                </label>
+
+                                <span className="commitment-form__premium-badge">
+                                    Premium preview
+                                </span>
+                            </div>
+
+                            <select
+                                id="commitment_type"
+                                value={commitmentType}
+                                onChange={(event) => setCommitmentType(event.target.value)}
+                            >
+                                <option value="personal">
+                                    Personal
+                                </option>
+
+                                <option value="family">
+                                    Family
+                                </option>
+                            </select>
+
+                            <p className="commitment-form__hint">
+                                Preview how commitments could be organised as personal
+                                or shared household items.
+                            </p>
+
+                            {commitmentType === "family" && (
+                                <p className="commitment-form__premium-note">
+                                    Multi-user sharing is not enabled in this prototype.
+                                </p>
+                            )}
                         </div>
                     )}
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 import CommitmentForm from "../components/CommitmentForm";
+import { getAccount } from "../services/authService";
 
 import {
   createCommitment,
@@ -19,6 +20,9 @@ function AddCommitmentPage() {
   const [isLoadingOptions, setIsLoadingOptions] = useState(true);
   const [loadError, setLoadError] = useState("");
   const [openTemplateGroupId, setOpenTemplateGroupId] = useState("");
+  const [accountPlan, setAccountPlan] = useState(null);
+  const [aiQuickAddText, setAiQuickAddText] = useState("");
+  const [showAiSuggestions, setShowAiSuggestions] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,6 +93,19 @@ function AddCommitmentPage() {
     }
 
     loadOptions();
+  }, []);
+
+  useEffect(() => {
+    async function loadAccountPlan() {
+      try {
+        const account = await getAccount();
+        setAccountPlan(account.plan);
+      } catch {
+        setAccountPlan(null);
+      }
+    }
+
+    loadAccountPlan();
   }, []);
 
   async function handleCreateCommitment(payload) {
@@ -225,6 +242,82 @@ function AddCommitmentPage() {
           </div>
         </div>
       )}
+      {accountPlan === "premium" && !isGuidedSetup && (
+        <section className="ai-quick-add-preview">
+          <div className="ai-quick-add-preview__header">
+            <div>
+              <p className="ai-quick-add-preview__eyebrow">
+                Premium preview
+              </p>
+
+              <h2>AI Quick Add</h2>
+
+              <p>
+                Describe a commitment in one sentence to preview how
+                Life Ledger could suggest structured fields.
+              </p>
+            </div>
+          </div>
+
+          <textarea
+            value={aiQuickAddText}
+            onChange={(event) => {
+              setAiQuickAddText(event.target.value);
+              setShowAiSuggestions(false);
+            }}
+            placeholder="e.g. My Vodafone contract is £32 per month and renews on 15 October."
+            rows="3"
+          />
+
+          <button
+            type="button"
+            onClick={() => setShowAiSuggestions(true)}
+            disabled={!aiQuickAddText.trim()}
+          >
+            Generate suggestions
+          </button>
+
+          {showAiSuggestions && (
+            <div className="ai-quick-add-preview__suggestions">
+              <p className="ai-quick-add-preview__suggestions-label">
+                Example suggested fields
+              </p>
+
+              <dl>
+                <div>
+                  <dt>Title</dt>
+                  <dd>Mobile phone contract</dd>
+                </div>
+
+                <div>
+                  <dt>Provider</dt>
+                  <dd>Vodafone</dd>
+                </div>
+
+                <div>
+                  <dt>Amount</dt>
+                  <dd>£32.00</dd>
+                </div>
+
+                <div>
+                  <dt>Frequency</dt>
+                  <dd>Monthly</dd>
+                </div>
+
+                <div>
+                  <dt>Renewal date</dt>
+                  <dd>15 October</dd>
+                </div>
+              </dl>
+
+              <p className="ai-quick-add-preview__note">
+                This is an interactive Premium prototype preview.
+                AI-generated field extraction is not enabled in this version.
+              </p>
+            </div>
+          )}
+        </section>
+      )}
       {!isGuidedSetup && (
         <section className="commitment-templates">
           <div className="commitment-templates__header">
@@ -321,6 +414,7 @@ function AddCommitmentPage() {
         initialData={templateInitialData}
         groups={groups}
         statuses={statuses}
+        accountPlan={accountPlan}
         onSubmit={handleCreateCommitment}
         onCancel={() => navigate("/commitments")}
         submitLabel="Add commitment"

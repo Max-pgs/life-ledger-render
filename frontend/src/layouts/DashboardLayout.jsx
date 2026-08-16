@@ -1,8 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useLocation, Outlet } from "react-router";
 
 import Logo from "../components/Logo";
-import { logoutUser } from "../services/authService";
+import { getAccount, logoutUser } from "../services/authService";
 
 import "./DashboardLayout.css";
 
@@ -15,6 +15,39 @@ function DashboardLayout() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const [accountPlan, setAccountPlan] = useState(null);
+
+  useEffect(() => {
+    async function loadAccountPlan() {
+      try {
+        const account = await getAccount();
+        setAccountPlan(account.plan);
+      } catch {
+        setAccountPlan(null);
+      }
+    }
+
+    loadAccountPlan();
+  }, []);
+
+  useEffect(() => {
+    function handleAccountPlanChanged(event) {
+      setAccountPlan(event.detail?.plan || null);
+    }
+
+    window.addEventListener(
+      "account-plan-changed",
+      handleAccountPlanChanged,
+    );
+
+    return () => {
+      window.removeEventListener(
+        "account-plan-changed",
+        handleAccountPlanChanged,
+      );
+    };
+  }, []);
 
   /* Prevents duplicate logout requests while the current one is in progress. */
   async function handleLogout() {
@@ -101,16 +134,18 @@ function DashboardLayout() {
               Guided setup
             </Link>
 
-            <Link
-              to="/checklist"
-              className={`dashboard-layout__nav-link ${location.pathname === "/checklist"
-                ? "dashboard-layout__nav-link--active"
-                : ""
-                }`}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              What have I forgotten?
-            </Link>
+            {accountPlan === "premium" && (
+              <Link
+                to="/checklist"
+                className={`dashboard-layout__nav-link ${location.pathname === "/checklist"
+                  ? "dashboard-layout__nav-link--active"
+                  : ""
+                  }`}
+                onClick={() => setIsMobileMenuOpen(false)}
+              >
+                What have I forgotten?
+              </Link>
+            )}
 
             <Link
               to="/guides"
@@ -126,8 +161,8 @@ function DashboardLayout() {
             <Link
               to="/settings"
               className={`dashboard-layout__nav-link ${location.pathname === "/settings"
-                  ? "dashboard-layout__nav-link--active"
-                  : ""
+                ? "dashboard-layout__nav-link--active"
+                : ""
                 }`}
               onClick={() => setIsMobileMenuOpen(false)}
             >
@@ -150,7 +185,12 @@ function DashboardLayout() {
       </aside >
 
       <main className="dashboard-content">
-        <Outlet context={{ dashboardLogoRef }} />
+        <Outlet
+          context={{
+            dashboardLogoRef,
+            accountPlan,
+          }}
+        />
       </main>
     </div >
   );

@@ -96,3 +96,37 @@ export async function deleteAccount(confirmation) {
 
   return parseResponse(response);
 }
+
+export async function upgradeToPremium() {
+  const token = localStorage.getItem("authToken");
+
+  const response = await fetch(
+    `${API_BASE_URL}/auth/account/upgrade/`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return parseResponse(response);
+}
+
+export async function cancelPremium() {
+  const token = localStorage.getItem("authToken");
+
+  const response = await fetch(
+    `${API_BASE_URL}/auth/account/cancel-premium/`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+  return parseResponse(response);
+}

@@ -5,6 +5,8 @@ import {
     deleteAccount,
     getAccount,
     logoutUser,
+    upgradeToPremium,
+    cancelPremium,
 } from "../services/authService";
 
 import "./SettingsPage.css";
@@ -17,6 +19,9 @@ function SettingsPage() {
     const [showPremiumModal, setShowPremiumModal] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
+    const [isUpgrading, setIsUpgrading] = useState(false);
+    const [upgradeMessage, setUpgradeMessage] = useState("");
+    const [isCancellingPremium, setIsCancellingPremium] = useState(false);
 
     const navigate = useNavigate();
 
@@ -43,6 +48,72 @@ function SettingsPage() {
         } finally {
             localStorage.removeItem("authToken");
             navigate("/login");
+        }
+    }
+
+    async function handleUpgradeToPremium() {
+        setIsUpgrading(true);
+        setUpgradeMessage("");
+
+        try {
+            const data = await upgradeToPremium();
+
+            setAccount((currentAccount) => ({
+                ...currentAccount,
+                plan: data.plan,
+            }));
+
+            window.dispatchEvent(
+                new CustomEvent("account-plan-changed", {
+                    detail: {
+                        plan: data.plan,
+                    },
+                }),
+            );
+
+            setUpgradeMessage(
+                data.message || "Mock payment successful. Your account is now Premium.",
+            );
+
+            setShowPremiumModal(false);
+        } catch {
+            setUpgradeMessage(
+                "Premium upgrade could not be completed. Please try again.",
+            );
+        } finally {
+            setIsUpgrading(false);
+        }
+    }
+
+    async function handleCancelPremium() {
+        setIsCancellingPremium(true);
+        setUpgradeMessage("");
+
+        try {
+            const data = await cancelPremium();
+
+            setAccount((currentAccount) => ({
+                ...currentAccount,
+                plan: data.plan,
+            }));
+
+            window.dispatchEvent(
+                new CustomEvent("account-plan-changed", {
+                    detail: {
+                        plan: data.plan,
+                    },
+                }),
+            );
+
+            setUpgradeMessage(
+                data.message || "Your account is now using the Free plan.",
+            );
+        } catch {
+            setUpgradeMessage(
+                "Premium cancellation could not be completed. Please try again.",
+            );
+        } finally {
+            setIsCancellingPremium(false);
         }
     }
 
@@ -109,6 +180,12 @@ function SettingsPage() {
                 <p className="settings-page__error">{loadError}</p>
             )}
 
+            {upgradeMessage && (
+                <p className="settings-page__success" role="status">
+                    {upgradeMessage}
+                </p>
+            )}
+
             <section className="settings-card">
                 <div className="settings-card__header">
                     <div>
@@ -157,6 +234,34 @@ function SettingsPage() {
                     <article className="settings-plan-feature">
                         <div>
                             <span className="settings-plan-feature__label">
+                                Premium
+                            </span>
+                            <h3>What have I forgotten?</h3>
+                        </div>
+
+                        <p>
+                            Check common UK commitments that you may not yet be tracking
+                            and mark items as tracked or not relevant.
+                        </p>
+                    </article>
+
+                    <article className="settings-plan-feature">
+                        <div>
+                            <span className="settings-plan-feature__label">
+                                Future Premium
+                            </span>
+                            <h3>Family commitments</h3>
+                        </div>
+
+                        <p>
+                            Preview tools for organising personal and shared household
+                            commitments, including a separate family dashboard overview.
+                        </p>
+                    </article>
+
+                    <article className="settings-plan-feature">
+                        <div>
+                            <span className="settings-plan-feature__label">
                                 Future Premium
                             </span>
                             <h3>AI Quick Add</h3>
@@ -171,7 +276,7 @@ function SettingsPage() {
                     <article className="settings-plan-feature">
                         <div>
                             <span className="settings-plan-feature__label">
-                                Premium
+                                Future Premium
                             </span>
                             <h3>Advanced dashboard insights</h3>
                         </div>
@@ -197,13 +302,24 @@ function SettingsPage() {
                     </article>
                 </div>
 
-                {account.plan !== "premium" && (
+                {account.plan !== "premium" ? (
                     <button
                         type="button"
                         className="settings-button settings-button--primary"
                         onClick={() => setShowPremiumModal(true)}
                     >
                         Upgrade to Premium
+                    </button>
+                ) : (
+                    <button
+                        type="button"
+                        className="settings-button"
+                        onClick={handleCancelPremium}
+                        disabled={isCancellingPremium}
+                    >
+                        {isCancellingPremium
+                            ? "Cancelling..."
+                            : "Cancel Premium"}
                     </button>
                 )}
 
@@ -276,40 +392,70 @@ function SettingsPage() {
 
                         <div className="settings-premium-modal__features">
                             <div>
+                                <strong>What have I forgotten?</strong>
+                                <span>
+                                    Check common UK commitments that you may not yet be tracking
+                                    and mark items as tracked or not relevant.
+                                </span>
+                            </div>
+
+                            <div>
+                                <strong>Family commitments</strong>
+                                <span>
+                                    Preview personal and shared household commitments with
+                                    a separate family dashboard overview.
+                                </span>
+                            </div>
+
+                            <div>
                                 <strong>AI Quick Add</strong>
                                 <span>
-                                    Describe a commitment in one sentence and review suggested fields
-                                    before saving.
+                                    Preview how a sentence could be turned into suggested
+                                    commitment fields before saving.
                                 </span>
                             </div>
 
                             <div>
                                 <strong>Advanced dashboard insights</strong>
                                 <span>
-                                    See deeper patterns across recurring costs, deadlines and
-                                    commitment groups.
+                                    Explore additional summaries based on recurring costs,
+                                    deadlines and commitment groups.
                                 </span>
                             </div>
 
                             <div>
                                 <strong>Extended achievements</strong>
                                 <span>
-                                    Unlock additional milestones for keeping life admin organised.
+                                    Unlock additional organisation and review milestones.
                                 </span>
                             </div>
                         </div>
 
                         <p className="settings-premium-modal__note">
-                            Premium billing is not available in this prototype.
+                            Premium billing is not available in this prototype. Some Premium
+                            features are presented as interactive previews rather than fully
+                            implemented multi-user or AI functionality.
                         </p>
 
-                        <button
-                            type="button"
-                            className="settings-button"
-                            onClick={() => setShowPremiumModal(false)}
-                        >
-                            Close
-                        </button>
+                        <div className="settings-modal__actions">
+                            <button
+                                type="button"
+                                className="settings-button"
+                                onClick={() => setShowPremiumModal(false)}
+                                disabled={isUpgrading}
+                            >
+                                Close
+                            </button>
+
+                            <button
+                                type="button"
+                                className="settings-button settings-button--primary"
+                                onClick={handleUpgradeToPremium}
+                                disabled={isUpgrading}
+                            >
+                                {isUpgrading ? "Processing..." : "Complete mock upgrade"}
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

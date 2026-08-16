@@ -4,7 +4,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import UserProfile
+from .models import AccountPlan, UserProfile
 
 from .serializers import AccountSerializer, RegisterSerializer, LoginSerializer
 
@@ -85,3 +85,41 @@ class DeleteAccountView(APIView):
         user.delete()
 
         return Response(status = status.HTTP_204_NO_CONTENT)
+    
+class UpgradeToPremiumView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        profile, _ = UserProfile.objects.get_or_create(
+            user = request.user,
+        )
+
+        profile.plan = AccountPlan.PREMIUM
+        profile.save(update_fields = ["plan"])
+
+        return Response(
+            {
+                "plan": profile.plan,
+                "message": "Mock payment successful. Your account is now Premium.",
+            },
+            status = status.HTTP_200_OK,
+        )
+        
+class CancelPremiumView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        profile, _ = UserProfile.objects.get_or_create(
+            user = request.user,
+        )
+
+        profile.plan = AccountPlan.FREE
+        profile.save(update_fields = ["plan"])
+
+        return Response(
+            {
+                "plan": profile.plan,
+                "message": "Your Premium preview has been cancelled. Your account is now Free.",
+            },
+            status=status.HTTP_200_OK,
+        )
