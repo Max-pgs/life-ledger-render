@@ -377,7 +377,7 @@ function SettingsPage() {
                     role="presentation"
                 >
                     <div
-                        className="settings-modal"
+                        className="settings-modal settings-modal--premium"
                         role="dialog"
                         aria-modal="true"
                         aria-labelledby="premium-modal-title"
