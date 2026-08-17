@@ -915,15 +915,11 @@ function DashboardPage() {
             <section className="dashboard-premium-insights">
               <div className="dashboard-premium-insights__header">
                 <div>
-                  <p className="dashboard-premium-insights__eyebrow">
-                    Premium
-                  </p>
-
                   <h2>Advanced insights</h2>
                 </div>
 
                 <span className="dashboard-premium-insights__badge">
-                  Live data
+                  Premium
                 </span>
               </div>
 
@@ -984,7 +980,7 @@ function DashboardPage() {
                 <button
                   type="button"
                   className="dashboard-upcoming__view-all"
-                  onClick={() => navigate("/commitments")}
+                  onClick={() => navigate("/commitments?upcoming=30")}
                 >
                   View all
                 </button>
@@ -1172,7 +1168,7 @@ function DashboardPage() {
               <button
                 type="button"
                 className="dashboard-overdue__view-all"
-                onClick={() => navigate("/commitments?payment_status=overdue")}
+                onClick={() => navigate("/commitments?overdue=true")}
               >
                 View all
               </button>
@@ -1245,7 +1241,7 @@ function DashboardPage() {
               <button
                 type="button"
                 className="dashboard-high-priority__view-all"
-                onClick={() => navigate("/commitments")}
+                onClick={() => navigate("/commitments?priority=high")}
               >
                 View all
               </button>
@@ -1318,7 +1314,7 @@ function DashboardPage() {
               <button
                 type="button"
                 className="dashboard-review-needed__view-all"
-                onClick={() => navigate("/commitments")}
+                onClick={() => navigate("/commitments?review=needed")}
               >
                 View all
               </button>

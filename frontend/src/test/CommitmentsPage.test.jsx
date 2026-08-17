@@ -212,7 +212,7 @@ describe("CommitmentsPage", () => {
         ).not.toBeInTheDocument();
 
         expect(
-            screen.getByText("Showing 1 commitment")
+            screen.getByText("Showing 1 paid commitment this month")
         ).toBeInTheDocument();
     });
 });

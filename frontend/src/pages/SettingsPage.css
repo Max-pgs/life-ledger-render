@@ -363,6 +363,31 @@
   cursor: not-allowed;
 }
 
+.settings-modal--premium {
+  max-height: min(760px, calc(100vh - 48px));
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #4f5d56 #151b18;
+}
+
+.settings-modal--premium::-webkit-scrollbar {
+  width: 8px;
+}
+
+.settings-modal--premium::-webkit-scrollbar-track {
+  background: #151b18;
+  border-radius: 999px;
+}
+
+.settings-modal--premium::-webkit-scrollbar-thumb {
+  background: #4f5d56;
+  border-radius: 999px;
+}
+
+.settings-modal--premium::-webkit-scrollbar-thumb:hover {
+  background: #63736b;
+}
+
 @media (max-width: 760px) {
   .settings-page {
     gap: 18px;

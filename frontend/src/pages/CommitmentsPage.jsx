@@ -30,6 +30,9 @@ function CommitmentsPage() {
     const [groupFilter, setGroupFilter] = useState("");
     const [statusFilter, setStatusFilter] = useState("");
 
+    const upcomingFilter =
+        searchParams.get("upcoming") === "30";
+
     const priorityFilter = ["high", "medium", "low"].includes(
         searchParams.get("priority"),
     )
@@ -46,6 +49,9 @@ function CommitmentsPage() {
         searchParams.get("review") === "needed"
             ? "needed"
             : "";
+
+    const overdueFilter =
+        searchParams.get("overdue") === "true";
 
     const [actionError, setActionError] = useState("");
     const [commitmentToArchive, setCommitmentToArchive] = useState(null);
@@ -220,6 +226,14 @@ function CommitmentsPage() {
         );
     }
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcomingEndDate = new Date(today);
+    upcomingEndDate.setDate(
+        upcomingEndDate.getDate() + 30,
+    );
+
     const filteredCommitments = commitments.filter((commitment) => {
         const searchValue = searchQuery.trim().toLowerCase();
 
@@ -248,13 +262,54 @@ function CommitmentsPage() {
             reviewFilter !== "needed" ||
             commitment.review_needed;
 
+        const matchesUpcoming = (() => {
+            if (!upcomingFilter) {
+                return true;
+            }
+
+            if (!commitment.due_date) {
+                return false;
+            }
+
+            const dueDate = new Date(
+                `${commitment.due_date}T00:00:00`,
+            );
+
+            return (
+                dueDate >= today &&
+                dueDate <= upcomingEndDate
+            );
+        })();
+
+        const matchesOverdue = (() => {
+            if (!overdueFilter) {
+                return true;
+            }
+
+            if (!commitment.due_date) {
+                return false;
+            }
+
+            const dueDate = new Date(
+                `${commitment.due_date}T00:00:00`,
+            );
+
+            return (
+                dueDate < today &&
+                commitment.effective_payment_status !== "paid" &&
+                commitment.payment_status !== "not_applicable"
+            );
+        })();
+
         return (
             matchesSearch &&
             matchesGroup &&
             matchesStatus &&
             matchesPriority &&
             matchesPaymentCycle &&
-            matchesReview
+            matchesReview &&
+            matchesUpcoming &&
+            matchesOverdue
         );
     });
 
@@ -475,6 +530,8 @@ function CommitmentsPage() {
                                 nextParams.delete("payment_cycle_status");
                                 nextParams.delete("priority");
                                 nextParams.delete("review");
+                                nextParams.delete("upcoming");
+                                nextParams.delete("overdue");
 
                                 setSearchParams(nextParams);
                             }}
@@ -501,10 +558,40 @@ function CommitmentsPage() {
                 <div className="commitments-table-wrapper">
                     <div className="commitments-desktop">
                         <div className="commitments-table__summary">
-                            Showing {filteredCommitments.length}{" "}
-                            {filteredCommitments.length === 1
-                                ? "commitment"
-                                : "commitments"}
+                            {paymentCycleFilter ? (
+                                <>
+                                    Showing {filteredCommitments.length}{" "}
+                                    {paymentCycleFilter} commitment
+                                    {filteredCommitments.length === 1 ? "" : "s"} this month
+                                </>
+                            ) : upcomingFilter ? (
+                                <>
+                                    Showing {filteredCommitments.length} upcoming commitment
+                                    {filteredCommitments.length === 1 ? "" : "s"} due in the next 30 days
+                                </>
+                            ) : overdueFilter ? (
+                                <>
+                                    Showing {filteredCommitments.length} overdue commitment
+                                    {filteredCommitments.length === 1 ? "" : "s"}
+                                </>
+                            ) : priorityFilter === "high" ? (
+                                <>
+                                    Showing {filteredCommitments.length} high-priority commitment
+                                    {filteredCommitments.length === 1 ? "" : "s"}
+                                </>
+                            ) : reviewFilter ? (
+                                <>
+                                    Showing {filteredCommitments.length} commitment
+                                    {filteredCommitments.length === 1 ? "" : "s"} requiring review
+                                </>
+                            ) : (
+                                <>
+                                    Showing {filteredCommitments.length}{" "}
+                                    {filteredCommitments.length === 1
+                                        ? "commitment"
+                                        : "commitments"}
+                                </>
+                            )}
                         </div>
 
                         <table className="commitments-table">
