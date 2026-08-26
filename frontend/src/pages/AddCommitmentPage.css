@@ -662,13 +662,14 @@
   line-height: 1.5;
 }
 
-/* Stacks the form into a single column on smaller screens. */
+/* Reduces the template grid to two columns on narrower screens. */
 @media (max-width: 1000px) {
   .commitment-templates__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
+/* Stacks the form and template cards into a single column on mobile screens. */
 @media (max-width: 760px) {
   .add-commitment-page {
     padding: 22px 18px;

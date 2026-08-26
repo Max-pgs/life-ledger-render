@@ -5,6 +5,9 @@ function Logo({
   className = "",
   ariaLabel = "Life Ledger",
 }) {
+  /* [AI-ASSISTED: ChatGPT, 2026-08-04]
+  * Minor assistance was used to structure the optional CSS class combination.
+  */
   /* Combines the base class, selected size variant, and any optional custom class. */
   const classes = ["logo", `logo--${variant}`, className]
     .filter(Boolean)

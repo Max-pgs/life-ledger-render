@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-11 to 2026-08-26]
+ * AI assistance was used extensively to refine filtering logic, data-loading
+ * effects, URL-based navigation, and filtered commitment result handling.
+ */
+
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router";
 
@@ -59,6 +66,7 @@ function CommitmentsPage() {
 
     const listMode = searchParams.get("view") === "archived" ? "archived" : "current";
 
+    /* Reloads the appropriate commitment list and supporting data when the list mode changes. */
     useEffect(() => {
         async function loadCommitmentsForMode(mode) {
             if (mode === "archived") {
@@ -192,6 +200,7 @@ function CommitmentsPage() {
         );
     }
 
+    /* Maps the selected monthly payment status back to the commitments it belongs to. */
     const paymentCycleCommitmentIds = new Set(
         currentMonthPayments
             .filter(
@@ -234,6 +243,7 @@ function CommitmentsPage() {
         upcomingEndDate.getDate() + 30,
     );
 
+    /* Combines toolbar filters with URL-driven filters opened from the dashboard. */
     const filteredCommitments = commitments.filter((commitment) => {
         const searchValue = searchQuery.trim().toLowerCase();
 
@@ -258,9 +268,24 @@ function CommitmentsPage() {
             !paymentCycleFilter ||
             paymentCycleCommitmentIds.has(commitment.id);
 
-        const matchesReview =
-            reviewFilter !== "needed" ||
-            commitment.review_needed;
+        const matchesReview = (() => {
+            if (reviewFilter !== "needed") {
+                return true;
+            }
+
+            if (!commitment.cancellation_deadline) {
+                return false;
+            }
+
+            const cancellationDeadline = new Date(
+                `${commitment.cancellation_deadline}T00:00:00`,
+            );
+
+            return (
+                cancellationDeadline >= today &&
+                cancellationDeadline <= upcomingEndDate
+            );
+        })();
 
         const matchesUpcoming = (() => {
             if (!upcomingFilter) {

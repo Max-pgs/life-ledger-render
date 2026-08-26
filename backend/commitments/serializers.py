@@ -1,3 +1,13 @@
+"""
+Serializers for commitments, payment cycles, templates, and guided setup.
+
+AI Usage Declaration:
+This file contains code developed with assistance from ChatGPT.
+AI-assisted and AI-generated sections are identified with inline comments below.
+All AI-assisted code was reviewed, adapted where necessary, tested, and understood
+before inclusion in the project.
+"""
+
 from rest_framework import serializers
 from datetime import timedelta
 from django.utils import timezone
@@ -8,12 +18,12 @@ from guides.serializers import GroupInformationLinkSerializer
 
 class CommitmentGroupSerializer(serializers.ModelSerializer):
     # Group guidance is read-only for ordinary users and maintained by administrators.
-    
+
     information_links = GroupInformationLinkSerializer(
         many=True,
         read_only=True,
     )
-    
+
     class Meta:
         model = CommitmentGroup
         fields = (
@@ -26,7 +36,7 @@ class CommitmentGroupSerializer(serializers.ModelSerializer):
             "information_links",
         )
         read_only_fields = fields
-        
+
 class StatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = Status
@@ -36,7 +46,7 @@ class StatusSerializer(serializers.ModelSerializer):
             "description",
         )
         read_only_fields = fields
-        
+
 class CommitmentPaymentSerializer(serializers.ModelSerializer):
     effective_status = serializers.CharField(
         read_only = True,
@@ -53,7 +63,7 @@ class CommitmentPaymentSerializer(serializers.ModelSerializer):
     )
 
     group_name = serializers.SerializerMethodField()
-    
+
     def get_group_name(self, obj):
         if obj.commitment.group:
             return obj.commitment.group.name
@@ -78,11 +88,11 @@ class CommitmentPaymentSerializer(serializers.ModelSerializer):
 class CommitmentSerializer(serializers.ModelSerializer):
     cancellation_deadline = serializers.SerializerMethodField()
     effective_payment_status = serializers.SerializerMethodField()
-    
+
     group = CommitmentGroupSerializer(
         read_only = True,
     )
-    
+
     group_id = serializers.PrimaryKeyRelatedField(
         source = "group",
         queryset = CommitmentGroup.objects.filter(is_active = True),
@@ -90,7 +100,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
         required = False,
         allow_null = True,
     )
-    
+
     template_id = serializers.PrimaryKeyRelatedField(
         source = "template",
         queryset = CommitmentTemplate.objects.filter(is_active=True),
@@ -98,11 +108,11 @@ class CommitmentSerializer(serializers.ModelSerializer):
         required = False,
         allow_null = True,
     )
-        
+
     status = StatusSerializer(
         read_only = True,
     )
-    
+
     status_id = serializers.PrimaryKeyRelatedField(
         source = "status",
         queryset = Status.objects.all(),
@@ -110,7 +120,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
         required = False,
         allow_null = True,
     )
-    
+
     class Meta:
         model = Commitment
         fields = (
@@ -145,7 +155,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             "created_at",
             "updated_at",
         )
-    
+
     def create(self, validated_data):
         commitment = Commitment.objects.create(**validated_data)
 
@@ -167,7 +177,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
                     else None
                 ),
             )
-            
+
             if (
                 commitment.payment_status == Commitment.PaymentStatus.PAID
                 and commitment.payment_frequency
@@ -196,14 +206,18 @@ class CommitmentSerializer(serializers.ModelSerializer):
                 )
 
         return commitment
-    
+
     def update(self, instance, validated_data):
         previous_due_date = instance.due_date
+        previous_payment_status = instance.payment_status
         payment_status = validated_data.get("payment_status")
 
         for field, value in validated_data.items():
             setattr(instance, field, value)
-            
+
+        # [AI-ASSISTED: ChatGPT, 2026-08-16]
+        # AI assistance was used to identify the current pending payment cycle
+        # using its previous due date and status.
         current_pending_payment = (
             instance.payments
             .filter(
@@ -226,7 +240,29 @@ class CommitmentSerializer(serializers.ModelSerializer):
                 ]
             )
 
-        if payment_status == Commitment.PaymentStatus.PAID:
+        # Creates the first payment cycle when payment tracking is enabled.
+        if (
+            previous_payment_status == Commitment.PaymentStatus.NOT_APPLICABLE
+            and payment_status == Commitment.PaymentStatus.PENDING
+            and instance.due_date
+            and instance.payment_frequency
+        ):
+            CommitmentPayment.objects.get_or_create(
+                commitment=instance,
+                due_date=instance.due_date,
+                status=CommitmentPayment.PaymentStatus.PENDING,
+                defaults={
+                    "amount": instance.amount,
+                },
+            )
+
+        # [AI-GENERATED: ChatGPT, 2026-08-16, 2026-08-26]
+        # This payment-cycle transition logic was initially generated with AI
+        # assistance and then reviewed, adapted, and tested for Life Ledger.
+        if (
+            payment_status == Commitment.PaymentStatus.PAID
+            and previous_payment_status != Commitment.PaymentStatus.PAID
+        ):
             paid_at = timezone.now()
 
             if current_pending_payment:
@@ -268,29 +304,31 @@ class CommitmentSerializer(serializers.ModelSerializer):
                 instance.payment_status = Commitment.PaymentStatus.PENDING
 
                 CommitmentPayment.objects.get_or_create(
-                    commitment = instance,
-                    due_date = instance.due_date,
-                    defaults = {
+                    commitment=instance,
+                    due_date=instance.due_date,
+                    defaults={
                         "amount": instance.amount,
                         "status": CommitmentPayment.PaymentStatus.PENDING,
                     },
                 )
 
+        # [END AI-GENERATED SECTION]
+
         instance.save()
 
         return instance
-                
+
     def validate_title(self, value):
         cleaned_title = value.strip()
-        
+
         if not cleaned_title:
             raise serializers.ValidationError("Commitment title cannot be empty")
-        
+
         return cleaned_title
-    
+
     def validate_provider_name(self, value):
         return value.strip()
-    
+
     def validate_amount(self, value):
         if value is not None and value < 0:
             raise serializers.ValidationError(
@@ -298,7 +336,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             )
 
         return value
-    
+
     def validate_notice_period_days(self, value):
         if value is not None and value < 0:
             raise serializers.ValidationError(
@@ -306,20 +344,25 @@ class CommitmentSerializer(serializers.ModelSerializer):
             )
 
         return value
-    
+
+
+    # [AI-ASSISTED: ChatGPT, 2026-07-30]
+    # AI assistance was used to confirm the cancellation deadline calculation.
     def get_cancellation_deadline(self, obj):
         if (
             obj.contract_end_date is None
             or obj.notice_period_days is None
         ):
             return None
-        
+
         deadline = (
             obj.contract_end_date - timedelta(days = obj.notice_period_days)
         )
-        
+
         return deadline.isoformat()
-    
+
+    # [AI-ASSISTED: ChatGPT, 2026-07-30]
+    # AI assistance was used to refine the effective overdue-status calculation.
     def get_effective_payment_status(self, obj):
         if (
             obj.payment_status == Commitment.PaymentStatus.PENDING
@@ -329,7 +372,7 @@ class CommitmentSerializer(serializers.ModelSerializer):
             return Commitment.PaymentStatus.OVERDUE
 
         return obj.payment_status
-        
+
 class CommitmentTemplateSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(
         source = "group.name",
@@ -359,10 +402,10 @@ class CommitmentTemplateSerializer(serializers.ModelSerializer):
             "recommended_fields",
             "display_order",
         )
-        
+
 class GuidedSetupGroupSerializer(serializers.ModelSerializer):
     templates = serializers.SerializerMethodField()
-    
+
     class Meta:
         model = CommitmentGroup
         fields = [
@@ -371,7 +414,7 @@ class GuidedSetupGroupSerializer(serializers.ModelSerializer):
             "description",
             "templates",
         ]
-    
+
     # active_templates is populated by the guided-setup queryset using Prefetch.
     def get_templates(self, obj):
         templates = getattr(
@@ -379,12 +422,12 @@ class GuidedSetupGroupSerializer(serializers.ModelSerializer):
             "active_templates",
             [],
         )
-        
+
         return CommitmentTemplateSerializer(
             templates,
             many = True,
         ).data
-        
+
 class ForgottenChecklistTemplateSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(
         source = "group.name",

@@ -1,3 +1,11 @@
+/*
+ * AI Usage Declaration:
+ * [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-11 to 2026-08-16]
+ * AI assistance was used extensively to implement and refine the Premium
+ * upgrade/cancellation flow, modal behaviour, account-plan updates, and
+ * synchronisation of Premium-dependent interface elements.
+ */
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 
@@ -63,6 +71,7 @@ function SettingsPage() {
                 plan: data.plan,
             }));
 
+            /* Notifies the shared layout so Premium-dependent navigation updates without reloading. */
             window.dispatchEvent(
                 new CustomEvent("account-plan-changed", {
                     detail: {

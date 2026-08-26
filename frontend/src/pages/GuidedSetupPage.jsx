@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [AI-ASSISTED: ChatGPT, 2026-08-11 to 2026-08-16]
+ * Minor assistance was used to refine guided-setup selection handlers
+ * and navigation into the commitment creation flow.
+ */
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
@@ -40,6 +47,7 @@ const setupQuestions = [
     },
 ];
 
+/* Maps positive setup answers to the commitment templates they can suggest. */
 const questionTemplateNames = {
     renting: [
         "Rent",
@@ -114,6 +122,7 @@ function GuidedSetupPage() {
         (question) => answers[question.id] !== undefined,
     );
 
+    /* Converts positive answers into the template names used to build suggestions. */
     const selectedTemplateNames = Object.entries(answers)
         .filter(([, answer]) => answer === true)
         .flatMap(
@@ -356,6 +365,7 @@ function GuidedSetupPage() {
                             Back
                         </button>
 
+                        {/* Passes the selected template sequence so the add flow can process them one by one. */}
                         <button
                             type="button"
                             className="guided-setup-next"

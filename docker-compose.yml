@@ -1,3 +1,8 @@
+# AI Usage Declaration:
+# [AI-ASSISTED: ChatGPT, 2026-07-23 to 2026-08-25]
+# AI assistance was used to support Docker service, networking, port,
+# environment, and automatic migration startup configuration.
+# The final setup was adapted and tested.
 services:
   db:
     image: postgres:17
@@ -20,7 +25,9 @@ services:
       context: ./backend
     container_name: lifeledger_backend
     restart: unless-stopped
-    command: python manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python manage.py migrate &&
+            python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/app
     ports:

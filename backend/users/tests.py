@@ -1,3 +1,20 @@
+"""
+Automated API tests for authentication, account management, and Premium behaviour.
+
+AI Usage Declaration:
+This file received significant assistance from ChatGPT.
+Most test implementations were initially generated with AI assistance,
+using the established commitment API tests as a reference.
+
+Test scenarios and expected behaviour were reviewed, revised, and extended
+by the student as authentication, account, and Premium functionality evolved.
+
+AI assistance period: 2026-07-24 to 2026-08-16.
+
+All included tests were reviewed, executed, and understood before inclusion
+in the project.
+"""
+
 from django.contrib.auth.models import User
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -7,6 +24,9 @@ from rest_framework.authtoken.models import Token
 
 from .models import AccountPlan, UserProfile
 
+# [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-07-24 to 2026-08-16]
+# Most test implementations below were initially generated with AI assistance
+# and subsequently reviewed, revised, extended, and executed by the student.
 User = get_user_model()
 
 class RegisterAPITests(APITestCase):

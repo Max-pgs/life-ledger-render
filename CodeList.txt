@@ -1,0 +1,182 @@
+Life Ledger
+CodeList.txt
+
+Purpose
+-------
+This file provides the concise code-module listing requested for the MSc IT+ submission package.
+It identifies key significant files developed for Life Ledger and summarises the level of AI involvement.
+A more detailed file-by-file AI contribution register, including assistance dates and inline source markers,
+is provided separately in AI_DECLARATION.md.
+
+Classification
+--------------
+Predominantly user written
+    No direct AI-generated code was used for the listed file or area.
+
+AI-assisted
+    AI was used for guidance, debugging, implementation support, or selected code sections.
+    The final code was reviewed, adapted and tested.
+
+Significant AI assistance
+    AI contributed substantially to the implementation of the file or a major part of it.
+    The resulting code was reviewed, revised where necessary and tested.
+
+
+PREDOMINANTLY USER WRITTEN
+--------------------------
+
+backend/commitments/admin.py
+    Django admin configuration for commitment-related models.
+
+backend/users/models.py
+    User-profile data model supporting account-plan information.
+
+frontend/src/pages/RegisterPage.jsx
+    User registration page and registration form flow.
+
+frontend/src/pages/LoginPage.jsx
+    User login page and authentication entry flow.
+
+frontend/src/pages/GuidesPage.jsx
+    UK guidance page and commitment-group information presentation.
+
+frontend/src/pages/FaqPage.jsx
+    Frequently asked questions and application guidance content.
+
+frontend/src/pages/PrivacyPolicyPage.jsx
+    Application privacy-policy page.
+
+frontend/src/routes/ProtectedRoute.jsx
+    Route-level authentication protection for signed-in application areas.
+
+frontend/src/layouts/DashboardLayout.jsx
+    Shared authenticated layout, navigation and session controls.
+
+frontend/src/pages/AddCommitmentPage.css
+frontend/src/pages/CommitmentDetailPage.css
+frontend/src/pages/CommitmentsPage.css
+frontend/src/pages/FaqPage.css
+frontend/src/pages/ForgottenChecklistPage.css
+frontend/src/pages/GuidedSetupPage.css
+frontend/src/pages/GuidesPage.css
+frontend/src/pages/PrivacyPolicyPage.css
+    Predominantly user-written page styling and responsive layout work.
+
+
+AI-ASSISTED
+-----------
+
+backend/commitments/models.py
+    Commitment-domain models, including assistance with recurring due-date calculation and
+    the CommitmentTemplateExclusion structure.
+
+backend/commitments/serializers.py
+    Commitment API serialisation and business rules, including substantial assistance with
+    payment-cycle processing plus smaller filtering, deadline and effective-status logic.
+
+backend/commitments/views.py
+    Django REST Framework view/queryset implementation with general API and filtering guidance.
+
+backend/users/serializers.py
+backend/users/views.py
+    Account, registration and plan-related API logic with limited implementation guidance.
+
+backend/config/settings.py
+    Django production/deployment configuration, particularly Render-related settings.
+
+backend/requirements.txt
+    Backend dependency and deployment-package configuration guidance.
+
+docker-compose.yml
+    Local PostgreSQL/Django Docker configuration and automatic migration startup guidance.
+
+render.yaml
+    Render backend, database and static frontend deployment configuration.
+
+frontend/package.json
+frontend/vite.config.js
+    Frontend test dependencies, scripts and Vitest/jsdom configuration.
+
+frontend/src/App.jsx
+    React Router structure and protected-layout routing guidance.
+
+frontend/src/components/Logo.jsx
+frontend/src/components/Logo.css
+    Logo class handling plus SVG scaling/animation refinement.
+
+frontend/src/components/CommitmentForm.jsx
+    Form state handling, cancellation-deadline calculation, payload preparation and submission logic.
+
+frontend/src/pages/AddCommitmentPage.jsx
+    Guided Setup navigation integration and form remount/update behaviour.
+
+frontend/src/pages/CommitmentDetailPage.jsx
+    Date-only formatting guidance and commitment-detail navigation behaviour.
+
+frontend/src/pages/EditCommitmentPage.jsx
+    Conversion of API values into the string-based form state expected by controls.
+
+frontend/src/pages/ForgottenChecklistPage.jsx
+    Checklist Not relevant / Restore status-update behaviour.
+
+frontend/src/pages/GuidedSetupPage.jsx
+    Guided-setup selection handlers and navigation into the commitment creation flow.
+
+frontend/src/pages/DashboardPage.css
+    Dashboard component positioning and responsive-layout troubleshooting/refinement.
+
+frontend/src/pages/SettingsPage.css
+    Settings modal layout, scrolling and responsive behaviour.
+
+frontend/src/services/authService.js
+    Token authentication and authenticated request handling.
+
+frontend/src/services/commitmentService.js
+    Reusable API request helper used by commitment-related frontend services.
+
+
+SIGNIFICANT AI ASSISTANCE
+-------------------------
+
+backend/commitments/tests.py
+    Extensive implementation support for the backend commitment API and business-logic regression tests.
+    Test cases and expected behaviour were reviewed and revised during development.
+
+backend/users/tests.py
+    Extensive implementation support for authentication, account and plan-related backend tests.
+
+frontend/src/components/LoginSuccessTransition.jsx
+frontend/src/components/LoginSuccessTransition.css
+    Login-transition phases, positioning, animation timing and visual behaviour.
+
+frontend/src/pages/CommitmentsPage.jsx
+    Filtering, React effects, URL-driven dashboard filters and payment-cycle result handling.
+
+frontend/src/pages/DashboardPage.jsx
+    Dashboard summary logic, current-month payment status, recurring-cost calculations,
+    achievements, interactive chart behaviour and filtered navigation.
+
+frontend/src/pages/SettingsPage.jsx
+    Premium prototype upgrade/cancellation flow, modal behaviour, plan updates and
+    synchronisation of Premium-dependent interface elements.
+
+frontend/src/test/CommitmentForm.test.jsx
+frontend/src/test/CommitmentsPage.test.jsx
+frontend/src/test/DashboardPage.test.jsx
+frontend/src/test/ProtectedRoute.test.jsx
+    Significant assistance with frontend automated-test implementation, including test structure,
+    mocks, routing and assertions. Test scenarios and expected behaviour were defined and revised
+    during development.
+
+backend/commitments/migrations/0021_seed_final_guidance_data.py
+    Corrective data migration for commitment-group guidance, trusted external links,
+    and missing Household Bills templates.
+
+
+Notes
+-----
+- This is a concise submission-oriented list of key significant files rather than an exhaustive
+  inventory of every source file.
+- Standard framework scaffolding, generated migrations, dependency lock files, build output and
+  other generated files are not listed unless they were manually modified in a significant way.
+- AI_DECLARATION.md is the authoritative detailed project-level AI contribution register.

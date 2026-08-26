@@ -1,3 +1,13 @@
+"""
+Data models for commitments, payment cycles, templates, and checklist exclusions.
+
+AI Usage Declaration:
+This file contains code developed with assistance from ChatGPT.
+AI-assisted sections are identified with inline comments below.
+All AI-assisted code was reviewed, adapted where necessary, tested, and understood
+before inclusion in the project.
+"""
+
 from django.conf import settings
 from django.db import models
 
@@ -8,7 +18,7 @@ class Priority(models.TextChoices):
         LOW = "low", "Low"
         MEDIUM = "medium", "Medium"
         HIGH = "high", "High"
-        
+
 class PaymentFrequency(models.TextChoices):
     WEEKLY = "weekly", "Weekly"
     MONTHLY = "monthly", "Monthly"
@@ -18,20 +28,20 @@ class PaymentFrequency(models.TextChoices):
 
 class CommitmentGroup(models.Model):
     # Group guidance is maintained by administrators and is read-only for users.
-    
+
     name = models.CharField(
         max_length = 100,
         unique = True,
     )
-    
+
     description = models.TextField(
         blank = True,
     )
-    
+
     is_active = models.BooleanField(
         default = True,
     )
-    
+
     last_reviewed_at = models.DateField(
         null = True,
         blank = True,
@@ -40,34 +50,34 @@ class CommitmentGroup(models.Model):
     updated_at = models.DateTimeField(
         auto_now = True,
     )
-        
+
     class Meta:
         ordering = ["name"]
-        
+
     def __str__(self):
         return self.name
-    
+
 class Status(models.Model):
     name = models.CharField(
         max_length = 100,
         unique = True,
     )
-    
+
     description = models.TextField(
         blank = True,
     )
-    
+
     class Meta:
         ordering = ["name"]
         verbose_name_plural = "statuses"
-        
+
     def __str__(self):
         return self.name
 
 class Commitment(models.Model):
     PaymentFrequency = PaymentFrequency
     Priority = Priority
-        
+
     class PaymentStatus(models.TextChoices):
         NOT_APPLICABLE = "not_applicable", "Not_applicable"
         PENDING = "pending", "Pending"
@@ -79,7 +89,7 @@ class Commitment(models.Model):
         on_delete = models.CASCADE,
         related_name = "commitments",
     )
-    
+
     group = models.ForeignKey(
         CommitmentGroup,
         on_delete = models.SET_NULL,
@@ -87,7 +97,7 @@ class Commitment(models.Model):
         blank = True,
         related_name = "commitments",
     )
-    
+
     template = models.ForeignKey(
         "CommitmentTemplate",
         on_delete = models.SET_NULL,
@@ -95,7 +105,7 @@ class Commitment(models.Model):
         blank = True,
         related_name = "commitments",
     )
-    
+
     status = models.ForeignKey(
         Status,
         on_delete = models.SET_NULL,
@@ -103,85 +113,88 @@ class Commitment(models.Model):
         blank = True,
         related_name = "commitments",
     )
-    
+
     title = models.CharField(
         max_length = 200,
     )
-    
+
     provider_name = models.CharField(
         max_length = 200,
         blank = True,
     )
-    
+
     amount = models.DecimalField(
         max_digits = 10,
         decimal_places = 2,
         null = True,
         blank = True,
     )
-    
+
     payment_frequency = models.CharField(
         max_length = 20,
         choices = PaymentFrequency.choices,
         blank = True,
     )
-    
+
     payment_status = models.CharField(
         max_length = 20,
         choices = PaymentStatus.choices,
         default = PaymentStatus.NOT_APPLICABLE,
     )
-    
+
     contract_end_date = models.DateField(
         null = True,
         blank = True,
     )
-    
+
     notice_period_days = models.PositiveIntegerField(
         null = True,
         blank = True,
     )
-    
+
     due_date = models.DateField(
         null = True,
         blank = True,
     )
-    
+
     renewal_date = models.DateField(
         null = True,
         blank = True,
     )
-    
+
     priority = models.CharField(
         max_length = 10,
         choices = Priority.choices,
         default = Priority.MEDIUM,
     )
-    
+
     notes = models.TextField(
         blank = True
     )
-    
+
     is_archived = models.BooleanField(
         default = False,
     )
-    
+
     archived_at = models.DateTimeField(
-        null = True, 
+        null = True,
         blank = True,
     )
-    
+
     created_at = models.DateTimeField(
         auto_now_add = True,
     )
-    
+
     updated_at = models.DateTimeField(
         auto_now = True,
     )
-    
+
     class Meta:
         ordering = ["-created_at"]
-        
+
+    # [AI-ASSISTED: ChatGPT, 2026-08-16]
+    # AI assistance was used to determine the date calculation approach
+    # for weekly, monthly, quarterly, and annual recurring commitments.
     def get_next_due_date(self):
         if not self.due_date:
             return None
@@ -199,10 +212,10 @@ class Commitment(models.Model):
             return self.due_date + relativedelta(years=1)
 
         return self.due_date
-        
+
     def __str__(self):
         return self.title
-    
+
 class CommitmentPayment(models.Model):
     class PaymentStatus(models.TextChoices):
         PENDING = "pending", "Pending"
@@ -245,7 +258,8 @@ class CommitmentPayment(models.Model):
 
     class Meta:
         ordering = ["due_date", "created_at"]
-        
+
+    # Pending payments become overdue dynamically once their due date has passed.
     @property
     def effective_status(self):
         if (
@@ -342,7 +356,10 @@ class CommitmentTemplate(models.Model):
 
     def __str__(self):
         return f"{self.group.name}: {self.name}"
-    
+
+# [AI-ASSISTED: ChatGPT, 2026-08-11]
+# AI assistance was used to define the model structure for storing
+# user-specific template exclusions used by the checklist.
 class CommitmentTemplateExclusion(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,

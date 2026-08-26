@@ -43,6 +43,10 @@ function EditCommitmentPage() {
                 setStatuses(statusData);
                 setAccountPlan(accountData.plan);
 
+                /* [AI-ASSISTED: ChatGPT, 2026-08-07]
+                * Minor assistance was used to convert API values into the
+                * string-based format expected by the form controls.
+                */
                 /* Converts API values into the string-based format expected by the form controls. */
                 setInitialData({
                     title: commitment.title || "",

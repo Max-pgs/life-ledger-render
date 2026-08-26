@@ -1,3 +1,19 @@
+"""
+Automated API tests for commitment management and related backend behaviour.
+
+AI Usage Declaration:
+This file received significant assistance from ChatGPT.
+Most test implementations were initially generated with AI assistance.
+The test cases, expected behaviour, and assertions were reviewed and revised
+during development, with additional cases added or adapted as the backend
+architecture changed.
+
+AI assistance period: 2026-07-29 to 2026-08-16.
+
+All included tests were reviewed, executed, and understood before inclusion
+in the project.
+"""
+
 from django.contrib.auth import get_user_model
 from django.urls import reverse
 from django.utils import timezone
@@ -10,6 +26,10 @@ from users.models import AccountPlan, UserProfile
 from .models import CommitmentGroup, CommitmentTemplate, CommitmentTemplateExclusion, Commitment, CommitmentPayment, Status
 from guides.models import GroupInformationLink
 
+
+# [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-07-29 to 2026-08-16]
+# Most test implementations below were initially generated with AI assistance
+# and subsequently reviewed, revised, extended, and executed.
 User = get_user_model()
 
 class AuthenticatedAPITestCase(APITestCase):

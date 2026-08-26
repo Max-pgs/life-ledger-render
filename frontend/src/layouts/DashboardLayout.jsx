@@ -31,6 +31,7 @@ function DashboardLayout() {
     loadAccountPlan();
   }, []);
 
+  /* Keeps Premium-dependent navigation in sync after the plan changes without reloading the page. */
   useEffect(() => {
     function handleAccountPlanChanged(event) {
       setAccountPlan(event.detail?.plan || null);

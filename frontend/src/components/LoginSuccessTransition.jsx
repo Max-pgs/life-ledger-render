@@ -1,3 +1,9 @@
+/*
+ * AI Usage Declaration:
+ * [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-04]
+ * AI assistance was used extensively to refine the login transition logic,
+ * positioning, timing, and animation phases.
+ */
 import { useEffect, useRef, useState } from "react";
 
 import Logo from "./Logo";

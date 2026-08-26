@@ -55,7 +55,7 @@ function LoginPage() {
         );
       }
 
-      /* Route state tells the dashboard to run the post-login logo transition. */
+      /* Redirects to the dashboard after successful authentication. */
       navigate("/dashboard", {
         state: {
           showLoginTransition: true,

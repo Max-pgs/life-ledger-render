@@ -246,6 +246,11 @@
   color: #f0caca;
 }
 
+/* [AI-ASSISTED: ChatGPT, 2026-08-11 to 2026-08-16]
+ * AI assistance was used to refine modal positioning, sizing,
+ * scrolling, and responsive behaviour.
+ */
+
 .settings-modal-backdrop {
   position: fixed;
   z-index: 1000;
@@ -387,6 +392,8 @@
 .settings-modal--premium::-webkit-scrollbar-thumb:hover {
   background: #63736b;
 }
+
+/* [END AI-ASSISTED SECTION] */
 
 @media (max-width: 760px) {
   .settings-page {

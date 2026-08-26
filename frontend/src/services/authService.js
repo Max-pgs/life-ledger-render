@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [AI-ASSISTED: ChatGPT, 2026-08-04 to 2026-08-16]
+ * AI assistance was used for guidance on token-based authentication
+ * and authenticated API requests.
+ */
+
 /* Uses the deployed API URL when available and falls back to local Django during development. */
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000/api";
