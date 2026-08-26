@@ -1,3 +1,12 @@
+/*
+ * AI Usage Declaration:
+ * [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-16]
+* AI assistance was used extensively to implement the frontend automated tests,
+ * including test structure, mocking, routing, and assertions.
+ * The test scenarios and expected behaviour were defined and revised during
+ * development.
+ */
+
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router";

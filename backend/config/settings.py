@@ -1,3 +1,17 @@
+"""
+Django settings for the Life Ledger backend.
+
+AI Usage Declaration:
+This file was developed with assistance from ChatGPT.
+AI assistance was used primarily to configure the application safely for
+deployment on Render while preserving the local Docker development setup.
+
+AI assistance date: 2026-08-04.
+
+The final configuration was reviewed, adapted, and tested in both local
+development and the deployed application.
+"""
+
 import os
 from pathlib import Path
 
@@ -5,6 +19,10 @@ import environ
 import dj_database_url
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# [AI-ASSISTED: ChatGPT, 2026-08-04]
+# AI assistance was used to configure environment-variable precedence,
+# Render host/database handling, static files, CORS, and production security.
 
 # Read environment variables from the project root .env file.
 env = environ.Env()
@@ -32,6 +50,7 @@ ALLOWED_HOSTS = env.list(
     ),
 )
 
+# Add Render's generated hostname without hard-coding a deployment-specific value.
 render_hostname = env("RENDER_EXTERNAL_HOSTNAME", default=None)
 
 if render_hostname and render_hostname not in ALLOWED_HOSTS:
@@ -145,6 +164,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
+# WhiteNoise serves compressed versioned static files in production.
 STORAGES = {
     "default": {
         "BACKEND": "django.core.files.storage.FileSystemStorage",

@@ -1,16 +1,113 @@
-# React + Vite
+# Life Ledger Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This directory contains the React frontend for Life Ledger, a responsive UK-focused life-admin and commitments management application.
 
-Currently, two official plugins are available:
+For the overall project description, backend information, deployment details and testing summary, see the main [README.md](../README.md).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Technology
 
-## React Compiler
+- React
+- Vite
+- React Router
+- JavaScript
+- Custom CSS
+- Vitest
+- React Testing Library
+- jsdom
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Structure
 
-## Expanding the ESLint configuration
+The main frontend source code is organised as follows:
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- `src/components/` - reusable interface components
+- `src/layouts/` - shared application layouts
+- `src/pages/` - application pages and main user flows
+- `src/routes/` - route-level access control
+- `src/services/` - communication with the Django REST API
+- `src/test/` - frontend automated tests and test configuration
+- `src/assets/` - application icons and other frontend assets
+
+## Local Setup
+
+Install the frontend dependencies:
+
+```bash
+npm install
+```
+
+For local development, the frontend uses the following Django API address by default:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8000/api
+```
+
+A local `.env` file is therefore not required for the standard development setup.
+
+If a different API address is required, create a `.env` file based on `.env.example` and set `VITE_API_BASE_URL` to the required URL.
+
+Start the Vite development server:
+
+```bash
+npm run dev
+```
+
+The frontend will normally be available at:
+
+```
+http://localhost:5173
+```
+
+The Django backend should be running separately for API-dependent functionality.
+
+## Testing
+
+Run the frontend tests in watch mode:
+
+```bash
+npm test
+```
+
+Run the complete frontend test suite once:
+
+```bash
+npm run test:run
+```
+
+The final focused frontend suite contains **8 automated tests** covering:
+
+- protected-route behaviour
+- commitment search
+- current-month payment filtering
+- cancellation deadline calculation
+- recurring-payment form guidance
+- dashboard payment-status navigation
+
+## Linting
+
+Run ESLint with:
+
+```bash
+npm run lint
+```
+
+## Production Build
+
+Create a production build with:
+
+```bash
+npm run build
+```
+
+Preview the production build locally with:
+
+```bash
+npm run preview
+```
+
+The generated production files are written to the `dist/` directory.
+
+## AI Usage
+
+Artificial intelligence tools were used during parts of the frontend development process.
+
+Project-level AI usage and source-code classification are documented in [AI_DECLARATION.md](../AI_DECLARATION.md).

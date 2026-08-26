@@ -1,3 +1,11 @@
+/*
+ * AI Usage Declaration:
+ * [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-11 to 2026-08-17]
+ * AI assistance was used extensively to refine dashboard logic, payment-status
+ * summary behaviour, recurring-cost calculations, achievement logic,
+ * interactive chart behaviour, and filtered navigation to the commitments page.
+ */
+
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useOutletContext } from "react-router";
 import {
@@ -184,10 +192,12 @@ function DashboardPage() {
     loadCurrentMonthPayments();
   }, []);
 
+  /* Opens the commitments page with the selected current-month payment-status filter. */
   function openMonthlyPaymentStatus(status) {
     navigate(`/commitments?payment_cycle_status=${status}`);
   }
 
+  /* Builds the paid, pending, and overdue totals for the current-month payment summary. */
   const paymentStatusSummary = currentMonthPayments.reduce(
     (summary, payment) => {
       const status =
@@ -234,6 +244,7 @@ function DashboardPage() {
     paymentStatusSummary.overdue.amount,
   );
 
+  /* Groups current-month payments by status for the chart preview and filtered navigation. */
   const paymentStatusPayments = {
     paid: currentMonthPayments.filter(
       (payment) =>
@@ -288,6 +299,7 @@ function DashboardPage() {
       commitment.payment_frequency !== "one_off",
   );
 
+  /* Converts recurring commitments to a monthly estimate for the Premium insights cards. */
   const monthlyRecurringCost = recurringCommitments.reduce(
     (total, commitment) => {
       const amount = Number.parseFloat(commitment.amount) || 0;
@@ -366,6 +378,7 @@ function DashboardPage() {
       .filter(Boolean),
   ).size;
 
+  /* Achievement progress is derived from live dashboard totals and Premium-only dashboard data. */
   const achievements = [
     {
       id: "first-step",

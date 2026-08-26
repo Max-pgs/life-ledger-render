@@ -1,3 +1,18 @@
+"""
+API views for commitment management, dashboard filtering, payment history,
+templates, guided setup, and checklist functionality.
+
+AI Usage Declaration:
+This file was developed with assistance from ChatGPT.
+AI assistance was primarily used for general guidance on Django REST Framework
+view structure, queryset filtering, and implementation approaches.
+
+AI assistance period: 2026-07-29 to 2026-08-16.
+
+The final implementation was reviewed, adapted, and tested before inclusion
+in the project.
+"""
+
 from django.utils import timezone
 from django.db.models import DateField, ExpressionWrapper, F, Prefetch
 from django.shortcuts import get_object_or_404
@@ -66,7 +81,7 @@ class CommitmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         
     def get_queryset(self):
         return Commitment.objects.filter(
-            user=self.request.user,
+            user = self.request.user,
         )
         
     def update(self, request, *args, **kwargs):
@@ -77,7 +92,7 @@ class CommitmentDetailView(generics.RetrieveUpdateDestroyAPIView):
                 {
                     "detail": "Archived commitments cannot be edited."
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status = status.HTTP_400_BAD_REQUEST,
             )
 
         return super().update(request, *args, **kwargs)
@@ -91,13 +106,13 @@ class CommitmentDetailView(generics.RetrieveUpdateDestroyAPIView):
                 {
                     "detail": "Only archived commitments can be deleted."
                 },
-                status=status.HTTP_400_BAD_REQUEST,
+                status = status.HTTP_400_BAD_REQUEST,
             )
 
         commitment.delete()
 
         return Response(
-            status=status.HTTP_204_NO_CONTENT,
+            status = status.HTTP_204_NO_CONTENT,
         )
         
 class UpcomingCommitmentListView(generics.ListAPIView):
@@ -130,6 +145,7 @@ class OverdueCommitmentListView(generics.ListAPIView):
             user = self.request.user,
             is_archived = False,
             due_date__lt = today,
+            # Exclude paid and non-payment commitments even when their due date has passed.
             payment_status__in = [
                 Commitment.PaymentStatus.PENDING,
                 Commitment.PaymentStatus.OVERDUE,
@@ -311,6 +327,8 @@ class ReviewSoonCommitmentListView(generics.ListAPIView):
         today = timezone.localdate()
         review_limit = today + timedelta(days = 30)
         
+        # Calculate the cancellation deadline in the database so it can be filtered
+        # and ordered without loading each commitment into Python.
         cancellation_deadline = ExpressionWrapper(
             F("contract_end_date") - F("notice_period_days"),
             output_field = DateField(),

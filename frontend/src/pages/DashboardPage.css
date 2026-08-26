@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [AI-ASSISTED: ChatGPT, 2026-08-16 to 2026-08-17]
+ * AI assistance was used to troubleshoot and refine dashboard component
+ * positioning and responsive layout after UI changes.
+ */
+
 .dashboard-page {
   width: 100%;
   max-width: 1180px;
@@ -608,6 +615,7 @@
   font-size: 0.9rem;
 }
 
+/* Places the payment summary and upcoming commitments side by side on wider screens. */
 .dashboard-overview-grid {
   display: grid;
   grid-template-columns: minmax(420px, 0.95fr) minmax(480px, 1.25fr);
@@ -1045,8 +1053,6 @@
   border-radius: 6px;
 }
 
-
-
 .dashboard-payment-status__legend-item:last-child {
   border-bottom: 0;
 }
@@ -1101,6 +1107,7 @@
   font-size: 0.75rem;
 }
 
+/* Uses named grid areas to keep support cards and achievements aligned across layouts. */
 .dashboard-support-grid {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);

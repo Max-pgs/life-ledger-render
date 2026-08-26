@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [AI-ASSISTED: ChatGPT, 2026-08-04]
+ * AI assistance was used for minor guidance on nested React Router
+ * structure and protected layout routing.
+ */
+
 import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 
 import DashboardPage from "./pages/DashboardPage";

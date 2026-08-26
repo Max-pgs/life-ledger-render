@@ -35,10 +35,15 @@ function ForgottenChecklistPage() {
         loadChecklist();
     }, []);
 
+    /* [AI-ASSISTED: ChatGPT, 2026-08-11 to 2026-08-16]
+    * Minor assistance was used to refine checklist status updates
+    * and the Not relevant / Restore behaviour.
+    */
     async function handleNotRelevant(templateId) {
         try {
             await markChecklistTemplateNotRelevant(templateId);
 
+            /* Updates the local checklist immediately after the API change without reloading the page. */
             setTemplates((currentTemplates) =>
                 currentTemplates.map((template) =>
                     template.id === templateId
@@ -76,6 +81,7 @@ function ForgottenChecklistPage() {
             );
         }
     }
+    /* [END AI-ASSISTED SECTION] */
 
     if (isLoading) {
         return (
@@ -108,6 +114,7 @@ function ForgottenChecklistPage() {
             )
             : templates;
 
+    /* Groups visible checklist items by commitment group for section rendering. */
     const groupedTemplates = visibleTemplates.reduce(
         (groups, template) => {
             const groupName = template.group_name || "Other";

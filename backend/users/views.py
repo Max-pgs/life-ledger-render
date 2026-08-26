@@ -1,3 +1,17 @@
+"""
+API views for authentication, account management, and Premium plan controls.
+
+AI Usage Declaration:
+This file was developed with assistance from ChatGPT.
+AI assistance was used for general guidance on account management and
+separating Free and Premium user behaviour.
+
+AI assistance period: 2026-08-11 to 2026-08-16.
+
+The final implementation was reviewed, adapted, tested, and understood
+before inclusion in the project.
+"""
+
 from rest_framework import generics, status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -57,6 +71,7 @@ class AccountView(generics.RetrieveAPIView):
     serializer_class = AccountSerializer
     permission_classes = [IsAuthenticated]
 
+    # Create a missing profile defensively for users created before profiles were introduced.
     def get_object(self):
         user = self.request.user
 

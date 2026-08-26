@@ -37,6 +37,10 @@ function CommitmentForm({
     const [errors, setErrors] = useState({});
     const [commitmentType, setCommitmentType] = useState("personal");
 
+    /* [AI-ASSISTED: ChatGPT, 2026-08-07 to 2026-08-16]
+    * AI assistance was used to refine form state updates, deadline calculation,
+    * payload preparation, and submission handling.
+    */
     function handleChange(event) {
         const { name, value } = event.target;
 
@@ -101,6 +105,7 @@ function CommitmentForm({
             setIsSubmitting(false);
         }
     }
+    /* [END AI-ASSISTED SECTION] */
 
     const cancellationDeadline = getCancellationDeadline();
     const selectedGroup = groups.find(
@@ -196,6 +201,7 @@ function CommitmentForm({
                         </div>
                     )}
 
+                    {/* Premium commitment type is a visual prototype and is not persisted. */}
                     {accountPlan === "premium" && (
                         <div className="commitment-form__field commitment-form__field--premium-preview">
                             <div className="commitment-form__premium-heading">

@@ -9,6 +9,7 @@ function CommitmentDetailPage() {
   const { commitmentId } = useParams();
   const [searchParams] = useSearchParams();
 
+  /* Preserves the archived-list context when returning from commitment details. */
   const backPath =
     searchParams.get("from") === "archived"
       ? "/commitments?view=archived"
@@ -43,7 +44,9 @@ function CommitmentDetailPage() {
 
     loadCommitment();
   }, [commitmentId]);
-
+  /* [AI-ASSISTED: ChatGPT, 2026-08-07]
+  * Minor assistance was used to format date-only API values without timezone shifts.
+  */
   /* Formats date-only API values without shifting them across time zones. */
   function formatDate(dateValue) {
     if (!dateValue) {

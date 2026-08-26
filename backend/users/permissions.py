@@ -10,6 +10,7 @@ class IsPremiumUser(BasePermission):
         if not request.user or not request.user.is_authenticated:
             return False
 
+        # Use an existence check so users without a profile are denied safely.
         return UserProfile.objects.filter(
             user = request.user,
             plan = AccountPlan.PREMIUM,

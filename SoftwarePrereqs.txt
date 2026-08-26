@@ -1,0 +1,263 @@
+Life Ledger
+SoftwarePrereqs.txt
+
+Purpose
+-------
+This file describes the software prerequisites, dependency versions and local setup required
+for a competent IT professional to run the Life Ledger application from the submitted code package.
+
+
+1. Overall Software Stack
+-------------------------
+
+Project type:
+    Full-stack responsive web application
+
+Frontend:
+    React 19.2.8
+    React Router 8.3.0
+    Vite 8.2.0
+    JavaScript
+    Custom CSS
+
+Backend:
+    Python 3.11
+    Django 5.2.16
+    Django REST Framework 3.17.1
+    Django Token Authentication
+    Gunicorn 26.0.0
+
+Database:
+    PostgreSQL 17
+
+Local development:
+    Docker / Docker Compose
+    Vite development server
+
+Production deployment:
+    Render
+    Gunicorn backend service
+    Render PostgreSQL database
+    Render static frontend service
+
+Testing:
+    Django test framework / Django REST Framework API testing
+    Vitest 4.1.10
+    React Testing Library 16.3.2
+    jsdom 29.1.1
+
+
+2. Software Required on the Local Computer
+------------------------------------------
+
+Required:
+    Docker Desktop
+        https://www.docker.com/products/docker-desktop/
+
+    Node.js 22.22 or later
+        https://nodejs.org/
+
+Optional:
+    Git, if cloning the repository rather than downloading the ZIP package
+        https://git-scm.com/downloads
+
+Recommended:
+    A web browser such as Chrome, Edge, Firefox or Safari.
+
+Python and PostgreSQL do not need to be installed separately for the standard local setup.
+The Django backend and PostgreSQL database run through Docker.
+
+
+3. Backend Python Dependencies
+------------------------------
+
+The authoritative backend dependency manifest is:
+
+    backend/requirements.txt
+
+Current pinned packages:
+
+    asgiref==3.12.1
+    Django==5.2.16
+    django-cors-headers==4.9.0
+    django-environ==0.14.0
+    djangorestframework==3.17.1
+    psycopg==3.3.4
+    psycopg-binary==3.3.4
+    sqlparse==0.5.5
+    typing_extensions==4.16.0
+    tzdata==2026.3
+    dj-database-url==3.1.2
+    gunicorn==26.0.0
+    whitenoise==6.12.0
+    python-dateutil==2.9.0.post0
+
+
+4. Frontend Dependencies
+------------------------
+
+The authoritative frontend dependency manifests are:
+
+    frontend/package.json
+    frontend/package-lock.json
+
+Runtime dependencies:
+
+    react==19.2.8
+    react-dom==19.2.8
+    react-router==8.3.0
+
+Development/testing dependencies:
+
+    @eslint/js==10.0.1
+    @testing-library/jest-dom==7.0.1
+    @testing-library/react==16.3.2
+    @testing-library/user-event==14.6.4
+    @types/react==19.2.17
+    @types/react-dom==19.2.3
+    @vitejs/plugin-react==6.0.4
+    eslint==10.8.0
+    eslint-plugin-react-hooks==7.1.1
+    eslint-plugin-react-refresh==0.5.3
+    globals==17.7.0
+    jsdom==29.1.1
+    vite==8.2.0
+    vitest==4.1.10
+
+The package.json file uses compatible-version ranges for npm packages. The submitted
+package-lock.json records the resolved dependency tree used by npm install / npm ci.
+
+
+5. Local Installation and Startup
+---------------------------------
+
+A. Obtain the source code
+
+Public GitHub mirror:
+
+    https://github.com/Max-pgs/life-ledger-render
+
+Clone with Git:
+
+    git clone https://github.com/Max-pgs/life-ledger-render.git
+    cd life-ledger-render
+
+Alternatively, download the repository as a ZIP file and extract it.
+
+
+B. Configure the local backend environment
+
+The repository contains a root .env.example file.
+
+Windows PowerShell:
+
+    Copy-Item .env.example .env
+
+macOS / Linux:
+
+    cp .env.example .env
+
+
+C. Start PostgreSQL and the Django backend
+
+Ensure Docker Desktop is running.
+
+From the project root:
+
+    docker compose up --build
+
+The Docker configuration starts the PostgreSQL database and Django backend.
+Database migrations are applied automatically when the backend container starts.
+
+The backend API runs on port 8000 and is used by the React frontend.
+The root backend URL is not a user-facing page.
+
+Optional Django admin interface:
+
+    http://localhost:8000/admin/
+
+If a local administrator account is required:
+
+    docker compose exec backend python manage.py createsuperuser
+
+
+D. Start the React frontend
+
+Open a second terminal:
+
+    cd frontend
+    npm install
+    npm run dev
+
+The frontend normally runs at:
+
+    http://localhost:5173
+
+Open this address in a browser to use Life Ledger locally.
+
+The frontend falls back to the local API address:
+
+    http://127.0.0.1:8000/api
+
+A frontend .env file is therefore not required for the standard local setup.
+If a different API endpoint is required, frontend/.env.example can be copied to frontend/.env
+and VITE_API_BASE_URL can be changed.
+
+
+6. Testing and Validation
+-------------------------
+
+Backend automated tests:
+
+    docker compose exec backend python manage.py test
+
+Final verified backend regression suite:
+    124 automated tests passed.
+
+Frontend automated tests:
+
+    cd frontend
+    npm run test:run
+
+Final verified focused frontend suite:
+    8 automated tests passed.
+
+Frontend linting:
+
+    npm run lint
+
+Production build validation:
+
+    npm run build
+
+
+7. Production Deployment Information
+------------------------------------
+
+The submitted render.yaml defines the Render deployment.
+
+Backend:
+    Python 3.11.9 on Render
+    Build command: bash build.sh
+    Pre-deploy command: python manage.py migrate
+    Start command: gunicorn config.wsgi:application --bind 0.0.0.0:$PORT
+
+Frontend:
+    Static Render service
+    Build command: npm ci && npm run build
+    Output directory: frontend/dist
+
+Database:
+    Render PostgreSQL
+
+Live application:
+    https://lifeledger-frontend.onrender.com/
+
+
+8. Additional Notes
+-------------------
+
+- GitLab is the source-of-truth repository used for project development and evidence.
+- GitHub is used as a public mirror for Render deployment and convenient source-code access.
+- README.md contains the user-facing project overview and local setup summary.
+- AI_DECLARATION.md documents project-level AI assistance and source-code classification.

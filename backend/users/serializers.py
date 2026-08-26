@@ -1,3 +1,17 @@
+"""
+Serializers for user registration, authentication, and account information.
+
+AI Usage Declaration:
+This file was developed with assistance from ChatGPT.
+AI assistance was used for general guidance on account and plan-related
+serialization and implementation.
+
+AI assistance date: 2026-08-11.
+
+The final implementation was reviewed, adapted, tested, and understood
+before inclusion in the project.
+"""
+
 from django.contrib.auth import get_user_model, authenticate
 from django.contrib.auth.password_validation import validate_password as django_validate_password
 from rest_framework import serializers

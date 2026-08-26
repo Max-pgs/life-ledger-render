@@ -1,3 +1,4 @@
+"""Django admin configuration for commitments, templates and related guidance."""
 from django.contrib import admin
 
 from .models import CommitmentGroup, CommitmentTemplate, Commitment, Status

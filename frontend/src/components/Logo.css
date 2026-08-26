@@ -32,6 +32,9 @@
   overflow: visible;
 }
 
+/* [AI-ASSISTED: ChatGPT, 2026-08-04]
+ * AI assistance was used to refine SVG scaling and animation behaviour.
+*/
 /* Keeps both SVG letters scalable and independently animatable. */
 .logo__letter {
   fill: none;

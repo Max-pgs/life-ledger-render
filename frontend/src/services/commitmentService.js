@@ -22,6 +22,9 @@ async function parseResponse(response) {
   return data;
 }
 
+/* [AI-ASSISTED: ChatGPT, 2026-08-07]
+ * AI assistance was used to structure this reusable API request helper.
+ */
 async function apiRequest(path, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...options,

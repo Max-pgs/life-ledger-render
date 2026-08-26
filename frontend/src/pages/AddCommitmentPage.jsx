@@ -1,3 +1,10 @@
+/*
+ * AI Usage Declaration:
+ * [AI-ASSISTED: ChatGPT, 2026-08-16]
+ * Minor assistance was used for guided-setup navigation handlers
+ * and resetting the form when templates change.
+ */
+
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 
@@ -168,6 +175,7 @@ function AddCommitmentPage() {
         template_id: selectedTemplateId || null,
       });
 
+    /* Keeps saved commitment IDs so returning to a guided step updates instead of duplicating it. */
     const updatedGuidedSetupCommitmentIds = {
       ...guidedSetupCommitmentIds,
       [selectedTemplateId]: savedCommitment.id,
@@ -507,13 +515,13 @@ function AddCommitmentPage() {
           </span>
         </div>
       )}
-      {/* Remounts the form when the selected template changes so initial values are reset. */}
       {isLoadingGuidedCommitment && (
         <p className="add-commitment-page__loading">
           Loading commitment...
         </p>
       )}
       {!isLoadingGuidedCommitment && (
+        /* Remounts the form when the selected template changes so initial values are reset. */
         <CommitmentForm
           key={
             existingGuidedCommitment

@@ -1,3 +1,8 @@
+# AI Usage Declaration:
+# [SIGNIFICANT AI ASSISTANCE: ChatGPT, 2026-08-03]
+# AI assistance was used to create and configure the backend Docker
+# development environment. The configuration was reviewed and tested
+# as part of the project.
 FROM python:3.11-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
