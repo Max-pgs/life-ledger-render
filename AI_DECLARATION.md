@@ -33,20 +33,25 @@ The following classifications are used:
 - **AI-assisted** - AI was used for guidance, debugging, implementation support, or selected code sections, with the final code reviewed and adapted by Maksym Pehashev.
 - **Significant AI assistance** - AI contributed substantially to the implementation of the file or a major part of it, with the resulting code reviewed, revised where necessary, and tested by the student (Maksym Pehashev).
 
-| File / Area | Classification | AI Contribution | AI Assistance Date |
-| --- | --- | --- | --- |
+
 
 ### Root folder
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `.env.example` | AI-assisted | Environment variables and service configuration guidance | 23 Jul - 4 Aug 2026 |
 | `docker-compose.yml` | AI-assisted | Docker services, networking, ports, automatic migration startup guidance | 23 Jul - 24 Aug 2026 |
 | `render.yaml` | AI-assisted | Render deployment, port, database and frontend configuration guidance | 4 Aug 2026 |
 
 ### Backend
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `build.sh` | Manual | None | — |
 | `Dockerfile` | Significant AI assistance | Backend Docker environment configuration | 3 Aug 2026 |
 | `requirements.txt` | AI-assisted | Backend dependency and deployment package guidance | 23 Jul - 16 Aug 2026 |
 
 #### `backend/commitments/`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `admin.py` | Manual | No direct AI-generated code | — |
 | `apps.py` | Manual | No direct AI-generated code | — |
 | `models.py` | AI-assisted | Due-date calculation; template exclusion model | 11 Aug; 16 Aug 2026 |
@@ -56,19 +61,27 @@ The following classifications are used:
 | `views.py` | AI-assisted | General DRF view and queryset guidance | 29 Jul - 16 Aug 2026 |
 
 #### `backend/commitments/migrations`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `commitments/migrations/0021_seed_final_guidance_data.py` | Significant AI assistance | Final guidance, trusted-link and missing-template seed migration | 25 Aug 2026 |
 
 #### `backend/config/`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `settings.py` | AI-assisted | Render deployment and production configuration guidance | 4 Aug 2026 |
 | `urls.py` | Manual | None | — |
 
 #### `backend/guides/`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `admin.py` | Manual | None | — |
 | `apps.py` | Manual | None | — |
 | `models.py` | Manual | None | — |
 | `serializers.py` | Manual | None | — |
 
 #### `backend/users/`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `admin.py` | Manual | None | — |
 | `apps.py` | Manual | None | — |
 | `models.py` | Manual | None | — |
@@ -81,15 +94,21 @@ The following classifications are used:
 ### Frontend
 
 #### `frontend/`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `index.html` | Manual | None | — |
 | `package.json` | AI-assisted | Frontend testing dependencies and npm scripts | 16 Aug 2026 |
 | `vite.config.js` | AI-assisted | Vitest and jsdom test configuration | 16 Aug 2026 |
 
 #### `frontend/src`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `App.jsx` | AI-assisted | Minor nested React Router and protected layout guidance | 4 Aug 2026 |
 | `index.css` | Manual | None | — |
 
 #### `frontend/src/components`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `CommitmentForm.jsx` | AI-assisted | Form handling and date calculation | 7 - 16 Aug 2026 |
 | `LoginSuccessTransition.jsx` | Significant AI assistance | Login transition logic and animation phases | 4 Aug 2026 |
 | `LoginSuccessTransition.css` | Significant AI assistance | Login animation and timing refinement | 4 Aug 2026 |
@@ -98,10 +117,14 @@ The following classifications are used:
 | `ProtectedRoute.jsx` | Manual | None | — |
 
 #### `frontend/src/layout`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `DashboardLayout.jsx` | Manual | None | — |
 | `DashboardLayout.css` | Manual | None | — |
 
 #### `frontend/src/pages`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `AddCommitmentPage.css` | Manual | None | — |
 | `AddCommitmentPage.jsx` | AI-assisted | Guided setup navigation and form remount guidance | 16 Aug 2026 |
 | `CommitmentDetailPage.css` | Manual | None | — |
@@ -127,13 +150,19 @@ The following classifications are used:
 | `SettingsPage.css` | AI-assisted | Modal layout and responsive behaviour | 11 - 16 Aug 2026 |
 
 #### `frontend/src/routes`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `PremiumRoute.jsx` | Manual | None | — |
 
 #### `frontend/src/services`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `authService.js` | AI-assisted | Token authentication and API request guidance | 4 - 16 Aug 2026 |
 | `commitmentService.js` | AI-assisted | Reusable API request helper | 7 Aug 2026 |
 
 #### `frontend/src/test`
+| File / Area | Classification | AI Contribution | AI Assistance Date |
+| --- | --- | --- | --- |
 | `CommitmentForm.test.jsx` | Significant AI assistance | Test implementation support | 16 Aug 2026 |
 | `CommitmentsPage.test.jsx` | Significant AI assistance | Test implementation and mocks | 16 Aug 2026 |
 | `DashboardPage.test.jsx` | Significant AI assistance | Test implementation and routing | 16 Aug 2026 |
