@@ -107,6 +107,18 @@ function GuidesPage() {
                     <article className="guides-page__content">
                         <div className="guides-page__content-header">
                             <h2>{selectedGroup.name}</h2>
+                            {selectedGroup.last_reviewed_at && (
+                                <p className="guides-page__review-date">
+                                    Last reviewed:{" "}
+                                    {new Date(
+                                        `${selectedGroup.last_reviewed_at}T00:00:00`,
+                                    ).toLocaleDateString("en-GB", {
+                                        day: "numeric",
+                                        month: "long",
+                                        year: "numeric",
+                                    })}
+                                </p>
+                            )}
 
                             <div className="guides-page__description">
                                 {selectedGroup.description
@@ -139,18 +151,7 @@ function GuidesPage() {
                             </section>
                         )}
 
-                        {selectedGroup.last_reviewed_at && (
-                            <p className="guides-page__review-date">
-                                Last reviewed:{" "}
-                                {new Date(
-                                    `${selectedGroup.last_reviewed_at}T00:00:00`,
-                                ).toLocaleDateString("en-GB", {
-                                    day: "numeric",
-                                    month: "long",
-                                    year: "numeric",
-                                })}
-                            </p>
-                        )}
+
 
                         <div className="guidance-warning">
                             <img

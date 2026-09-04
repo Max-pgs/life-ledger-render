@@ -123,79 +123,30 @@ export function deleteCommitment(commitmentId) {
   });
 }
 
-export async function getUpcomingCommitments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/upcoming/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getUpcomingCommitments() {
+  return apiRequest("/commitments/upcoming/");
 }
 
-export async function getOverdueCommitments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/overdue/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getOverdueCommitments() {
+  return apiRequest("/commitments/overdue/");
 }
 
-export async function getHighPriorityCommitments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/high-priority/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getHighPriorityCommitments() {
+  return apiRequest("/commitments/high-priority/");
 }
 
-export async function getReviewSoonCommitments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/review-soon/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getReviewSoonCommitments() {
+  return apiRequest("/commitments/review-soon/");
 }
 
-export async function getCurrentMonthPayments() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/payments/current-month/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getCurrentMonthPayments() {
+  return apiRequest("/commitments/payments/current-month/");
 }
 
-export async function getCommitmentPayments(commitmentId) {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/${commitmentId}/payments/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getCommitmentPayments(commitmentId) {
+  return apiRequest(`/commitments/${commitmentId}/payments/`);
 }
 
-export async function getPaymentHistory() {
-  const response = await fetch(
-    `${API_BASE_URL}/commitments/payments/history/`,
-    {
-      headers: getAuthHeaders(),
-    },
-  );
-
-  return parseResponse(response);
+export function getPaymentHistory() {
+  return apiRequest("/commitments/payments/history/");
 }

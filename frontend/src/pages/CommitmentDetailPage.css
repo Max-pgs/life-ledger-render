@@ -91,15 +91,16 @@
 
 .commitment-detail-page__guide-link {
   display: inline-flex;
-  margin-top: 6px;
+  margin-top: 7px;
   color: #9ed7b0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  text-decoration: none;
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .commitment-detail-page__guide-link:hover {
-  text-decoration: underline;
+  color: #b7e6c5;
 }
 
 .commitment-detail {
