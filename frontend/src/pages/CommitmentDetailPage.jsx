@@ -108,7 +108,7 @@ function CommitmentDetailPage() {
                 className="commitment-detail-page__guide-link"
                 to={`/guides?group=${commitment.group.id}`}
               >
-                View full guide
+                View full guide →
               </Link>
             )}
           </div>
