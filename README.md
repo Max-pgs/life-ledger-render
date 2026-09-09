@@ -72,7 +72,7 @@ Clone the repository using Git, or download and extract the project ZIP file.
 
 ```bash
 git clone https://github.com/Max-pgs/life-ledger-render.git
-cd life-ledger-render
+cd life-ledger-render-main
 ```
 
 Alternatively, download the project as a ZIP file from GitHub and extract it locally.
