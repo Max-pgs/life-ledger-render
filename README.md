@@ -117,6 +117,7 @@ Continue with the frontend setup below and open the frontend application in the 
 Open a second terminal and run:
 
 ```bash
+cd life-ledger-render-main
 cd frontend
 npm install
 npm run dev
