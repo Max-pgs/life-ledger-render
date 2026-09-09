@@ -141,9 +141,10 @@ The Django admin interface is available locally at:
 http://localhost:8000/admin/
 ```
 
-If no local administrator account exists, create one from the project root:
+If no local administrator account exists, open a new terminal, and create one from the project root:
 
 ```bash
+cd life-ledger-render-main
 docker compose exec backend python manage.py createsuperuser
 ```
 
