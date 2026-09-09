@@ -140,7 +140,7 @@ Public GitHub mirror:
 Clone with Git:
 
     git clone https://github.com/Max-pgs/life-ledger-render.git
-    cd life-ledger-render
+    cd life-ledger-render-main
 
 Alternatively, download the repository as a ZIP file and extract it.
 
