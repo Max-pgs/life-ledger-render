@@ -204,6 +204,18 @@ A frontend .env file is therefore not required for the standard local setup.
 If a different API endpoint is required, frontend/.env.example can be copied to frontend/.env
 and VITE_API_BASE_URL can be changed.
 
+Optional: Django Admin
+The Django admin interface is available locally at:
+
+http://localhost:8000/admin/
+If no local administrator account exists, open a new terminal, and create one from the project root:
+
+cd life-ledger-render-main
+docker compose exec backend python manage.py createsuperuser
+Follow the prompts to create the administrator account, then use the created credentials to sign in to the Django admin interface.
+
+The admin interface can be used to manage application data such as commitment groups, templates and guidance content.
+
 
 6. Testing and Validation
 -------------------------
