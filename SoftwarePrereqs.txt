@@ -185,6 +185,7 @@ D. Start the React frontend
 
 Open a second terminal:
 
+    cd life-ledger-render-main
     cd frontend
     npm install
     npm run dev
